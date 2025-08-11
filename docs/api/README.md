@@ -1,0 +1,337 @@
+# API Documentation
+
+## Overview
+
+SocioPay uses Next.js Server Actions for secure, type-safe API operations. All authentication-related operations are handled through validated server actions.
+
+## Server Actions
+
+### Authentication Actions (`app/(auth)/actions.ts`)
+
+#### `signIn(data: SignInData)`
+
+Authenticates a user with email and password.
+
+**Parameters:**
+
+```typescript
+type SignInData = {
+	email: string; // Valid email address
+	password: string; // Minimum 6 characters
+};
+```
+
+**Returns:**
+
+```typescript
+type ActionState = {
+	success: boolean;
+	message: string;
+	data?: {
+		user: User;
+		token: string;
+	};
+	errors?: Record<string, string[]>;
+};
+```
+
+**Example Usage:**
+
+```typescript
+import { signIn } from "@/app/(auth)/actions";
+
+const result = await signIn({
+	email: "user@example.com",
+	password: "password123",
+});
+
+if (result.success) {
+	// User authenticated successfully
+	console.log("Welcome", result.data?.user.name);
+} else {
+	// Handle authentication error
+	console.error(result.message);
+}
+```
+
+**Behavior:**
+
+-   Validates input using `signInSchema`
+-   Calls Better Auth API for authentication
+-   Sets secure session cookie on success
+-   Returns user data and session token
+-   Handles authentication errors gracefully
+
+#### `signUp(data: SignUpData)`
+
+Creates a new user account with community-specific fields.
+
+**Parameters:**
+
+```typescript
+type SignUpData = {
+	fullName: string; // Minimum 2 characters
+	houseNumber: string; // Format: A-1, B-9, C-23
+	email: string; // Valid email address
+	phone: string; // 10-digit number
+	password: string; // Minimum 6 characters
+	confirmPassword: string; // Must match password
+};
+```
+
+**Returns:**
+
+```typescript
+type ActionState = {
+	success: boolean;
+	message: string;
+	data?: {
+		user: User;
+		token: string;
+	};
+	errors?: Record<string, string[]>;
+};
+```
+
+**Example Usage:**
+
+```typescript
+import { signUp } from "@/app/(auth)/actions";
+
+const result = await signUp({
+	fullName: "John Doe",
+	houseNumber: "A-10",
+	email: "john@example.com",
+	phone: "9876543210",
+	password: "password123",
+	confirmPassword: "password123",
+});
+
+if (result.success) {
+	// Account created successfully
+	console.log("Account created for", result.data?.user.name);
+} else {
+	// Handle registration errors
+	if (result.errors) {
+		Object.entries(result.errors).forEach(([field, messages]) => {
+			console.error(`${field}: ${messages.join(", ")}`);
+		});
+	}
+}
+```
+
+**Behavior:**
+
+-   Validates all input fields using `signUpSchema`
+-   Checks password confirmation match
+-   Validates house number format and uniqueness
+-   Creates user account via Better Auth
+-   Sets session cookie for immediate login
+-   Returns user data and session token
+
+## Action Helpers
+
+### `validatedAction<T, K>(schema, action)`
+
+Utility function that wraps server actions with Zod validation.
+
+**Parameters:**
+
+-   `schema`: Zod schema for input validation
+-   `action`: Async function to execute with validated data
+
+**Returns:**
+
+-   Function that validates input and executes action
+-   Standardized error handling for validation failures
+
+**Example:**
+
+```typescript
+import { validatedAction } from "@/lib/action-helpers";
+import { z } from "zod";
+
+const mySchema = z.object({
+	name: z.string().min(1),
+	age: z.number().min(0),
+});
+
+const myAction = validatedAction(mySchema, async data => {
+	// data is automatically typed and validated
+	return {
+		success: true,
+		message: `Hello ${data.name}, age ${data.age}`,
+	};
+});
+```
+
+## Error Handling
+
+### Error Response Format
+
+All server actions return a consistent error format:
+
+```typescript
+type ActionState = {
+	success: false;
+	message: string; // Human-readable error message
+	errors?: Record<string, string[]>; // Field-specific validation errors
+};
+```
+
+### Error Types
+
+#### Validation Errors
+
+```typescript
+{
+  success: false,
+  message: "Validation failed",
+  errors: {
+    email: ["Please enter a valid email address."],
+    password: ["Password must be at least 6 characters."]
+  }
+}
+```
+
+#### Authentication Errors
+
+```typescript
+{
+  success: false,
+  message: "Invalid email or password"
+}
+```
+
+#### Server Errors
+
+```typescript
+{
+  success: false,
+  message: "An unexpected error occurred"
+}
+```
+
+## Session Management
+
+### Cookie Configuration
+
+Server actions automatically manage session cookies:
+
+```typescript
+cookieStore.set({
+	name: "better-auth.session_token",
+	value: response.token,
+	httpOnly: true,
+	secure: process.env.NODE_ENV === "production",
+	sameSite: "lax",
+	maxAge: 60 * 60 * 24 * 7, // 7 days
+});
+```
+
+### Session Properties
+
+-   **Duration**: 7 days
+-   **Security**: HTTP-only, secure in production
+-   **CSRF Protection**: SameSite lax policy
+-   **Automatic Cleanup**: Expired sessions removed automatically
+
+## Type Safety
+
+### Schema Validation
+
+All server actions use Zod schemas for type-safe validation:
+
+```typescript
+// Input validation
+const signInSchema = z.object({
+	email: z.string().email(),
+	password: z.string().min(6),
+});
+
+// Type inference
+type SignInData = z.infer<typeof signInSchema>;
+```
+
+### Return Types
+
+Consistent return types across all actions:
+
+```typescript
+type ActionState<T = any> = {
+	success: boolean;
+	message: string;
+	data?: T;
+	errors?: Record<string, string[]>;
+};
+```
+
+## Security Considerations
+
+### Input Validation
+
+-   All inputs validated on both client and server
+-   Zod schemas prevent invalid data processing
+-   SQL injection prevention through parameterized queries
+
+### Authentication Security
+
+-   Passwords never stored in plain text
+-   Session tokens are cryptographically secure
+-   Automatic session expiration
+-   CSRF protection via SameSite cookies
+
+### Error Security
+
+-   Generic error messages prevent information disclosure
+-   Detailed validation errors only for client-side feedback
+-   Server errors logged but not exposed to client
+
+## Best Practices
+
+### Using Server Actions
+
+1. **Always validate input** using Zod schemas
+2. **Handle errors gracefully** with proper user feedback
+3. **Use TypeScript** for type safety
+4. **Implement loading states** for better UX
+5. **Follow security best practices** for sensitive operations
+
+### Example Implementation
+
+```typescript
+"use client";
+
+import { useState, useTransition } from "react";
+import { signIn } from "@/app/(auth)/actions";
+
+export function LoginForm() {
+	const [isPending, startTransition] = useTransition();
+	const [result, setResult] = useState(null);
+
+	const handleSubmit = (formData: FormData) => {
+		startTransition(async () => {
+			const data = {
+				email: formData.get("email") as string,
+				password: formData.get("password") as string,
+			};
+
+			const result = await signIn(data);
+			setResult(result);
+
+			if (result.success) {
+				// Handle success (redirect, etc.)
+			}
+		});
+	};
+
+	return (
+		<form action={handleSubmit}>
+			{/* Form fields */}
+			<button disabled={isPending}>
+				{isPending ? "Signing in..." : "Sign In"}
+			</button>
+		</form>
+	);
+}
+```
