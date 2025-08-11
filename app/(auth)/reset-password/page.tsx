@@ -1,0 +1,380 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useState, useTransition, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+	InputOTP,
+	InputOTPGroup,
+	InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { resetPassword } from "../actions";
+import { resetPasswordSchema } from "@/lib/schemas";
+import { motion as m } from "motion/react";
+import Link from "next/link";
+import LiquidChrome from "@/components/ui/Backgrounds/LiquidChrome/LiquidChrome";
+import { Eye, EyeOff, LoaderCircle, ArrowLeft } from "lucide-react";
+
+function ResetPasswordForm() {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+
+	const [isPending, startTransition] = useTransition();
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const [actionResult, setActionResult] = useState<{
+		success: boolean;
+		message: string;
+		errors?: Record<string, string[]>;
+	} | null>(null);
+
+	const form = useForm<z.infer<typeof resetPasswordSchema>>({
+		resolver: zodResolver(resetPasswordSchema),
+		defaultValues: {
+			email: "",
+			otp: "",
+			password: "",
+			confirmPassword: "",
+		},
+	});
+
+	// Pre-fill email if provided in query params
+	useEffect(() => {
+		const email = searchParams.get("email");
+		if (email) {
+			form.setValue("email", email);
+		}
+	}, [searchParams, form]);
+
+	function onSubmit(values: z.infer<typeof resetPasswordSchema>) {
+		startTransition(async () => {
+			try {
+				const result = await resetPassword(values);
+				setActionResult(result);
+
+				if (result.success) {
+					// Redirect to login page after successful reset
+					setTimeout(() => {
+						router.push("/login");
+					}, 2000);
+					return;
+				}
+
+				if (result.errors) {
+					// Set form errors from validation
+					Object.entries(result.errors).forEach(
+						([field, messages]) => {
+							form.setError(field as any, {
+								type: "manual",
+								message: messages[0],
+							});
+						}
+					);
+				}
+			} catch (error) {
+				setActionResult({
+					success: false,
+					message: "An unexpected error occurred",
+				});
+			}
+		});
+	}
+
+	const MotionCard = m.create(Card);
+
+	return (
+		<div style={{ width: "100%", height: "100vh", position: "relative" }}>
+			<LiquidChrome
+				baseColor={[0.015, 0.015, 0.015]}
+				speed={0.07}
+				amplitude={2}
+				interactive={false}
+				frequencyX={1}
+				frequencyY={0.2}
+			/>
+			<div className='flex min-h-screen items-center justify-center absolute inset-0 pointer-events-none'>
+				<MotionCard
+					layoutId='authCard'
+					className='w-full max-w-md relative backdrop-blur-2xl bg-background/75 border-2 pointer-events-auto'
+				>
+					<CardHeader className='text-center'>
+						<CardTitle className='text-3xl font-bold'>
+							Reset Password
+						</CardTitle>
+						<CardDescription className='mt-2'>
+							Enter the code sent to your email and your new
+							password
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{actionResult && (
+							<div
+								className={`mb-4 p-3 text-sm rounded-md border ${
+									actionResult.success
+										? "text-green-600 bg-green-50 border-green-200"
+										: "text-destructive bg-destructive/10 border-destructive/20"
+								}`}
+							>
+								{actionResult.message}
+								{actionResult.success && (
+									<div className='mt-1 text-xs'>
+										Redirecting to login page...
+									</div>
+								)}
+							</div>
+						)}
+						<Form {...form}>
+							<form
+								onSubmit={form.handleSubmit(onSubmit)}
+								className='space-y-6'
+							>
+								<FormField
+									control={form.control}
+									name='email'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Email</FormLabel>
+											<FormControl>
+												<Input
+													type='email'
+													placeholder='Enter your email'
+													{...field}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<FormField
+									control={form.control}
+									name='otp'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>
+												Verification Code
+											</FormLabel>
+											<FormControl>
+												<InputOTP
+													maxLength={6}
+													{...field}
+													className='justify-center'
+												>
+													<InputOTPGroup className='w-full'>
+														<InputOTPSlot
+															className='flex-1'
+															index={0}
+														/>
+														<InputOTPSlot
+															className='flex-1'
+															index={1}
+														/>
+														<InputOTPSlot
+															className='flex-1'
+															index={2}
+														/>
+														<InputOTPSlot
+															className='flex-1'
+															index={3}
+														/>
+														<InputOTPSlot
+															className='flex-1'
+															index={4}
+														/>
+														<InputOTPSlot
+															className='flex-1'
+															index={5}
+														/>
+													</InputOTPGroup>
+												</InputOTP>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<FormField
+									control={form.control}
+									name='password'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>New Password</FormLabel>
+											<FormControl>
+												<div className='relative'>
+													<Input
+														type={
+															showPassword
+																? "text"
+																: "password"
+														}
+														placeholder='Enter new password'
+														{...field}
+														className='pr-12'
+													/>
+													<Button
+														type='button'
+														className='absolute inset-y-0 right-0 pr-3 flex items-center'
+														variant='outline'
+														onClick={() =>
+															setShowPassword(
+																!showPassword
+															)
+														}
+													>
+														{showPassword ? (
+															<EyeOff className='h-4 w-4 text-gray-400' />
+														) : (
+															<Eye className='h-4 w-4 text-gray-400' />
+														)}
+													</Button>
+												</div>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<FormField
+									control={form.control}
+									name='confirmPassword'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>
+												Confirm New Password
+											</FormLabel>
+											<FormControl>
+												<div className='relative'>
+													<Input
+														type={
+															showConfirmPassword
+																? "text"
+																: "password"
+														}
+														placeholder='Confirm new password'
+														{...field}
+														className='pr-12'
+													/>
+													<Button
+														type='button'
+														className='absolute inset-y-0 right-0 pr-3 flex items-center'
+														variant='outline'
+														onClick={() =>
+															setShowConfirmPassword(
+																!showConfirmPassword
+															)
+														}
+													>
+														{showConfirmPassword ? (
+															<EyeOff className='h-4 w-4 text-gray-400' />
+														) : (
+															<Eye className='h-4 w-4 text-gray-400' />
+														)}
+													</Button>
+												</div>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<Button
+									type='submit'
+									className='w-full'
+									disabled={isPending}
+								>
+									{isPending ? (
+										<>
+											<LoaderCircle className='mr-2 h-4 w-4 animate-spin' />
+											<m.span
+												layoutId='authSubmit'
+												layout='position'
+											>
+												Resetting Password
+											</m.span>
+										</>
+									) : (
+										<m.span
+											layoutId='authSubmit'
+											layout='position'
+										>
+											Reset Password
+										</m.span>
+									)}
+								</Button>
+							</form>
+						</Form>
+						<div className='text-center mt-6'>
+							<Link
+								href='/forgot-password'
+								className='inline-flex items-center text-sm font-medium text-primary'
+							>
+								<ArrowLeft className='mr-2 h-4 w-4' />
+								Back to Forgot Password
+							</Link>
+						</div>
+					</CardContent>
+				</MotionCard>
+			</div>
+		</div>
+	);
+}
+
+export default function ResetPasswordPage() {
+	return (
+		<Suspense
+			fallback={
+				<div
+					style={{
+						width: "100%",
+						height: "100vh",
+						position: "relative",
+					}}
+				>
+					<LiquidChrome
+						baseColor={[0.015, 0.015, 0.015]}
+						speed={0.07}
+						amplitude={2}
+						interactive={false}
+						frequencyX={1}
+						frequencyY={0.2}
+					/>
+					<div className='flex min-h-screen items-center justify-center absolute inset-0 pointer-events-none'>
+						<Card className='w-full max-w-md relative backdrop-blur-2xl bg-background/75 border-2 pointer-events-auto'>
+							<CardHeader className='text-center'>
+								<CardTitle className='text-3xl font-bold'>
+									Reset Password
+								</CardTitle>
+								<CardDescription className='mt-2'>
+									Loading...
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div className='flex justify-center'>
+									<LoaderCircle className='h-8 w-8 animate-spin' />
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+				</div>
+			}
+		>
+			<ResetPasswordForm />
+		</Suspense>
+	);
+}

@@ -5,8 +5,12 @@ import { validatedAction, ActionState } from "@/lib/action-helpers";
 import {
 	signInSchema,
 	signUpSchema,
+	forgotPasswordSchema,
+	resetPasswordSchema,
 	SignInData,
 	SignUpData,
+	ForgotPasswordData,
+	ResetPasswordData,
 } from "@/lib/schemas";
 import { headers } from "next/headers";
 
@@ -63,6 +67,63 @@ async function signUpAction(data: SignUpData): Promise<ActionState> {
 	}
 }
 
+// Password reset actions
+async function forgotPasswordAction(
+	data: ForgotPasswordData
+): Promise<ActionState> {
+	try {
+		await auth.api.forgetPasswordEmailOTP({
+			body: {
+				email: data.email,
+			},
+			headers: await headers(),
+		});
+
+		return {
+			success: true,
+			message: "Password reset code sent to your email",
+		};
+	} catch (error) {
+		console.error("Forgot password error:", error);
+		return {
+			success: false,
+			message:
+				error instanceof Error
+					? error.message
+					: "Failed to send reset code",
+		};
+	}
+}
+
+async function resetPasswordAction(
+	data: ResetPasswordData
+): Promise<ActionState> {
+	try {
+		await auth.api.resetPasswordEmailOTP({
+			body: {
+				email: data.email,
+				otp: data.otp,
+				password: data.password,
+			},
+			headers: await headers(),
+		});
+
+		return {
+			success: true,
+			message: "Password reset successfully",
+		};
+	} catch (error) {
+		console.error("Reset password error:", error);
+		return {
+			success: false,
+			message:
+				error instanceof Error
+					? error.message
+					: "Password reset failed",
+		};
+	}
+}
+
 // Exported validated actions
 export const signIn = validatedAction(signInSchema, async data => {
 	const result = await signInAction(data);
@@ -73,6 +134,22 @@ export const signUp = validatedAction(signUpSchema, async data => {
 	const result = await signUpAction(data);
 	return result;
 });
+
+export const forgotPassword = validatedAction(
+	forgotPasswordSchema,
+	async data => {
+		const result = await forgotPasswordAction(data);
+		return result;
+	}
+);
+
+export const resetPassword = validatedAction(
+	resetPasswordSchema,
+	async data => {
+		const result = await resetPasswordAction(data);
+		return result;
+	}
+);
 
 // Sign out action
 export async function signOut(): Promise<ActionState> {

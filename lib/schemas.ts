@@ -37,5 +37,34 @@ export const signUpSchema = z
 		path: ["confirmPassword"],
 	});
 
+// Password reset schemas
+export const forgotPasswordSchema = z.object({
+	email: z.string().email({
+		message: "Please enter a valid email address.",
+	}),
+});
+
+export const resetPasswordSchema = z
+	.object({
+		email: z.string().email({
+			message: "Please enter a valid email address.",
+		}),
+		otp: z.string().length(6, {
+			message: "OTP must be exactly 6 digits.",
+		}),
+		password: z.string().min(6, {
+			message: "Password must be at least 6 characters.",
+		}),
+		confirmPassword: z.string().min(6, {
+			message: "Please confirm your password.",
+		}),
+	})
+	.refine(data => data.password === data.confirmPassword, {
+		message: "Passwords don't match",
+		path: ["confirmPassword"],
+	});
+
 export type SignInData = z.infer<typeof signInSchema>;
 export type SignUpData = z.infer<typeof signUpSchema>;
+export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;

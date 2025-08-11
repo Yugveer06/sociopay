@@ -23,41 +23,43 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { signIn } from "../actions";
-import { signInSchema } from "@/lib/schemas";
+import { forgotPassword } from "../actions";
+import { forgotPasswordSchema } from "@/lib/schemas";
 import { motion as m } from "motion/react";
 import Link from "next/link";
 import LiquidChrome from "@/components/ui/Backgrounds/LiquidChrome/LiquidChrome";
-import { Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { LoaderCircle, ArrowLeft } from "lucide-react";
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
 	const router = useRouter();
 
 	const [isPending, startTransition] = useTransition();
-	const [showPassword, setShowPassword] = useState(false);
 	const [actionResult, setActionResult] = useState<{
 		success: boolean;
 		message: string;
 		errors?: Record<string, string[]>;
 	} | null>(null);
 
-	const form = useForm<z.infer<typeof signInSchema>>({
-		resolver: zodResolver(signInSchema),
+	const form = useForm<z.infer<typeof forgotPasswordSchema>>({
+		resolver: zodResolver(forgotPasswordSchema),
 		defaultValues: {
 			email: "",
-			password: "",
 		},
 	});
 
-	function onSubmit(values: z.infer<typeof signInSchema>) {
+	function onSubmit(values: z.infer<typeof forgotPasswordSchema>) {
 		startTransition(async () => {
 			try {
-				const result = await signIn(values);
+				const result = await forgotPassword(values);
 				setActionResult(result);
 
 				if (result.success) {
-					// Redirect on successful sign in
-					router.push("/dashboard");
+					// Redirect to reset password page with email
+					router.push(
+						`/reset-password?email=${encodeURIComponent(
+							values.email
+						)}`
+					);
 					return;
 				}
 
@@ -100,15 +102,21 @@ export default function LoginPage() {
 				>
 					<CardHeader className='text-center'>
 						<CardTitle className='text-3xl font-bold'>
-							Sign In
+							Forgot Password
 						</CardTitle>
 						<CardDescription className='mt-2'>
-							Sign in to your account
+							Enter your email to receive a reset code
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{actionResult && !actionResult.success && (
-							<div className='mb-4 p-3 text-sm rounded-md text-destructive bg-destructive/10 border-destructive/20 border'>
+						{actionResult && (
+							<div
+								className={`mb-4 p-3 text-sm rounded-md border ${
+									actionResult.success
+										? "text-green-600 bg-green-50 border-green-200 dark:bg-green-900 dark:border-green-800"
+										: "text-destructive bg-destructive/10 border-destructive/20"
+								}`}
+							>
 								{actionResult.message}
 							</div>
 						)}
@@ -134,53 +142,6 @@ export default function LoginPage() {
 										</FormItem>
 									)}
 								/>
-								<FormField
-									control={form.control}
-									name='password'
-									render={({ field }) => (
-										<FormItem>
-											<div className='flex justify-between gap-4'>
-												<FormLabel>Password</FormLabel>
-												<Link
-													href='/forgot-password'
-													className='text-sm font-medium text-primary'
-												>
-													Forgot your password?
-												</Link>
-											</div>
-											<FormControl>
-												<div className='relative'>
-													<Input
-														type={
-															showPassword
-																? "text"
-																: "password"
-														}
-														placeholder='Enter your password'
-														{...field}
-														className='pr-12'
-													/>
-													<Button
-														className='absolute inset-y-0 right-0 pr-3 flex items-center'
-														variant='outline'
-														onClick={() =>
-															setShowPassword(
-																!showPassword
-															)
-														}
-													>
-														{showPassword ? (
-															<EyeOff className='h-4 w-4 text-gray-400' />
-														) : (
-															<Eye className='h-4 w-4 text-gray-400' />
-														)}
-													</Button>
-												</div>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
 								<Button
 									type='submit'
 									className='w-full'
@@ -193,7 +154,7 @@ export default function LoginPage() {
 												layoutId='authSubmit'
 												layout='position'
 											>
-												Sign In
+												Sending Reset Code
 											</m.span>
 										</>
 									) : (
@@ -201,22 +162,20 @@ export default function LoginPage() {
 											layoutId='authSubmit'
 											layout='position'
 										>
-											Sign In
+											Send Reset Code
 										</m.span>
 									)}
 								</Button>
 							</form>
 						</Form>
-						<div className='text-center mt-6 space-y-4'>
-							<p className='text-sm'>
-								Don't have an account?{" "}
-								<Link
-									href='/signup'
-									className='font-medium text-primary'
-								>
-									Sign up
-								</Link>
-							</p>
+						<div className='text-center mt-6'>
+							<Link
+								href='/login'
+								className='inline-flex items-center text-sm font-medium text-primary'
+							>
+								<ArrowLeft className='mr-2 h-4 w-4' />
+								Back to Sign In
+							</Link>
 						</div>
 					</CardContent>
 				</MotionCard>

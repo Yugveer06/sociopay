@@ -8,6 +8,8 @@ export function validateBetterAuthEnv() {
 	const optionalEnvVars = {
 		BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
 		NODE_ENV: process.env.NODE_ENV,
+		RESEND_API_KEY: process.env.RESEND_API_KEY,
+		RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
 	};
 
 	const missing = Object.entries(requiredEnvVars)
@@ -17,6 +19,13 @@ export function validateBetterAuthEnv() {
 	if (missing.length > 0) {
 		throw new Error(
 			`Missing required environment variables: ${missing.join(", ")}`
+		);
+	}
+
+	// Warn about missing email configuration
+	if (!process.env.RESEND_API_KEY) {
+		console.warn(
+			"⚠️ RESEND_API_KEY not found. Email OTP will use console logging fallback."
 		);
 	}
 
