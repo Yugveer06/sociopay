@@ -1,7 +1,9 @@
 import { betterAuth } from "better-auth";
 import { admin, emailOTP } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
-import { Pool } from "pg";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "./db";
+import * as schema from "./schema";
 import { validateBetterAuthEnv } from "./env-check";
 import { sendOTPEmail } from "./email-service";
 
@@ -35,12 +37,14 @@ export const auth = betterAuth({
 		},
 	},
 	emailAndPassword: { enabled: true },
-	database: new Pool({
-		connectionString: process.env.DATABASE_URL,
-		ssl:
-			process.env.NODE_ENV === "production"
-				? { rejectUnauthorized: false }
-				: false,
+	database: drizzleAdapter(db, {
+		provider: "pg",
+		schema: {
+			user: schema.user,
+			account: schema.account,
+			session: schema.session,
+			verification: schema.verification,
+		},
 	}),
 	secret: process.env.BETTER_AUTH_SECRET,
 	baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
