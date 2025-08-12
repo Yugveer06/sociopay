@@ -129,6 +129,131 @@ if (result.success) {
 -   Sets session cookie for immediate login
 -   Returns user data and session token
 
+#### `forgotPassword(data: ForgotPasswordData)`
+
+Initiates password reset process by sending OTP to user's email.
+
+**Parameters:**
+
+```typescript
+type ForgotPasswordData = {
+	email: string; // Valid email address
+};
+```
+
+**Returns:**
+
+```typescript
+type ActionState = {
+	success: boolean;
+	message: string;
+};
+```
+
+**Example Usage:**
+
+```typescript
+import { forgotPassword } from "@/app/(auth)/actions";
+
+const result = await forgotPassword({
+	email: "user@example.com",
+});
+
+if (result.success) {
+	// OTP sent successfully
+	console.log("Reset code sent to email");
+}
+```
+
+**Behavior:**
+
+-   Validates email format
+-   Sends 6-digit OTP to user's email
+-   Returns success message
+
+#### `resetPassword(data: ResetPasswordData)`
+
+Resets user password using OTP verification.
+
+**Parameters:**
+
+```typescript
+type ResetPasswordData = {
+	email: string; // Valid email address
+	otp: string; // 6-digit OTP from email
+	password: string; // New password (minimum 6 characters)
+	confirmPassword: string; // Must match password
+};
+```
+
+**Returns:**
+
+```typescript
+type ActionState = {
+	success: boolean;
+	message: string;
+};
+```
+
+**Example Usage:**
+
+```typescript
+import { resetPassword } from "@/app/(auth)/actions";
+
+const result = await resetPassword({
+	email: "user@example.com",
+	otp: "123456",
+	password: "newpassword123",
+	confirmPassword: "newpassword123",
+});
+
+if (result.success) {
+	// Password reset successfully
+	console.log("Password updated");
+}
+```
+
+**Behavior:**
+
+-   Validates OTP and email
+-   Checks password confirmation match
+-   Updates user password
+-   Invalidates existing sessions
+
+#### `signOut()`
+
+Signs out the current user and invalidates their session.
+
+**Parameters:** None
+
+**Returns:**
+
+```typescript
+type ActionState = {
+	success: boolean;
+	message: string;
+};
+```
+
+**Example Usage:**
+
+```typescript
+import { signOut } from "@/app/(auth)/actions";
+
+const result = await signOut();
+
+if (result.success) {
+	// User signed out successfully
+	console.log("Signed out");
+}
+```
+
+**Behavior:**
+
+-   Invalidates current session
+-   Clears session cookies
+-   Returns success confirmation
+
 ## Action Helpers
 
 ### `validatedAction<T, K>(schema, action)`

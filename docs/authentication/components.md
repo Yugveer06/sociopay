@@ -11,8 +11,12 @@ The login page provides a secure authentication interface for community members 
 -   Email/password authentication
 -   Form validation with real-time feedback
 -   Loading states during authentication
+-   Password visibility toggle with eye icons
+-   Animated UI with Framer Motion
+-   Interactive dot background with mouse tracking
 -   Error handling and display
--   Responsive design with Tailwind CSS
+-   Responsive design with backdrop blur effect
+-   Forgot password link integration
 
 ### Component Structure
 
@@ -20,6 +24,7 @@ The login page provides a secure authentication interface for community members 
 export default function LoginPage() {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
+	const [showPassword, setShowPassword] = useState(false);
 	const [actionResult, setActionResult] = useState<{
 		success: boolean;
 		message: string;
@@ -33,6 +38,8 @@ export default function LoginPage() {
 			password: "",
 		},
 	});
+
+	const MotionCard = m.create(Card);
 
 	// ... component implementation
 }
@@ -49,10 +56,14 @@ export default function LoginPage() {
 
 #### Password Field
 
--   **Type**: Password input
+-   **Type**: Password input with visibility toggle
 -   **Validation**: Minimum 6 characters
 -   **Placeholder**: "Enter your password"
 -   **Required**: Yes
+-   **Features**:
+    -   Eye/EyeOff icons for show/hide password
+    -   Forgot password link
+    -   Relative positioning for toggle button
 
 ### State Management
 
@@ -74,6 +85,12 @@ export default function LoginPage() {
 -   Field-specific errors displayed under inputs
 -   General errors shown in alert banner
 
+#### Password Visibility State
+
+-   `showPassword`: Boolean controlling password visibility
+-   Toggle button with Eye/EyeOff icons
+-   Maintains security while improving UX
+
 ### User Experience
 
 #### Success Flow
@@ -82,7 +99,7 @@ export default function LoginPage() {
 2. Form validates input
 3. Loading state activated
 4. Authentication successful
-5. Redirect to `/dashboard/user`
+5. Redirect to `/dashboard`
 
 #### Error Flow
 
@@ -93,16 +110,17 @@ export default function LoginPage() {
 
 ### Styling
 
--   **Layout**: Centered card on gray background
--   **Card**: White background with shadow
+-   **Layout**: Centered card with interactive dot background
+-   **Card**: Backdrop blur effect with semi-transparent background
 -   **Typography**: Geist font family
--   **Colors**: Tailwind CSS color palette
+-   **Colors**: Tailwind CSS color palette with destructive variants
 -   **Responsive**: Mobile-first design
+-   **Animations**: Framer Motion for smooth transitions
 
 ### Navigation
 
 -   **Sign Up Link**: Links to `/signup` page
--   **Post-Login Redirect**: `/dashboard/user`
+-   **Post-Login Redirect**: `/dashboard`
 
 ## Signup Page (`app/(auth)/signup/page.tsx`)
 
@@ -115,8 +133,12 @@ The signup page allows new community members to create accounts with custom fiel
 -   Extended form with community-specific fields
 -   House number validation
 -   Phone number validation
--   Password confirmation
+-   Password confirmation with visibility toggles
 -   Real-time validation feedback
+-   Animated UI with Framer Motion
+-   Interactive dot background
+-   Organized form sections with visual separators
+-   Responsive grid layout
 
 ### Form Fields
 
@@ -136,7 +158,22 @@ The signup page allows new community members to create accounts with custom fiel
 -   **Password**: Minimum 6 characters
 -   **Confirm Password**: Must match password
 
-### Validation Schema
+### Validation Schemas
+
+#### Sign In Schema
+
+```typescript
+export const signInSchema = z.object({
+	email: z.string().email({
+		message: "Please enter a valid email address.",
+	}),
+	password: z.string().min(6, {
+		message: "Password must be at least 6 characters.",
+	}),
+});
+```
+
+#### Sign Up Schema
 
 ```typescript
 export const signUpSchema = z
@@ -153,6 +190,36 @@ export const signUpSchema = z
 		}),
 		phone: z.string().regex(/^[0-9]{10}$/, {
 			message: "Please enter a valid 10-digit phone number.",
+		}),
+		password: z.string().min(6, {
+			message: "Password must be at least 6 characters.",
+		}),
+		confirmPassword: z.string().min(6, {
+			message: "Please confirm your password.",
+		}),
+	})
+	.refine(data => data.password === data.confirmPassword, {
+		message: "Passwords don't match",
+		path: ["confirmPassword"],
+	});
+```
+
+#### Password Reset Schemas
+
+```typescript
+export const forgotPasswordSchema = z.object({
+	email: z.string().email({
+		message: "Please enter a valid email address.",
+	}),
+});
+
+export const resetPasswordSchema = z
+	.object({
+		email: z.string().email({
+			message: "Please enter a valid email address.",
+		}),
+		otp: z.string().length(6, {
+			message: "OTP must be exactly 6 digits.",
 		}),
 		password: z.string().min(6, {
 			message: "Password must be at least 6 characters.",
@@ -202,6 +269,12 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DotBackground } from "@/components/ui/dot-background";
+
+// Icons and animations
+import { Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { motion as m } from "motion/react";
+import Link from "next/link";
 
 // Navigation and state
 import { useRouter } from "next/navigation";

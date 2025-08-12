@@ -157,6 +157,37 @@ import { Input } from "@/components/ui/input";
 -   `tel` - Telephone number input
 -   `number` - Numeric input
 
+### DotBackground Component
+
+**Location**: `components/ui/dot-background.tsx`
+
+**Purpose**: Interactive animated background with dot pattern that responds to mouse movement.
+
+**Usage**:
+
+```typescript
+import { DotBackground } from "@/components/ui/dot-background";
+
+<DotBackground>
+	<YourContent />
+</DotBackground>;
+```
+
+**Features**:
+
+-   **Mouse Tracking**: Dot pattern highlights follow mouse movement
+-   **Dark Mode Support**: Automatic color adaptation for dark/light themes
+-   **Smooth Animations**: Uses Framer Motion for fluid interactions
+-   **Radial Gradient Mask**: Creates spotlight effect around mouse cursor
+-   **Responsive Design**: Adapts to different screen sizes
+
+**Implementation Details**:
+
+-   Uses `useMotionValue` for smooth mouse tracking
+-   Applies CSS mask for circular highlight effect
+-   Base dot pattern with interactive overlay
+-   Automatic theme-aware color switching
+
 ## Authentication Components
 
 ### Login Page Component

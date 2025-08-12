@@ -7,10 +7,12 @@ SocioPay uses Better Auth for secure authentication with custom user fields spec
 The authentication system supports:
 
 -   Email/password authentication
+-   Password reset with OTP verification
 -   Custom user fields (house number, phone)
 -   Session management with secure cookies
 -   Form validation with Zod schemas
 -   Server actions for auth operations
+-   Interactive UI with animations and visual feedback
 
 ## Architecture
 
