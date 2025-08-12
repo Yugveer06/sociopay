@@ -26,7 +26,7 @@ const data = {
 		},
 		{
 			title: "Payments",
-			url: "#",
+			url: "/payments",
 			icon: IndianRupee,
 		},
 		{

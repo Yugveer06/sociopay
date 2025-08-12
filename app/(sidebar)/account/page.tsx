@@ -1,3 +1,4 @@
+import { ChangePasswordForm } from "@/components/change-password-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,17 +10,15 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ChangePasswordForm } from "@/components/change-password-form";
-import { UpdateUserForm } from "@/components/update-user-form";
 import { auth } from "@/lib/auth";
 import {
+	IconCalendar,
 	IconEdit,
+	IconHome,
 	IconMail,
 	IconPhone,
-	IconUser,
-	IconHome,
-	IconCalendar,
 	IconShield,
+	IconUser,
 } from "@tabler/icons-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -56,10 +55,10 @@ export default async function AccountPage() {
 
 	return (
 		<div className='flex flex-col gap-4 py-4 md:gap-6 md:py-6'>
-			<div className='px-4 lg:px-6 max-w-4xl mx-auto w-full'>
+			<div className='px-4 lg:px-6 max-w-6xl mx-auto w-full'>
 				<div className='flex flex-col gap-6'>
 					{/* Header */}
-					<div className='flex flex-col gap-2'>
+					<div>
 						<h1 className='text-2xl font-bold'>Account Settings</h1>
 						<p className='text-muted-foreground'>
 							Manage your account information and preferences.
