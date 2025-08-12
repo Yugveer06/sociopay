@@ -6,7 +6,7 @@ Welcome to the SocioPay documentation. This guide covers all aspects of the comm
 
 -   [Authentication](./authentication/README.md) - Complete authentication system documentation
 -   [Components](./components/README.md) - React component documentation
--   [Database](./database/README.md) - Database schema and types
+-   [Database](./database/README.md) - Database schema, types, and migration guide
 -   [API](./api/README.md) - API endpoints and server actions
 -   [Configuration](./configuration/README.md) - Project configuration and setup
 
@@ -15,7 +15,31 @@ Welcome to the SocioPay documentation. This guide covers all aspects of the comm
 1. **Environment Setup**: Copy `.env.example` to `.env.local` and configure your environment variables
 2. **Install Dependencies**: Run `pnpm install`
 3. **Database Setup**: Configure your Supabase database connection
-4. **Development**: Run `pnpm dev` to start the development server
+4. **Database Schema**: Run `pnpm db:push` to sync Drizzle schema with database
+5. **Development**: Run `pnpm dev` to start the development server
+
+## 🚨 Database Type Migration
+
+The project has migrated from Supabase-generated types to Drizzle ORM types.
+
+**Quick Links:**
+
+-   **[Migration Summary](./MIGRATION_SUMMARY.md)** - Complete overview of changes
+-   **[Type Migration Guide](./database/type-migration.md)** - Detailed migration instructions
+
+## Database Commands
+
+### Drizzle ORM Commands
+
+-   `pnpm db:generate` - Generate migrations from schema changes
+-   `pnpm db:push` - Push schema changes to database
+-   `pnpm db:studio` - Open Drizzle Studio for database management
+-   `pnpm db:introspect` - Introspect existing database to generate schema
+
+### Authentication Commands
+
+-   `pnpm auth:generate` - Generate Better Auth types
+-   `pnpm auth:migrate` - Run Better Auth migrations
 
 ## Project Overview
 
@@ -23,6 +47,7 @@ SocioPay is built with:
 
 -   **Next.js 15.4.5** with App Router
 -   **Better Auth 1.3.4** for authentication
+-   **Drizzle ORM** for type-safe database operations
 -   **Supabase** PostgreSQL database
 -   **TypeScript** for type safety
 -   **Tailwind CSS** with shadcn/ui components
@@ -32,5 +57,5 @@ SocioPay is built with:
 -   Community member authentication with house number validation
 -   Phone-based verification system
 -   Secure session management
--   Type-safe database operations
+-   Type-safe database operations with Drizzle ORM
 -   Modern React components with form validation

@@ -175,12 +175,19 @@ Key dependencies and scripts:
 		"lint": "next lint",
 		"auth:generate": "better-auth generate",
 		"auth:migrate": "better-auth migrate",
-		"db:types": "supabase gen types typescript --project-id=tqouszaaxafqemrwpmcn --schema=public > db/types.ts"
+		"db:types": "supabase gen types typescript --project-id=tqouszaaxafqemrwpmcn --schema=public > db/types.ts",
+		"db:generate": "drizzle-kit generate",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio",
+		"db:introspect": "drizzle-kit introspect"
 	},
 	"dependencies": {
 		"next": "15.4.5",
 		"react": "19.1.0",
 		"better-auth": "1.3.4",
+		"drizzle-orm": "latest",
+		"drizzle-kit": "latest",
+		"postgres": "latest",
 		"zod": "4.0.17",
 		"react-hook-form": "7.62.0"
 	}
@@ -196,13 +203,28 @@ packages:
 
 ### Development Scripts
 
+#### Core Scripts
+
 -   **`pnpm dev`**: Start development server with Turbopack
 -   **`pnpm build`**: Build for production
 -   **`pnpm start`**: Start production server
 -   **`pnpm lint`**: Run ESLint
+
+#### Authentication Scripts
+
 -   **`pnpm auth:generate`**: Generate Better Auth types
 -   **`pnpm auth:migrate`**: Run Better Auth migrations
--   **`pnpm db:types`**: Generate Supabase TypeScript types
+
+#### Database Scripts (Drizzle ORM)
+
+-   **`pnpm db:generate`**: Generate migrations from schema changes
+-   **`pnpm db:push`**: Push schema changes to database
+-   **`pnpm db:studio`**: Open Drizzle Studio for database management
+-   **`pnpm db:introspect`**: Introspect existing database to generate schema
+
+#### Legacy Database Scripts
+
+-   **`pnpm db:types`**: Generate Supabase TypeScript types (legacy)
 
 ## shadcn/ui Configuration
 
@@ -288,9 +310,173 @@ export const auth = betterAuth({
 
 -   **Custom Fields**: House number and phone validation
 -   **Authentication**: Email/password enabled
--   **Database**: PostgreSQL with SSL in production
+-   **Database**: Drizzle adapter with PostgreSQL
 -   **Plugins**: Admin plugin for user management
 -   **Security**: Environment-based SSL configuration
+
+## Drizzle ORM Configuration
+
+### Database Configuration (`lib/db.ts`)
+
+```typescript
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "./schema";
+
+// Disable prefetch for connection pooling compatibility
+const client = postgres(process.env.DATABASE_URL!, { prepare: false });
+export const db = drizzle(client, { schema });
+
+export type Database = typeof db;
+export * from "./schema";
+```
+
+### Drizzle Kit Configuration (`drizzle.config.ts`)
+
+```typescript
+import { defineConfig } from "drizzle-kit";
+import { loadEnvConfig } from "@next/env";
+
+// Load environment variables
+loadEnvConfig(process.cwd());
+
+export default defineConfig({
+	schema: "./lib/schema.ts",
+	out: "./drizzle",
+	dialect: "postgresql",
+	dbCredentials: {
+		url: process.env.DATABASE_URL!,
+	},
+	verbose: true,
+	strict: true,
+});
+```
+
+### Schema Definition (`lib/schema.ts`)
+
+The schema file contains all table definitions, relationships, and custom types:
+
+```typescript
+import {
+	pgTable,
+	text,
+	boolean,
+	timestamp,
+	pgEnum,
+	serial,
+	uuid,
+	numeric,
+	date,
+	integer,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+
+// Custom enums
+export const intervalTypeEnum = pgEnum("interval_type", [
+	"monthly",
+	"quarterly",
+	"half_yearly",
+	"annually",
+]);
+
+// Better Auth tables
+export const user = pgTable("user", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	email: text("email").unique().notNull(),
+	emailVerified: boolean("emailVerified").notNull().default(false),
+	image: text("image"),
+	houseNumber: text("houseNumber").unique().notNull(),
+	phone: text("phone").notNull(),
+	createdAt: timestamp("createdAt").notNull().defaultNow(),
+	updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+// Application tables
+export const payments = pgTable("payments", {
+	id: uuid("id").primaryKey().defaultRandom(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => user.id),
+	categoryId: integer("category_id")
+		.notNull()
+		.references(() => paymentCategories.id),
+	amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+	paymentDate: date("payment_date").defaultNow(),
+	periodStart: date("period_start"),
+	periodEnd: date("period_end"),
+	intervalType: intervalTypeEnum("interval_type"),
+	notes: text("notes"),
+	createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations
+export const userRelations = relations(user, ({ many }) => ({
+	payments: many(payments),
+}));
+```
+
+### Updated Better Auth Configuration
+
+Better Auth now uses the Drizzle adapter:
+
+```typescript
+import { betterAuth } from "better-auth";
+import { admin, emailOTP } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "./db";
+import * as schema from "./schema";
+
+export const auth = betterAuth({
+	user: {
+		additionalFields: {
+			houseNumber: {
+				type: "string",
+				unique: true,
+				required: true,
+				validation: {
+					maxLength: 10,
+					pattern: "^[A-Z]-\\d{1,2}$",
+					message:
+						"Please enter a valid house number (e.g., A-1, B-9, C-23).",
+				},
+			},
+			phone: {
+				type: "string",
+				required: true,
+				validation: {
+					minLength: 10,
+					maxLength: 10,
+					pattern: "^[0-9]{10}$",
+					message: "Please enter a valid 10-digit phone number.",
+				},
+			},
+		},
+	},
+	emailAndPassword: { enabled: true },
+	database: drizzleAdapter(db, {
+		provider: "pg",
+		schema: {
+			user: schema.user,
+			account: schema.account,
+			session: schema.session,
+			verification: schema.verification,
+		},
+	}),
+	secret: process.env.BETTER_AUTH_SECRET,
+	baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+	plugins: [
+		nextCookies(),
+		admin(),
+		emailOTP({
+			async sendVerificationOTP({ email, otp, type }) {
+				// Email OTP implementation
+			},
+		}),
+	],
+});
+```
 
 ## Development Tools
 

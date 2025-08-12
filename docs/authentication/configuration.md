@@ -6,8 +6,11 @@
 
 ```typescript
 import { betterAuth } from "better-auth";
-import { admin } from "better-auth/plugins";
-import { Pool } from "pg";
+import { admin, emailOTP } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "./db";
+import * as schema from "./schema";
 
 export const auth = betterAuth({
 	user: {
@@ -36,17 +39,37 @@ export const auth = betterAuth({
 		},
 	},
 	emailAndPassword: { enabled: true },
-	database: new Pool({
-		connectionString: process.env.DATABASE_URL,
-		ssl:
-			process.env.NODE_ENV === "production"
-				? { rejectUnauthorized: false }
-				: false,
+	database: drizzleAdapter(db, {
+		provider: "pg",
+		schema: {
+			user: schema.user,
+			account: schema.account,
+			session: schema.session,
+			verification: schema.verification,
+		},
 	}),
 	secret: process.env.BETTER_AUTH_SECRET,
-	plugins: [admin()],
+	baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+	plugins: [
+		nextCookies(),
+		admin(),
+		emailOTP({
+			async sendVerificationOTP({ email, otp, type }) {
+				// Email OTP implementation
+			},
+		}),
+	],
 });
 ```
+
+### Key Configuration Changes
+
+The authentication system has been updated to use Drizzle ORM:
+
+-   **Database Adapter**: Replaced `pg.Pool` with `drizzleAdapter`
+-   **Schema Mapping**: Explicit mapping of Better Auth tables to Drizzle schema
+-   **Type Safety**: Full type safety for authentication operations
+-   **Enhanced Plugins**: Added `nextCookies()` and `emailOTP()` plugins
 
 ### Environment Variables
 
@@ -65,11 +88,22 @@ NODE_ENV=development
 
 ### Database Connection
 
-The system uses PostgreSQL via Supabase with the following connection settings:
+The system uses PostgreSQL via Supabase with Drizzle ORM:
 
--   **Production**: SSL enabled with `rejectUnauthorized: false`
--   **Development**: SSL disabled for local development
--   **Connection pooling**: Managed by `pg.Pool`
+-   **Adapter**: `drizzleAdapter` for type-safe database operations
+-   **Connection**: Managed by Drizzle with `postgres` client
+-   **Schema**: Explicit schema mapping for Better Auth tables
+-   **Type Safety**: Full TypeScript support for all database operations
+
+```typescript
+// Database connection (lib/db.ts)
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "./schema";
+
+const client = postgres(process.env.DATABASE_URL!, { prepare: false });
+export const db = drizzle(client, { schema });
+```
 
 ## Custom User Fields
 
@@ -124,11 +158,27 @@ This provides additional administrative capabilities for user management.
 
 ## Database Schema
 
-The authentication system creates the following tables:
+The authentication system uses Drizzle ORM schema definitions for the following tables:
 
--   `user` - User accounts with custom fields
+-   `user` - User accounts with custom fields (houseNumber, phone)
 -   `account` - OAuth and credential accounts
 -   `session` - Active user sessions
 -   `verification` - Email verification tokens
 
-See [Database Schema](../database/schema.md) for detailed table structures.
+### Schema Integration
+
+Better Auth tables are mapped to Drizzle schema:
+
+```typescript
+database: drizzleAdapter(db, {
+  provider: "pg",
+  schema: {
+    user: schema.user,
+    account: schema.account,
+    session: schema.session,
+    verification: schema.verification,
+  },
+}),
+```
+
+See [Database Documentation](../database/README.md) for detailed table structures and [Type Migration Guide](../database/type-migration.md) for information about the Drizzle integration.
