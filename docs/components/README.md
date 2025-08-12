@@ -34,19 +34,19 @@ import { Button } from "@/components/ui/button";
 
 **Variants**:
 
--   `default` - Primary button style
--   `destructive` - Red button for dangerous actions
--   `outline` - Outlined button
--   `secondary` - Secondary button style
--   `ghost` - Transparent button
--   `link` - Link-styled button
+- `default` - Primary button style
+- `destructive` - Red button for dangerous actions
+- `outline` - Outlined button
+- `secondary` - Secondary button style
+- `ghost` - Transparent button
+- `link` - Link-styled button
 
 **Sizes**:
 
--   `default` - Standard size
--   `sm` - Small button
--   `lg` - Large button
--   `icon` - Icon-only button
+- `default` - Standard size
+- `sm` - Small button
+- `lg` - Large button
+- `icon` - Icon-only button
 
 ### Card Components
 
@@ -54,12 +54,12 @@ import { Button } from "@/components/ui/button";
 
 **Components**:
 
--   `Card` - Main card container
--   `CardHeader` - Card header section
--   `CardTitle` - Card title
--   `CardDescription` - Card description
--   `CardContent` - Card body content
--   `CardFooter` - Card footer section
+- `Card` - Main card container
+- `CardHeader` - Card header section
+- `CardTitle` - Card title
+- `CardDescription` - Card description
+- `CardContent` - Card body content
+- `CardFooter` - Card footer section
 
 **Usage**:
 
@@ -87,13 +87,13 @@ import {
 
 **Components**:
 
--   `Form` - Form provider wrapper
--   `FormField` - Individual form field
--   `FormItem` - Form field container
--   `FormLabel` - Form field label
--   `FormControl` - Form control wrapper
--   `FormDescription` - Field description
--   `FormMessage` - Error/validation message
+- `Form` - Form provider wrapper
+- `FormField` - Individual form field
+- `FormItem` - Form field container
+- `FormLabel` - Form field label
+- `FormControl` - Form control wrapper
+- `FormDescription` - Field description
+- `FormMessage` - Error/validation message
 
 **Usage with React Hook Form**:
 
@@ -151,11 +151,11 @@ import { Input } from "@/components/ui/input";
 
 **Types**:
 
--   `text` - Default text input
--   `email` - Email input with validation
--   `password` - Password input (masked)
--   `tel` - Telephone number input
--   `number` - Numeric input
+- `text` - Default text input
+- `email` - Email input with validation
+- `password` - Password input (masked)
+- `tel` - Telephone number input
+- `number` - Numeric input
 
 ### DotBackground Component
 
@@ -175,18 +175,18 @@ import { DotBackground } from "@/components/ui/dot-background";
 
 **Features**:
 
--   **Mouse Tracking**: Dot pattern highlights follow mouse movement
--   **Dark Mode Support**: Automatic color adaptation for dark/light themes
--   **Smooth Animations**: Uses Framer Motion for fluid interactions
--   **Radial Gradient Mask**: Creates spotlight effect around mouse cursor
--   **Responsive Design**: Adapts to different screen sizes
+- **Mouse Tracking**: Dot pattern highlights follow mouse movement
+- **Dark Mode Support**: Automatic color adaptation for dark/light themes
+- **Smooth Animations**: Uses Framer Motion for fluid interactions
+- **Radial Gradient Mask**: Creates spotlight effect around mouse cursor
+- **Responsive Design**: Adapts to different screen sizes
 
 **Implementation Details**:
 
--   Uses `useMotionValue` for smooth mouse tracking
--   Applies CSS mask for circular highlight effect
--   Base dot pattern with interactive overlay
--   Automatic theme-aware color switching
+- Uses `useMotionValue` for smooth mouse tracking
+- Applies CSS mask for circular highlight effect
+- Base dot pattern with interactive overlay
+- Automatic theme-aware color switching
 
 ## Authentication Components
 
@@ -196,32 +196,32 @@ import { DotBackground } from "@/components/ui/dot-background";
 
 **Features**:
 
--   Email/password authentication form
--   Real-time validation with Zod
--   Loading states and error handling
--   Responsive design
+- Email/password authentication form
+- Real-time validation with Zod
+- Loading states and error handling
+- Responsive design
 
 **Key Props**:
 
 ```typescript
 // Form state
 const form = useForm<z.infer<typeof signInSchema>>({
-	resolver: zodResolver(signInSchema),
-	defaultValues: {
-		email: "",
-		password: "",
-	},
-});
+  resolver: zodResolver(signInSchema),
+  defaultValues: {
+    email: '',
+    password: '',
+  },
+})
 
 // Loading state
-const [isPending, startTransition] = useTransition();
+const [isPending, startTransition] = useTransition()
 
 // Error state
 const [actionResult, setActionResult] = useState<{
-	success: boolean;
-	message: string;
-	errors?: Record<string, string[]>;
-} | null>(null);
+  success: boolean
+  message: string
+  errors?: Record<string, string[]>
+} | null>(null)
 ```
 
 ### Signup Page Component
@@ -230,19 +230,19 @@ const [actionResult, setActionResult] = useState<{
 
 **Features**:
 
--   Extended registration form
--   Community-specific field validation
--   Password confirmation
--   House number format validation
+- Extended registration form
+- Community-specific field validation
+- Password confirmation
+- House number format validation
 
 **Form Fields**:
 
--   Full Name (text)
--   House Number (validated format)
--   Email (email validation)
--   Phone (10-digit validation)
--   Password (minimum 6 characters)
--   Confirm Password (must match)
+- Full Name (text)
+- House Number (validated format)
+- Email (email validation)
+- Phone (10-digit validation)
+- Password (minimum 6 characters)
+- Confirm Password (must match)
 
 ## Component Patterns
 
@@ -360,22 +360,22 @@ Common class patterns used throughout components:
 
 ```typescript
 // Layout
-"flex min-h-screen items-center justify-center";
-"w-full max-w-md";
-"space-y-6";
+'flex min-h-screen items-center justify-center'
+'w-full max-w-md'
+'space-y-6'
 
 // Colors
-"bg-gray-50"; // Light background
-"text-gray-900"; // Dark text
-"text-gray-600"; // Muted text
-"text-red-600"; // Error text
-"bg-red-50"; // Error background
-"border-red-200"; // Error border
+'bg-gray-50' // Light background
+'text-gray-900' // Dark text
+'text-gray-600' // Muted text
+'text-red-600' // Error text
+'bg-red-50' // Error background
+'border-red-200' // Error border
 
 // Interactive states
-"hover:text-blue-500";
-"focus:ring-2 focus:ring-blue-500";
-"disabled:opacity-50";
+'hover:text-blue-500'
+'focus:ring-2 focus:ring-blue-500'
+'disabled:opacity-50'
 ```
 
 ### Component Styling
@@ -399,16 +399,16 @@ Common class patterns used throughout components:
 
 ### Form Accessibility
 
--   **Labels**: All inputs have associated labels
--   **Error Messages**: Linked to form fields via aria-describedby
--   **Focus Management**: Logical tab order
--   **Screen Reader Support**: Proper ARIA attributes
+- **Labels**: All inputs have associated labels
+- **Error Messages**: Linked to form fields via aria-describedby
+- **Focus Management**: Logical tab order
+- **Screen Reader Support**: Proper ARIA attributes
 
 ### Button Accessibility
 
--   **Disabled State**: Proper disabled attribute and styling
--   **Loading State**: Clear indication of loading status
--   **Keyboard Navigation**: Full keyboard support
+- **Disabled State**: Proper disabled attribute and styling
+- **Loading State**: Clear indication of loading status
+- **Keyboard Navigation**: Full keyboard support
 
 ## Performance Optimization
 
@@ -428,16 +428,16 @@ const HeavyComponent = dynamic(() => import("./HeavyComponent"), {
 ```typescript
 // Use React.memo for expensive components
 const ExpensiveComponent = React.memo(({ data }) => {
-	// Component implementation
-});
+  // Component implementation
+})
 
 // Use useCallback for event handlers
 const handleSubmit = useCallback(
-	data => {
-		// Handle submit
-	},
-	[dependency]
-);
+  data => {
+    // Handle submit
+  },
+  [dependency]
+)
 ```
 
 ## Testing Considerations
@@ -467,11 +467,11 @@ describe("LoginPage", () => {
 
 ### Form Testing
 
--   Test form validation
--   Test submission handling
--   Test error states
--   Test loading states
--   Test accessibility features
+- Test form validation
+- Test submission handling
+- Test error states
+- Test loading states
+- Test accessibility features
 
 ## Best Practices
 

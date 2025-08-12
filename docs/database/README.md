@@ -12,9 +12,9 @@ The database type system has been migrated from Supabase-generated types to Driz
 
 ### Quick Migration Summary
 
--   **Old**: `import { Database } from "@/db/types"`
--   **New**: `import type { User, Payment } from "@/lib/types"`
--   **Compatibility**: Old imports still work but are deprecated
+- **Old**: `import { Database } from "@/db/types"`
+- **New**: `import type { User, Payment } from "@/lib/types"`
+- **Compatibility**: Old imports still work but are deprecated
 
 ## Database Schema
 
@@ -22,9 +22,9 @@ The database type system has been migrated from Supabase-generated types to Driz
 
 The database uses a hybrid approach:
 
--   **Drizzle ORM** for type-safe database operations and schema definitions
--   **Better Auth** with Drizzle adapter for authentication table management
--   **Supabase PostgreSQL** as the underlying database
+- **Drizzle ORM** for type-safe database operations and schema definitions
+- **Better Auth** with Drizzle adapter for authentication table management
+- **Supabase PostgreSQL** as the underlying database
 
 ### Tables Overview
 
@@ -32,18 +32,18 @@ The database consists of authentication tables and application tables:
 
 #### Authentication Tables (Better Auth + Drizzle)
 
--   **`user`** - User accounts with community-specific fields
--   **`account`** - Authentication provider accounts
--   **`session`** - Active user sessions
--   **`verification`** - Email verification tokens
+- **`user`** - User accounts with community-specific fields
+- **`account`** - Authentication provider accounts
+- **`session`** - Active user sessions
+- **`verification`** - Email verification tokens
 
 #### Application Tables (Drizzle ORM)
 
--   **`payment_categories`** - Payment category definitions
--   **`expense_categories`** - Expense category definitions
--   **`payments`** - Member payment records
--   **`expenses`** - Community expense records
--   **`society_funds`** - Community fund tracking
+- **`payment_categories`** - Payment category definitions
+- **`expense_categories`** - Expense category definitions
+- **`payments`** - Member payment records
+- **`expenses`** - Community expense records
+- **`society_funds`** - Community fund tracking
 
 ## User Table
 
@@ -66,29 +66,29 @@ CREATE TABLE "user" (
 ### Drizzle Schema Definition
 
 ```typescript
-import { pgTable, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, timestamp } from 'drizzle-orm/pg-core'
 
-export const user = pgTable("user", {
-	id: text("id").primaryKey(),
-	name: text("name").notNull(),
-	email: text("email").unique().notNull(),
-	emailVerified: boolean("emailVerified").notNull().default(false),
-	image: text("image"),
-	houseNumber: text("houseNumber").unique().notNull(),
-	phone: text("phone").notNull(),
-	createdAt: timestamp("createdAt").notNull().defaultNow(),
-	updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-});
+export const user = pgTable('user', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').unique().notNull(),
+  emailVerified: boolean('emailVerified').notNull().default(false),
+  image: text('image'),
+  houseNumber: text('houseNumber').unique().notNull(),
+  phone: text('phone').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+})
 ```
 
 ### TypeScript Type (Drizzle Generated)
 
 ```typescript
-import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
-import { user } from "@/lib/schema";
+import type { InferSelectModel, InferInsertModel } from 'drizzle-orm'
+import { user } from '@/lib/schema'
 
-type User = InferSelectModel<typeof user>;
-type UserInsert = InferInsertModel<typeof user>;
+type User = InferSelectModel<typeof user>
+type UserInsert = InferInsertModel<typeof user>
 
 // User type includes:
 // {
@@ -108,19 +108,19 @@ type UserInsert = InferInsertModel<typeof user>;
 
 #### House Number
 
--   **Type**: `TEXT`
--   **Constraints**: `UNIQUE NOT NULL`
--   **Format**: `^[A-Z]-\d{1,2}$`
--   **Examples**: A-1, B-9, C-23, Z-99
--   **Purpose**: Unique identifier for community members
+- **Type**: `TEXT`
+- **Constraints**: `UNIQUE NOT NULL`
+- **Format**: `^[A-Z]-\d{1,2}$`
+- **Examples**: A-1, B-9, C-23, Z-99
+- **Purpose**: Unique identifier for community members
 
 #### Phone
 
--   **Type**: `TEXT`
--   **Constraints**: `NOT NULL`
--   **Format**: `^[0-9]{10}$`
--   **Example**: 9876543210
--   **Purpose**: Contact verification and communication
+- **Type**: `TEXT`
+- **Constraints**: `NOT NULL`
+- **Format**: `^[0-9]{10}$`
+- **Example**: 9876543210
+- **Purpose**: Contact verification and communication
 
 ### Indexes
 
@@ -156,33 +156,33 @@ CREATE TABLE "account" (
 ### Drizzle Schema Definition
 
 ```typescript
-export const account = pgTable("account", {
-	id: text("id").primaryKey(),
-	accountId: text("accountId").notNull(),
-	providerId: text("providerId").notNull(),
-	userId: text("userId")
-		.notNull()
-		.references(() => user.id),
-	accessToken: text("accessToken"),
-	accessTokenExpiresAt: text("accessTokenExpiresAt"),
-	refreshToken: text("refreshToken"),
-	refreshTokenExpiresAt: text("refreshTokenExpiresAt"),
-	idToken: text("idToken"),
-	password: text("password"),
-	scope: text("scope"),
-	createdAt: text("createdAt").notNull(),
-	updatedAt: text("updatedAt").notNull(),
-});
+export const account = pgTable('account', {
+  id: text('id').primaryKey(),
+  accountId: text('accountId').notNull(),
+  providerId: text('providerId').notNull(),
+  userId: text('userId')
+    .notNull()
+    .references(() => user.id),
+  accessToken: text('accessToken'),
+  accessTokenExpiresAt: text('accessTokenExpiresAt'),
+  refreshToken: text('refreshToken'),
+  refreshTokenExpiresAt: text('refreshTokenExpiresAt'),
+  idToken: text('idToken'),
+  password: text('password'),
+  scope: text('scope'),
+  createdAt: text('createdAt').notNull(),
+  updatedAt: text('updatedAt').notNull(),
+})
 ```
 
 ### TypeScript Type (Drizzle Generated)
 
 ```typescript
-import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
-import { account } from "@/lib/schema";
+import type { InferSelectModel, InferInsertModel } from 'drizzle-orm'
+import { account } from '@/lib/schema'
 
-type Account = InferSelectModel<typeof account>;
-type AccountInsert = InferInsertModel<typeof account>;
+type Account = InferSelectModel<typeof account>
+type AccountInsert = InferInsertModel<typeof account>
 
 // Account type includes:
 // {
@@ -204,31 +204,31 @@ type AccountInsert = InferInsertModel<typeof account>;
 
 ### Purpose
 
--   Links users to authentication providers
--   Stores OAuth tokens and credentials with separate expiration tracking
--   Manages password hashes for email/password auth
--   Tracks token scopes for OAuth providers
--   Maintains creation and update timestamps
+- Links users to authentication providers
+- Stores OAuth tokens and credentials with separate expiration tracking
+- Manages password hashes for email/password auth
+- Tracks token scopes for OAuth providers
+- Maintains creation and update timestamps
 
 ### Field Details
 
 #### Token Management
 
--   **`accessToken`**: OAuth access token for API calls
--   **`accessTokenExpiresAt`**: Expiration timestamp for access token
--   **`refreshToken`**: OAuth refresh token for token renewal
--   **`refreshTokenExpiresAt`**: Expiration timestamp for refresh token
--   **`scope`**: OAuth scope permissions granted to the application
+- **`accessToken`**: OAuth access token for API calls
+- **`accessTokenExpiresAt`**: Expiration timestamp for access token
+- **`refreshToken`**: OAuth refresh token for token renewal
+- **`refreshTokenExpiresAt`**: Expiration timestamp for refresh token
+- **`scope`**: OAuth scope permissions granted to the application
 
 #### Authentication Methods
 
--   **`password`**: Hashed password for email/password authentication
--   **`idToken`**: OpenID Connect ID token containing user claims
+- **`password`**: Hashed password for email/password authentication
+- **`idToken`**: OpenID Connect ID token containing user claims
 
 #### Metadata
 
--   **`createdAt`**: Account creation timestamp
--   **`updatedAt`**: Last modification timestamp
+- **`createdAt`**: Account creation timestamp
+- **`updatedAt`**: Last modification timestamp
 
 ## Session Table
 
@@ -251,22 +251,22 @@ CREATE TABLE "session" (
 
 ```typescript
 type Session = {
-	id: string;
-	token: string;
-	userId: string;
-	expiresAt: string;
-	ipAddress: string | null;
-	userAgent: string | null;
-	createdAt: string;
-	updatedAt: string;
-};
+  id: string
+  token: string
+  userId: string
+  expiresAt: string
+  ipAddress: string | null
+  userAgent: string | null
+  createdAt: string
+  updatedAt: string
+}
 ```
 
 ### Features
 
--   **Automatic Expiration**: 7-day session lifetime
--   **Security Tracking**: IP address and user agent logging
--   **Token Management**: Secure session token storage
+- **Automatic Expiration**: 7-day session lifetime
+- **Security Tracking**: IP address and user agent logging
+- **Token Management**: Secure session token storage
 
 ## Verification Table
 
@@ -285,9 +285,9 @@ CREATE TABLE "verification" (
 
 ### Purpose
 
--   Email verification tokens
--   Password reset tokens
--   Other verification workflows
+- Email verification tokens
+- Password reset tokens
+- Other verification workflows
 
 ## Database Functions
 
@@ -322,15 +322,15 @@ SUPABASE_ANON_KEY=your-anon-key
 ### Connection Pool
 
 ```typescript
-import { Pool } from "pg";
+import { Pool } from 'pg'
 
 const pool = new Pool({
-	connectionString: process.env.DATABASE_URL,
-	ssl:
-		process.env.NODE_ENV === "production"
-			? { rejectUnauthorized: false }
-			: false,
-});
+  connectionString: process.env.DATABASE_URL,
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : false,
+})
 ```
 
 ## Type Generation
@@ -362,16 +362,16 @@ lib/
 **New (Recommended):**
 
 ```typescript
-import type { User, NewUser } from "@/lib/types";
+import type { User, NewUser } from '@/lib/types'
 ```
 
 **Legacy (Deprecated but still works):**
 
 ```typescript
-import { Database } from "@/db/types";
-type User = Database["public"]["Tables"]["user"]["Row"];
-type UserInsert = Database["public"]["Tables"]["user"]["Insert"];
-type UserUpdate = Database["public"]["Tables"]["user"]["Update"];
+import { Database } from '@/db/types'
+type User = Database['public']['Tables']['user']['Row']
+type UserInsert = Database['public']['Tables']['user']['Insert']
+type UserUpdate = Database['public']['Tables']['user']['Update']
 ```
 
 ## Data Validation
@@ -432,17 +432,17 @@ CREATE POLICY user_own_data ON "user"
 
 ### Data Encryption
 
--   **Passwords**: Automatically hashed by Better Auth
--   **Tokens**: Cryptographically secure random tokens
--   **PII**: Consider encryption for sensitive fields
+- **Passwords**: Automatically hashed by Better Auth
+- **Tokens**: Cryptographically secure random tokens
+- **PII**: Consider encryption for sensitive fields
 
 ## Backup and Recovery
 
 ### Automated Backups
 
--   Supabase provides automated daily backups
--   Point-in-time recovery available
--   Manual backup exports supported
+- Supabase provides automated daily backups
+- Point-in-time recovery available
+- Manual backup exports supported
 
 ### Data Export
 
@@ -455,9 +455,9 @@ COPY (SELECT * FROM "user") TO '/path/to/users.csv' CSV HEADER;
 
 ### Indexing Strategy
 
--   Primary keys automatically indexed
--   Unique constraints create indexes
--   Consider composite indexes for common queries
+- Primary keys automatically indexed
+- Unique constraints create indexes
+- Consider composite indexes for common queries
 
 ### Query Optimization
 
@@ -473,81 +473,81 @@ DELETE FROM "session" WHERE expiresAt < NOW();
 
 ### Key Metrics to Monitor
 
--   Connection pool utilization
--   Query performance
--   Table sizes and growth
--   Index usage statistics
--   Failed authentication attempts
+- Connection pool utilization
+- Query performance
+- Table sizes and growth
+- Index usage statistics
+- Failed authentication attempts
 
 ## Application Tables (Drizzle ORM)
 
 ### Payment Categories
 
 ```typescript
-export const paymentCategories = pgTable("payment_categories", {
-	id: serial("id").primaryKey(),
-	name: text("name").unique().notNull(),
-	description: text("description"),
-});
+export const paymentCategories = pgTable('payment_categories', {
+  id: serial('id').primaryKey(),
+  name: text('name').unique().notNull(),
+  description: text('description'),
+})
 ```
 
 ### Payments
 
 ```typescript
-export const payments = pgTable("payments", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	userId: text("user_id")
-		.notNull()
-		.references(() => user.id),
-	categoryId: integer("category_id")
-		.notNull()
-		.references(() => paymentCategories.id),
-	amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
-	paymentDate: date("payment_date").defaultNow(),
-	periodStart: date("period_start"),
-	periodEnd: date("period_end"),
-	intervalType: intervalTypeEnum("interval_type"),
-	notes: text("notes"),
-	createdAt: timestamp("created_at").defaultNow(),
-});
+export const payments = pgTable('payments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+  categoryId: integer('category_id')
+    .notNull()
+    .references(() => paymentCategories.id),
+  amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
+  paymentDate: date('payment_date').defaultNow(),
+  periodStart: date('period_start'),
+  periodEnd: date('period_end'),
+  intervalType: intervalTypeEnum('interval_type'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+})
 ```
 
 ### Expenses
 
 ```typescript
-export const expenses = pgTable("expenses", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	categoryId: integer("category_id")
-		.notNull()
-		.references(() => expenseCategories.id),
-	amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
-	expenseDate: date("expense_date").defaultNow(),
-	notes: text("notes"),
-	createdAt: timestamp("created_at").defaultNow(),
-});
+export const expenses = pgTable('expenses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  categoryId: integer('category_id')
+    .notNull()
+    .references(() => expenseCategories.id),
+  amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
+  expenseDate: date('expense_date').defaultNow(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+})
 ```
 
 ### Society Funds
 
 ```typescript
-export const societyFunds = pgTable("society_funds", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	totalFunds: numeric("total_funds", { precision: 14, scale: 2 })
-		.notNull()
-		.default("0"),
-	lastUpdated: timestamp("last_updated", { withTimezone: true }).defaultNow(),
-});
+export const societyFunds = pgTable('society_funds', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  totalFunds: numeric('total_funds', { precision: 14, scale: 2 })
+    .notNull()
+    .default('0'),
+  lastUpdated: timestamp('last_updated', { withTimezone: true }).defaultNow(),
+})
 ```
 
 ### Custom Types and Enums
 
 ```typescript
-export const intervalTypeEnum = pgEnum("interval_type", [
-	"monthly",
-	"quarterly",
-	"half_yearly",
-	"annually",
-]);
+export const intervalTypeEnum = pgEnum('interval_type', [
+  'monthly',
+  'quarterly',
+  'half_yearly',
+  'annually',
+])
 ```
 
 ## Drizzle ORM Configuration
@@ -555,36 +555,36 @@ export const intervalTypeEnum = pgEnum("interval_type", [
 ### Database Connection (`lib/db.ts`)
 
 ```typescript
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import * as schema from "./schema";
+import { drizzle } from 'drizzle-orm/postgres-js'
+import postgres from 'postgres'
+import * as schema from './schema'
 
 // Disable prefetch for connection pooling compatibility
-const client = postgres(process.env.DATABASE_URL!, { prepare: false });
-export const db = drizzle(client, { schema });
+const client = postgres(process.env.DATABASE_URL!, { prepare: false })
+export const db = drizzle(client, { schema })
 
-export type Database = typeof db;
-export * from "./schema";
+export type Database = typeof db
+export * from './schema'
 ```
 
 ### Drizzle Kit Configuration (`drizzle.config.ts`)
 
 ```typescript
-import { defineConfig } from "drizzle-kit";
-import { loadEnvConfig } from "@next/env";
+import { defineConfig } from 'drizzle-kit'
+import { loadEnvConfig } from '@next/env'
 
-loadEnvConfig(process.cwd());
+loadEnvConfig(process.cwd())
 
 export default defineConfig({
-	schema: "./lib/schema.ts",
-	out: "./drizzle",
-	dialect: "postgresql",
-	dbCredentials: {
-		url: process.env.DATABASE_URL!,
-	},
-	verbose: true,
-	strict: true,
-});
+  schema: './lib/schema.ts',
+  out: './drizzle',
+  dialect: 'postgresql',
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+  verbose: true,
+  strict: true,
+})
 ```
 
 ## Database Operations with Drizzle
@@ -592,68 +592,68 @@ export default defineConfig({
 ### Type-Safe Queries
 
 ```typescript
-import { db } from "@/lib/db";
-import { payments, user, paymentCategories } from "@/lib/schema";
-import { eq, desc } from "drizzle-orm";
+import { db } from '@/lib/db'
+import { payments, user, paymentCategories } from '@/lib/schema'
+import { eq, desc } from 'drizzle-orm'
 
 // Get user payments with category information
 const userPayments = await db
-	.select()
-	.from(payments)
-	.where(eq(payments.userId, userId))
-	.leftJoin(paymentCategories, eq(payments.categoryId, paymentCategories.id))
-	.orderBy(desc(payments.paymentDate));
+  .select()
+  .from(payments)
+  .where(eq(payments.userId, userId))
+  .leftJoin(paymentCategories, eq(payments.categoryId, paymentCategories.id))
+  .orderBy(desc(payments.paymentDate))
 
 // Create new payment
 const newPayment = await db
-	.insert(payments)
-	.values({
-		userId: "user-id",
-		categoryId: 1,
-		amount: "1500.00",
-		paymentDate: new Date(),
-		notes: "Monthly maintenance",
-	})
-	.returning();
+  .insert(payments)
+  .values({
+    userId: 'user-id',
+    categoryId: 1,
+    amount: '1500.00',
+    paymentDate: new Date(),
+    notes: 'Monthly maintenance',
+  })
+  .returning()
 
 // Get user with all payments using relations
 const userWithPayments = await db.query.user.findFirst({
-	where: eq(user.id, userId),
-	with: {
-		payments: {
-			with: {
-				category: true,
-			},
-		},
-	},
-});
+  where: eq(user.id, userId),
+  with: {
+    payments: {
+      with: {
+        category: true,
+      },
+    },
+  },
+})
 ```
 
 ### Relations
 
 ```typescript
 export const userRelations = relations(user, ({ many }) => ({
-	payments: many(payments),
-	accounts: many(account),
-	sessions: many(session),
-}));
+  payments: many(payments),
+  accounts: many(account),
+  sessions: many(session),
+}))
 
 export const paymentRelations = relations(payments, ({ one }) => ({
-	user: one(user, {
-		fields: [payments.userId],
-		references: [user.id],
-	}),
-	category: one(paymentCategories, {
-		fields: [payments.categoryId],
-		references: [paymentCategories.id],
-	}),
-}));
+  user: one(user, {
+    fields: [payments.userId],
+    references: [user.id],
+  }),
+  category: one(paymentCategories, {
+    fields: [payments.categoryId],
+    references: [paymentCategories.id],
+  }),
+}))
 ```
 
 ## Additional Documentation
 
--   **[Type Migration Guide](./type-migration.md)** - Complete guide for migrating from Supabase types to Drizzle types
--   **[Drizzle Integration Guide](./drizzle-integration.md)** - Comprehensive guide to Drizzle ORM integration
+- **[Type Migration Guide](./type-migration.md)** - Complete guide for migrating from Supabase types to Drizzle types
+- **[Drizzle Integration Guide](./drizzle-integration.md)** - Comprehensive guide to Drizzle ORM integration
 
 ## Database Scripts
 
@@ -697,24 +697,24 @@ pnpm db:types
 ```typescript
 // lib/types.ts - Centralized type exports
 export type {
-	User,
-	Payment,
-	Expense,
-	PaymentCategory,
-	ExpenseCategory,
-	SocietyFunds,
-} from "./schema";
+  User,
+  Payment,
+  Expense,
+  PaymentCategory,
+  ExpenseCategory,
+  SocietyFunds,
+} from './schema'
 
 // Usage in components
-import type { User, Payment } from "@/lib/types";
+import type { User, Payment } from '@/lib/types'
 ```
 
 ### Type Safety Benefits
 
--   **Compile-time validation**: Catch type errors during development
--   **IntelliSense support**: Full autocomplete for database operations
--   **Refactoring safety**: Schema changes automatically update types
--   **Runtime safety**: Drizzle validates data at runtime
+- **Compile-time validation**: Catch type errors during development
+- **IntelliSense support**: Full autocomplete for database operations
+- **Refactoring safety**: Schema changes automatically update types
+- **Runtime safety**: Drizzle validates data at runtime
 
 ## Migration Strategy
 
@@ -728,10 +728,10 @@ import type { User, Payment } from "@/lib/types";
 
 ### Zero-Downtime Migration
 
--   Existing database schema remains unchanged
--   Drizzle works with current table structure
--   Better Auth continues to function normally
--   No data migration required
+- Existing database schema remains unchanged
+- Drizzle works with current table structure
+- Better Auth continues to function normally
+- No data migration required
 
 ## Useful Queries
 
@@ -740,37 +740,37 @@ import type { User, Payment } from "@/lib/types";
 ```typescript
 // Active sessions count
 const activeSessions = await db
-	.select({ count: count() })
-	.from(session)
-	.where(gt(session.expiresAt, new Date()));
+  .select({ count: count() })
+  .from(session)
+  .where(gt(session.expiresAt, new Date()))
 
 // User registration trends
 const registrationTrends = await db
-	.select({
-		date: sql<string>`DATE(${user.createdAt})`,
-		count: count(),
-	})
-	.from(user)
-	.groupBy(sql`DATE(${user.createdAt})`)
-	.orderBy(sql`DATE(${user.createdAt})`);
+  .select({
+    date: sql<string>`DATE(${user.createdAt})`,
+    count: count(),
+  })
+  .from(user)
+  .groupBy(sql`DATE(${user.createdAt})`)
+  .orderBy(sql`DATE(${user.createdAt})`)
 
 // House number distribution
 const houseDistribution = await db
-	.select({
-		building: sql<string>`SUBSTRING(${user.houseNumber}, 1, 1)`,
-		count: count(),
-	})
-	.from(user)
-	.groupBy(sql`SUBSTRING(${user.houseNumber}, 1, 1)`);
+  .select({
+    building: sql<string>`SUBSTRING(${user.houseNumber}, 1, 1)`,
+    count: count(),
+  })
+  .from(user)
+  .groupBy(sql`SUBSTRING(${user.houseNumber}, 1, 1)`)
 
 // Payment summary by category
 const paymentSummary = await db
-	.select({
-		categoryName: paymentCategories.name,
-		totalAmount: sum(payments.amount),
-		paymentCount: count(),
-	})
-	.from(payments)
-	.leftJoin(paymentCategories, eq(payments.categoryId, paymentCategories.id))
-	.groupBy(paymentCategories.name);
+  .select({
+    categoryName: paymentCategories.name,
+    totalAmount: sum(payments.amount),
+    paymentCount: count(),
+  })
+  .from(payments)
+  .leftJoin(paymentCategories, eq(payments.categoryId, paymentCategories.id))
+  .groupBy(paymentCategories.name)
 ```

@@ -6,13 +6,13 @@ SocioPay uses Better Auth for secure authentication with custom user fields spec
 
 The authentication system supports:
 
--   Email/password authentication
--   Password reset with OTP verification
--   Custom user fields (house number, phone)
--   Session management with secure cookies
--   Form validation with Zod schemas
--   Server actions for auth operations
--   Interactive UI with animations and visual feedback
+- Email/password authentication
+- Password reset with OTP verification
+- Custom user fields (house number, phone)
+- Session management with secure cookies
+- Form validation with Zod schemas
+- Server actions for auth operations
+- Interactive UI with animations and visual feedback
 
 ## Architecture
 
@@ -27,31 +27,30 @@ The authentication system supports:
 
 ### Custom Fields
 
--   **houseNumber**: Unique identifier for community members
-    -   Format: `^[A-Z]-\d{1,2}$` (e.g., A-1, B-9, C-23)
-    -   Required and unique across all users
--   **phone**: 10-digit phone number
-    -   Format: `^[0-9]{10}$`
-    -   Required for verification
+- **houseNumber**: Unique identifier for community members
+  - Format: `^[A-Z]-\d{1,2}$` (e.g., A-1, B-9, C-23)
+  - Required and unique across all users
+- **phone**: 10-digit phone number
+  - Format: `^[0-9]{10}$`
+  - Required for verification
 
 ### Standard Fields
 
--   **name**: Full name of the user
--   **email**: Email address (unique)
--   **password**: Hashed password
--   **emailVerified**: Email verification status
+- **name**: Full name of the user
+- **email**: Email address (unique)
+- **password**: Hashed password
+- **emailVerified**: Email verification status
 
 ## Authentication Flow
 
 ### Sign Up Process
 
 1. User fills out registration form with:
-
-    - Full name
-    - House number (validated format)
-    - Email address
-    - Phone number (10 digits)
-    - Password and confirmation
+   - Full name
+   - House number (validated format)
+   - Email address
+   - Phone number (10 digits)
+   - Password and confirmation
 
 2. Form validation using Zod schema
 3. Server action processes the data

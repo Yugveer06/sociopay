@@ -8,40 +8,40 @@ The login page provides a secure authentication interface for community members 
 
 ### Features
 
--   Email/password authentication
--   Form validation with real-time feedback
--   Loading states during authentication
--   Password visibility toggle with eye icons
--   Animated UI with Framer Motion
--   Interactive dot background with mouse tracking
--   Error handling and display
--   Responsive design with backdrop blur effect
--   Forgot password link integration
+- Email/password authentication
+- Form validation with real-time feedback
+- Loading states during authentication
+- Password visibility toggle with eye icons
+- Animated UI with Framer Motion
+- Interactive dot background with mouse tracking
+- Error handling and display
+- Responsive design with backdrop blur effect
+- Forgot password link integration
 
 ### Component Structure
 
 ```typescript
 export default function LoginPage() {
-	const router = useRouter();
-	const [isPending, startTransition] = useTransition();
-	const [showPassword, setShowPassword] = useState(false);
-	const [actionResult, setActionResult] = useState<{
-		success: boolean;
-		message: string;
-		errors?: Record<string, string[]>;
-	} | null>(null);
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [showPassword, setShowPassword] = useState(false)
+  const [actionResult, setActionResult] = useState<{
+    success: boolean
+    message: string
+    errors?: Record<string, string[]>
+  } | null>(null)
 
-	const form = useForm<z.infer<typeof signInSchema>>({
-		resolver: zodResolver(signInSchema),
-		defaultValues: {
-			email: "",
-			password: "",
-		},
-	});
+  const form = useForm<z.infer<typeof signInSchema>>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
 
-	const MotionCard = m.create(Card);
+  const MotionCard = m.create(Card)
 
-	// ... component implementation
+  // ... component implementation
 }
 ```
 
@@ -49,47 +49,47 @@ export default function LoginPage() {
 
 #### Email Field
 
--   **Type**: Email input with validation
--   **Validation**: Must be valid email format
--   **Placeholder**: "Enter your email"
--   **Required**: Yes
+- **Type**: Email input with validation
+- **Validation**: Must be valid email format
+- **Placeholder**: "Enter your email"
+- **Required**: Yes
 
 #### Password Field
 
--   **Type**: Password input with visibility toggle
--   **Validation**: Minimum 6 characters
--   **Placeholder**: "Enter your password"
--   **Required**: Yes
--   **Features**:
-    -   Eye/EyeOff icons for show/hide password
-    -   Forgot password link
-    -   Relative positioning for toggle button
+- **Type**: Password input with visibility toggle
+- **Validation**: Minimum 6 characters
+- **Placeholder**: "Enter your password"
+- **Required**: Yes
+- **Features**:
+  - Eye/EyeOff icons for show/hide password
+  - Forgot password link
+  - Relative positioning for toggle button
 
 ### State Management
 
 #### Form State
 
--   Managed by React Hook Form
--   Zod schema validation
--   Real-time validation feedback
+- Managed by React Hook Form
+- Zod schema validation
+- Real-time validation feedback
 
 #### Loading State
 
--   `isPending`: Boolean indicating form submission
--   `startTransition`: React transition for non-blocking updates
--   Button disabled during submission
+- `isPending`: Boolean indicating form submission
+- `startTransition`: React transition for non-blocking updates
+- Button disabled during submission
 
 #### Error State
 
--   `actionResult`: Contains success/error information
--   Field-specific errors displayed under inputs
--   General errors shown in alert banner
+- `actionResult`: Contains success/error information
+- Field-specific errors displayed under inputs
+- General errors shown in alert banner
 
 #### Password Visibility State
 
--   `showPassword`: Boolean controlling password visibility
--   Toggle button with Eye/EyeOff icons
--   Maintains security while improving UX
+- `showPassword`: Boolean controlling password visibility
+- Toggle button with Eye/EyeOff icons
+- Maintains security while improving UX
 
 ### User Experience
 
@@ -110,17 +110,17 @@ export default function LoginPage() {
 
 ### Styling
 
--   **Layout**: Centered card with interactive dot background
--   **Card**: Backdrop blur effect with semi-transparent background
--   **Typography**: Geist font family
--   **Colors**: Tailwind CSS color palette with destructive variants
--   **Responsive**: Mobile-first design
--   **Animations**: Framer Motion for smooth transitions
+- **Layout**: Centered card with interactive dot background
+- **Card**: Backdrop blur effect with semi-transparent background
+- **Typography**: Geist font family
+- **Colors**: Tailwind CSS color palette with destructive variants
+- **Responsive**: Mobile-first design
+- **Animations**: Framer Motion for smooth transitions
 
 ### Navigation
 
--   **Sign Up Link**: Links to `/signup` page
--   **Post-Login Redirect**: `/dashboard`
+- **Sign Up Link**: Links to `/signup` page
+- **Post-Login Redirect**: `/dashboard`
 
 ## Signup Page (`app/(auth)/signup/page.tsx`)
 
@@ -130,33 +130,33 @@ The signup page allows new community members to create accounts with custom fiel
 
 ### Features
 
--   Extended form with community-specific fields
--   House number validation
--   Phone number validation
--   Password confirmation with visibility toggles
--   Real-time validation feedback
--   Animated UI with Framer Motion
--   Interactive dot background
--   Organized form sections with visual separators
--   Responsive grid layout
+- Extended form with community-specific fields
+- House number validation
+- Phone number validation
+- Password confirmation with visibility toggles
+- Real-time validation feedback
+- Animated UI with Framer Motion
+- Interactive dot background
+- Organized form sections with visual separators
+- Responsive grid layout
 
 ### Form Fields
 
 #### Personal Information
 
--   **Full Name**: Text input, minimum 2 characters
--   **Email**: Email validation
--   **Phone**: 10-digit number validation
+- **Full Name**: Text input, minimum 2 characters
+- **Email**: Email validation
+- **Phone**: 10-digit number validation
 
 #### Community Information
 
--   **House Number**: Format validation (A-1, B-9, etc.)
--   **Unique Constraint**: Must be unique across community
+- **House Number**: Format validation (A-1, B-9, etc.)
+- **Unique Constraint**: Must be unique across community
 
 #### Security
 
--   **Password**: Minimum 6 characters
--   **Confirm Password**: Must match password
+- **Password**: Minimum 6 characters
+- **Confirm Password**: Must match password
 
 ### Validation Schemas
 
@@ -164,74 +164,73 @@ The signup page allows new community members to create accounts with custom fiel
 
 ```typescript
 export const signInSchema = z.object({
-	email: z.string().email({
-		message: "Please enter a valid email address.",
-	}),
-	password: z.string().min(6, {
-		message: "Password must be at least 6 characters.",
-	}),
-});
+  email: z.string().email({
+    message: 'Please enter a valid email address.',
+  }),
+  password: z.string().min(6, {
+    message: 'Password must be at least 6 characters.',
+  }),
+})
 ```
 
 #### Sign Up Schema
 
 ```typescript
 export const signUpSchema = z
-	.object({
-		fullName: z.string().min(2, {
-			message: "Full name must be at least 2 characters.",
-		}),
-		houseNumber: z.string().regex(/^[A-Z]-\d{1,2}$/, {
-			message:
-				"Please enter a valid house number (e.g., A-1, B-9, C-23).",
-		}),
-		email: z.string().email({
-			message: "Please enter a valid email address.",
-		}),
-		phone: z.string().regex(/^[0-9]{10}$/, {
-			message: "Please enter a valid 10-digit phone number.",
-		}),
-		password: z.string().min(6, {
-			message: "Password must be at least 6 characters.",
-		}),
-		confirmPassword: z.string().min(6, {
-			message: "Please confirm your password.",
-		}),
-	})
-	.refine(data => data.password === data.confirmPassword, {
-		message: "Passwords don't match",
-		path: ["confirmPassword"],
-	});
+  .object({
+    fullName: z.string().min(2, {
+      message: 'Full name must be at least 2 characters.',
+    }),
+    houseNumber: z.string().regex(/^[A-Z]-\d{1,2}$/, {
+      message: 'Please enter a valid house number (e.g., A-1, B-9, C-23).',
+    }),
+    email: z.string().email({
+      message: 'Please enter a valid email address.',
+    }),
+    phone: z.string().regex(/^[0-9]{10}$/, {
+      message: 'Please enter a valid 10-digit phone number.',
+    }),
+    password: z.string().min(6, {
+      message: 'Password must be at least 6 characters.',
+    }),
+    confirmPassword: z.string().min(6, {
+      message: 'Please confirm your password.',
+    }),
+  })
+  .refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
 ```
 
 #### Password Reset Schemas
 
 ```typescript
 export const forgotPasswordSchema = z.object({
-	email: z.string().email({
-		message: "Please enter a valid email address.",
-	}),
-});
+  email: z.string().email({
+    message: 'Please enter a valid email address.',
+  }),
+})
 
 export const resetPasswordSchema = z
-	.object({
-		email: z.string().email({
-			message: "Please enter a valid email address.",
-		}),
-		otp: z.string().length(6, {
-			message: "OTP must be exactly 6 digits.",
-		}),
-		password: z.string().min(6, {
-			message: "Password must be at least 6 characters.",
-		}),
-		confirmPassword: z.string().min(6, {
-			message: "Please confirm your password.",
-		}),
-	})
-	.refine(data => data.password === data.confirmPassword, {
-		message: "Passwords don't match",
-		path: ["confirmPassword"],
-	});
+  .object({
+    email: z.string().email({
+      message: 'Please enter a valid email address.',
+    }),
+    otp: z.string().length(6, {
+      message: 'OTP must be exactly 6 digits.',
+    }),
+    password: z.string().min(6, {
+      message: 'Password must be at least 6 characters.',
+    }),
+    confirmPassword: z.string().min(6, {
+      message: 'Please confirm your password.',
+    }),
+  })
+  .refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
 ```
 
 ### Component Architecture
@@ -248,49 +247,49 @@ Both authentication components follow the same architectural pattern:
 
 ```typescript
 // Form handling
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 // UI components
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { DotBackground } from "@/components/ui/dot-background";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { DotBackground } from '@/components/ui/dot-background'
 
 // Icons and animations
-import { Eye, EyeOff, LoaderCircle } from "lucide-react";
-import { motion as m } from "motion/react";
-import Link from "next/link";
+import { Eye, EyeOff, LoaderCircle } from 'lucide-react'
+import { motion as m } from 'motion/react'
+import Link from 'next/link'
 
 // Navigation and state
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRouter } from 'next/navigation'
+import { useState, useTransition } from 'react'
 ```
 
 ### Accessibility
 
--   **Form Labels**: Proper labeling for screen readers
--   **Error Messages**: Descriptive error messages
--   **Focus Management**: Logical tab order
--   **ARIA Attributes**: Proper ARIA labeling where needed
+- **Form Labels**: Proper labeling for screen readers
+- **Error Messages**: Descriptive error messages
+- **Focus Management**: Logical tab order
+- **ARIA Attributes**: Proper ARIA labeling where needed
 
 ### Performance
 
--   **Code Splitting**: Client-side components with dynamic imports
--   **Optimistic Updates**: React transitions for smooth UX
--   **Validation**: Client-side validation before server submission
--   **Loading States**: Clear feedback during async operations
+- **Code Splitting**: Client-side components with dynamic imports
+- **Optimistic Updates**: React transitions for smooth UX
+- **Validation**: Client-side validation before server submission
+- **Loading States**: Clear feedback during async operations

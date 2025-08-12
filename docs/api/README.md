@@ -16,51 +16,51 @@ Authenticates a user with email and password.
 
 ```typescript
 type SignInData = {
-	email: string; // Valid email address
-	password: string; // Minimum 6 characters
-};
+  email: string // Valid email address
+  password: string // Minimum 6 characters
+}
 ```
 
 **Returns:**
 
 ```typescript
 type ActionState = {
-	success: boolean;
-	message: string;
-	data?: {
-		user: User;
-		token: string;
-	};
-	errors?: Record<string, string[]>;
-};
+  success: boolean
+  message: string
+  data?: {
+    user: User
+    token: string
+  }
+  errors?: Record<string, string[]>
+}
 ```
 
 **Example Usage:**
 
 ```typescript
-import { signIn } from "@/app/(auth)/actions";
+import { signIn } from '@/app/(auth)/actions'
 
 const result = await signIn({
-	email: "user@example.com",
-	password: "password123",
-});
+  email: 'user@example.com',
+  password: 'password123',
+})
 
 if (result.success) {
-	// User authenticated successfully
-	console.log("Welcome", result.data?.user.name);
+  // User authenticated successfully
+  console.log('Welcome', result.data?.user.name)
 } else {
-	// Handle authentication error
-	console.error(result.message);
+  // Handle authentication error
+  console.error(result.message)
 }
 ```
 
 **Behavior:**
 
--   Validates input using `signInSchema`
--   Calls Better Auth API for authentication
--   Sets secure session cookie on success
--   Returns user data and session token
--   Handles authentication errors gracefully
+- Validates input using `signInSchema`
+- Calls Better Auth API for authentication
+- Sets secure session cookie on success
+- Returns user data and session token
+- Handles authentication errors gracefully
 
 #### `signUp(data: SignUpData)`
 
@@ -70,64 +70,64 @@ Creates a new user account with community-specific fields.
 
 ```typescript
 type SignUpData = {
-	fullName: string; // Minimum 2 characters
-	houseNumber: string; // Format: A-1, B-9, C-23
-	email: string; // Valid email address
-	phone: string; // 10-digit number
-	password: string; // Minimum 6 characters
-	confirmPassword: string; // Must match password
-};
+  fullName: string // Minimum 2 characters
+  houseNumber: string // Format: A-1, B-9, C-23
+  email: string // Valid email address
+  phone: string // 10-digit number
+  password: string // Minimum 6 characters
+  confirmPassword: string // Must match password
+}
 ```
 
 **Returns:**
 
 ```typescript
 type ActionState = {
-	success: boolean;
-	message: string;
-	data?: {
-		user: User;
-		token: string;
-	};
-	errors?: Record<string, string[]>;
-};
+  success: boolean
+  message: string
+  data?: {
+    user: User
+    token: string
+  }
+  errors?: Record<string, string[]>
+}
 ```
 
 **Example Usage:**
 
 ```typescript
-import { signUp } from "@/app/(auth)/actions";
+import { signUp } from '@/app/(auth)/actions'
 
 const result = await signUp({
-	fullName: "John Doe",
-	houseNumber: "A-10",
-	email: "john@example.com",
-	phone: "9876543210",
-	password: "password123",
-	confirmPassword: "password123",
-});
+  fullName: 'John Doe',
+  houseNumber: 'A-10',
+  email: 'john@example.com',
+  phone: '9876543210',
+  password: 'password123',
+  confirmPassword: 'password123',
+})
 
 if (result.success) {
-	// Account created successfully
-	console.log("Account created for", result.data?.user.name);
+  // Account created successfully
+  console.log('Account created for', result.data?.user.name)
 } else {
-	// Handle registration errors
-	if (result.errors) {
-		Object.entries(result.errors).forEach(([field, messages]) => {
-			console.error(`${field}: ${messages.join(", ")}`);
-		});
-	}
+  // Handle registration errors
+  if (result.errors) {
+    Object.entries(result.errors).forEach(([field, messages]) => {
+      console.error(`${field}: ${messages.join(', ')}`)
+    })
+  }
 }
 ```
 
 **Behavior:**
 
--   Validates all input fields using `signUpSchema`
--   Checks password confirmation match
--   Validates house number format and uniqueness
--   Creates user account via Better Auth
--   Sets session cookie for immediate login
--   Returns user data and session token
+- Validates all input fields using `signUpSchema`
+- Checks password confirmation match
+- Validates house number format and uniqueness
+- Creates user account via Better Auth
+- Sets session cookie for immediate login
+- Returns user data and session token
 
 #### `forgotPassword(data: ForgotPasswordData)`
 
@@ -137,39 +137,39 @@ Initiates password reset process by sending OTP to user's email.
 
 ```typescript
 type ForgotPasswordData = {
-	email: string; // Valid email address
-};
+  email: string // Valid email address
+}
 ```
 
 **Returns:**
 
 ```typescript
 type ActionState = {
-	success: boolean;
-	message: string;
-};
+  success: boolean
+  message: string
+}
 ```
 
 **Example Usage:**
 
 ```typescript
-import { forgotPassword } from "@/app/(auth)/actions";
+import { forgotPassword } from '@/app/(auth)/actions'
 
 const result = await forgotPassword({
-	email: "user@example.com",
-});
+  email: 'user@example.com',
+})
 
 if (result.success) {
-	// OTP sent successfully
-	console.log("Reset code sent to email");
+  // OTP sent successfully
+  console.log('Reset code sent to email')
 }
 ```
 
 **Behavior:**
 
--   Validates email format
--   Sends 6-digit OTP to user's email
--   Returns success message
+- Validates email format
+- Sends 6-digit OTP to user's email
+- Returns success message
 
 #### `resetPassword(data: ResetPasswordData)`
 
@@ -179,46 +179,46 @@ Resets user password using OTP verification.
 
 ```typescript
 type ResetPasswordData = {
-	email: string; // Valid email address
-	otp: string; // 6-digit OTP from email
-	password: string; // New password (minimum 6 characters)
-	confirmPassword: string; // Must match password
-};
+  email: string // Valid email address
+  otp: string // 6-digit OTP from email
+  password: string // New password (minimum 6 characters)
+  confirmPassword: string // Must match password
+}
 ```
 
 **Returns:**
 
 ```typescript
 type ActionState = {
-	success: boolean;
-	message: string;
-};
+  success: boolean
+  message: string
+}
 ```
 
 **Example Usage:**
 
 ```typescript
-import { resetPassword } from "@/app/(auth)/actions";
+import { resetPassword } from '@/app/(auth)/actions'
 
 const result = await resetPassword({
-	email: "user@example.com",
-	otp: "123456",
-	password: "newpassword123",
-	confirmPassword: "newpassword123",
-});
+  email: 'user@example.com',
+  otp: '123456',
+  password: 'newpassword123',
+  confirmPassword: 'newpassword123',
+})
 
 if (result.success) {
-	// Password reset successfully
-	console.log("Password updated");
+  // Password reset successfully
+  console.log('Password updated')
 }
 ```
 
 **Behavior:**
 
--   Validates OTP and email
--   Checks password confirmation match
--   Updates user password
--   Invalidates existing sessions
+- Validates OTP and email
+- Checks password confirmation match
+- Updates user password
+- Invalidates existing sessions
 
 #### `signOut()`
 
@@ -230,29 +230,29 @@ Signs out the current user and invalidates their session.
 
 ```typescript
 type ActionState = {
-	success: boolean;
-	message: string;
-};
+  success: boolean
+  message: string
+}
 ```
 
 **Example Usage:**
 
 ```typescript
-import { signOut } from "@/app/(auth)/actions";
+import { signOut } from '@/app/(auth)/actions'
 
-const result = await signOut();
+const result = await signOut()
 
 if (result.success) {
-	// User signed out successfully
-	console.log("Signed out");
+  // User signed out successfully
+  console.log('Signed out')
 }
 ```
 
 **Behavior:**
 
--   Invalidates current session
--   Clears session cookies
--   Returns success confirmation
+- Invalidates current session
+- Clears session cookies
+- Returns success confirmation
 
 ## Action Helpers
 
@@ -262,32 +262,32 @@ Utility function that wraps server actions with Zod validation.
 
 **Parameters:**
 
--   `schema`: Zod schema for input validation
--   `action`: Async function to execute with validated data
+- `schema`: Zod schema for input validation
+- `action`: Async function to execute with validated data
 
 **Returns:**
 
--   Function that validates input and executes action
--   Standardized error handling for validation failures
+- Function that validates input and executes action
+- Standardized error handling for validation failures
 
 **Example:**
 
 ```typescript
-import { validatedAction } from "@/lib/action-helpers";
-import { z } from "zod";
+import { validatedAction } from '@/lib/action-helpers'
+import { z } from 'zod'
 
 const mySchema = z.object({
-	name: z.string().min(1),
-	age: z.number().min(0),
-});
+  name: z.string().min(1),
+  age: z.number().min(0),
+})
 
 const myAction = validatedAction(mySchema, async data => {
-	// data is automatically typed and validated
-	return {
-		success: true,
-		message: `Hello ${data.name}, age ${data.age}`,
-	};
-});
+  // data is automatically typed and validated
+  return {
+    success: true,
+    message: `Hello ${data.name}, age ${data.age}`,
+  }
+})
 ```
 
 ## Error Handling
@@ -298,10 +298,10 @@ All server actions return a consistent error format:
 
 ```typescript
 type ActionState = {
-	success: false;
-	message: string; // Human-readable error message
-	errors?: Record<string, string[]>; // Field-specific validation errors
-};
+  success: false
+  message: string // Human-readable error message
+  errors?: Record<string, string[]> // Field-specific validation errors
+}
 ```
 
 ### Error Types
@@ -345,21 +345,21 @@ Server actions automatically manage session cookies:
 
 ```typescript
 cookieStore.set({
-	name: "better-auth.session_token",
-	value: response.token,
-	httpOnly: true,
-	secure: process.env.NODE_ENV === "production",
-	sameSite: "lax",
-	maxAge: 60 * 60 * 24 * 7, // 7 days
-});
+  name: 'better-auth.session_token',
+  value: response.token,
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  maxAge: 60 * 60 * 24 * 7, // 7 days
+})
 ```
 
 ### Session Properties
 
--   **Duration**: 7 days
--   **Security**: HTTP-only, secure in production
--   **CSRF Protection**: SameSite lax policy
--   **Automatic Cleanup**: Expired sessions removed automatically
+- **Duration**: 7 days
+- **Security**: HTTP-only, secure in production
+- **CSRF Protection**: SameSite lax policy
+- **Automatic Cleanup**: Expired sessions removed automatically
 
 ## Type Safety
 
@@ -370,12 +370,12 @@ All server actions use Zod schemas for type-safe validation:
 ```typescript
 // Input validation
 const signInSchema = z.object({
-	email: z.string().email(),
-	password: z.string().min(6),
-});
+  email: z.string().email(),
+  password: z.string().min(6),
+})
 
 // Type inference
-type SignInData = z.infer<typeof signInSchema>;
+type SignInData = z.infer<typeof signInSchema>
 ```
 
 ### Return Types
@@ -384,33 +384,33 @@ Consistent return types across all actions:
 
 ```typescript
 type ActionState<T = any> = {
-	success: boolean;
-	message: string;
-	data?: T;
-	errors?: Record<string, string[]>;
-};
+  success: boolean
+  message: string
+  data?: T
+  errors?: Record<string, string[]>
+}
 ```
 
 ## Security Considerations
 
 ### Input Validation
 
--   All inputs validated on both client and server
--   Zod schemas prevent invalid data processing
--   SQL injection prevention through parameterized queries
+- All inputs validated on both client and server
+- Zod schemas prevent invalid data processing
+- SQL injection prevention through parameterized queries
 
 ### Authentication Security
 
--   Passwords never stored in plain text
--   Session tokens are cryptographically secure
--   Automatic session expiration
--   CSRF protection via SameSite cookies
+- Passwords never stored in plain text
+- Session tokens are cryptographically secure
+- Automatic session expiration
+- CSRF protection via SameSite cookies
 
 ### Error Security
 
--   Generic error messages prevent information disclosure
--   Detailed validation errors only for client-side feedback
--   Server errors logged but not exposed to client
+- Generic error messages prevent information disclosure
+- Detailed validation errors only for client-side feedback
+- Server errors logged but not exposed to client
 
 ## Best Practices
 

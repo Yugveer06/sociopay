@@ -7,93 +7,90 @@ The `PermissionGuard` component provides a flexible way to protect pages and com
 ### 1. Component-level Protection
 
 ```tsx
-import { PermissionGuard } from "@/components/guards/PermissionGuard";
+import { PermissionGuard } from '@/components/guards/PermissionGuard'
 
 export default function SomeProtectedPage() {
-	return (
-		<PermissionGuard requiredRole='admin'>
-			<div>
-				<h1>Admin Only Content</h1>
-				<p>This content is only visible to admin users.</p>
-			</div>
-		</PermissionGuard>
-	);
+  return (
+    <PermissionGuard requiredRole="admin">
+      <div>
+        <h1>Admin Only Content</h1>
+        <p>This content is only visible to admin users.</p>
+      </div>
+    </PermissionGuard>
+  )
 }
 ```
 
 ### 2. Permission-based Protection
 
 ```tsx
-import { PermissionGuard } from "@/components/guards/PermissionGuard";
+import { PermissionGuard } from '@/components/guards/PermissionGuard'
 
 export default function PaymentPage() {
-	return (
-		<PermissionGuard
-			requiredPermission={{
-				resource: "payment",
-				action: "create",
-			}}
-		>
-			<div>
-				<h1>Create Payment</h1>
-				<p>
-					This content is only visible to users who can create
-					payments.
-				</p>
-			</div>
-		</PermissionGuard>
-	);
+  return (
+    <PermissionGuard
+      requiredPermission={{
+        resource: 'payment',
+        action: 'create',
+      }}
+    >
+      <div>
+        <h1>Create Payment</h1>
+        <p>This content is only visible to users who can create payments.</p>
+      </div>
+    </PermissionGuard>
+  )
 }
 ```
 
 ### 3. Higher-Order Component (HOC) Usage
 
 ```tsx
-import { withPermissionGuard } from "@/components/guards/PermissionGuard";
+import { withPermissionGuard } from '@/components/guards/PermissionGuard'
 
 function AdminDashboard() {
-	return (
-		<div>
-			<h1>Admin Dashboard</h1>
-			<p>Admin-only content here</p>
-		</div>
-	);
+  return (
+    <div>
+      <h1>Admin Dashboard</h1>
+      <p>Admin-only content here</p>
+    </div>
+  )
 }
 
 // Wrap the component with permission guard
 export default withPermissionGuard(AdminDashboard, {
-	requiredRole: "admin",
-	redirectTo: "/unauthorized",
-});
+  requiredRole: 'admin',
+  redirectTo: '/unauthorized',
+})
 ```
 
 ### 4. Custom Fallback Component
 
 ```tsx
-import { PermissionGuard } from "@/components/guards/PermissionGuard";
+import { PermissionGuard } from '@/components/guards/PermissionGuard'
 
 const CustomAccessDenied = () => (
-	<div className='text-center py-8'>
-		<h2>Oops! You need special permissions</h2>
-		<p>Contact your administrator for access.</p>
-	</div>
-);
+  <div className="py-8 text-center">
+    <h2>Oops! You need special permissions</h2>
+    <p>Contact your administrator for access.</p>
+  </div>
+)
 
 export default function WalletPage() {
-	return (
-		<PermissionGuard
-			requiredPermission={{
-				resource: "wallet",
-				action: "update",
-			}}
-			fallback={<CustomAccessDenied />}
-		>
-			<div>
-				<h1>Update Wallet</h1>
-				{/* Wallet update content */}
-			</div>
-		</PermissionGuard>
-	);
+  return (
+    <PermissionGuard
+      requiredPermission={{
+        resource: 'wallet',
+        action: 'update',
+      }}
+      fallback={<CustomAccessDenied />}
+    >
+      <div>
+        <h1>Update Wallet</h1>
+        {/* Wallet update content */}
+      </div>
+    </PermissionGuard>
+  )
 }
 ```
 
@@ -102,31 +99,29 @@ export default function WalletPage() {
 The `usePermissions` hook allows you to check permissions within your components:
 
 ```tsx
-import { usePermissions } from "@/components/guards/PermissionGuard";
+import { usePermissions } from '@/components/guards/PermissionGuard'
 
 export default function DynamicContent() {
-	const { isAuthenticated, userRole, hasRole, hasPermission, canAccess } =
-		usePermissions();
+  const { isAuthenticated, userRole, hasRole, hasPermission, canAccess } =
+    usePermissions()
 
-	if (!isAuthenticated) {
-		return <div>Please log in</div>;
-	}
+  if (!isAuthenticated) {
+    return <div>Please log in</div>
+  }
 
-	return (
-		<div>
-			<h1>Welcome, {userRole}!</h1>
+  return (
+    <div>
+      <h1>Welcome, {userRole}!</h1>
 
-			{hasRole("admin") && <button>Admin Action</button>}
+      {hasRole('admin') && <button>Admin Action</button>}
 
-			{hasPermission("payment", "create") && (
-				<button>Create Payment</button>
-			)}
+      {hasPermission('payment', 'create') && <button>Create Payment</button>}
 
-			{canAccess({
-				permission: { resource: "wallet", action: "transfer" },
-			}) && <button>Transfer Money</button>}
-		</div>
-	);
+      {canAccess({
+        permission: { resource: 'wallet', action: 'transfer' },
+      }) && <button>Transfer Money</button>}
+    </div>
+  )
 }
 ```
 
@@ -136,17 +131,17 @@ Based on your `permissions.ts` file, here are the available resources and action
 
 ### Resources:
 
--   `payment`: create, view, cancel, refund
--   `transaction`: create, view, list, export
--   `wallet`: create, view, update, transfer
--   `profile`: view, update, delete
--   `user`: create, list, update, delete, set-role, ban, impersonate, set-password
--   `session`: list, delete, revoke
+- `payment`: create, view, cancel, refund
+- `transaction`: create, view, list, export
+- `wallet`: create, view, update, transfer
+- `profile`: view, update, delete
+- `user`: create, list, update, delete, set-role, ban, impersonate, set-password
+- `session`: list, delete, revoke
 
 ### Roles:
 
--   `admin`: Full access to all resources
--   `user`: Limited access (view-only for most resources)
+- `admin`: Full access to all resources
+- `user`: Limited access (view-only for most resources)
 
 ## Advanced Examples
 
@@ -154,45 +149,45 @@ Based on your `permissions.ts` file, here are the available resources and action
 
 ```tsx
 // pages/admin/users.tsx
-import { PermissionGuard } from "@/components/guards/PermissionGuard";
+import { PermissionGuard } from '@/components/guards/PermissionGuard'
 
 export default function UsersManagement() {
-	return (
-		<PermissionGuard requiredRole='admin' redirectTo='/dashboard'>
-			<div>
-				<h1>User Management</h1>
-				{/* Admin user management interface */}
-			</div>
-		</PermissionGuard>
-	);
+  return (
+    <PermissionGuard requiredRole="admin" redirectTo="/dashboard">
+      <div>
+        <h1>User Management</h1>
+        {/* Admin user management interface */}
+      </div>
+    </PermissionGuard>
+  )
 }
 ```
 
 ### Conditional Rendering
 
 ```tsx
-import { usePermissions } from "@/components/guards/PermissionGuard";
+import { usePermissions } from '@/components/guards/PermissionGuard'
 
 export default function TransactionPage() {
-	const { hasPermission } = usePermissions();
+  const { hasPermission } = usePermissions()
 
-	return (
-		<div>
-			<h1>Transactions</h1>
+  return (
+    <div>
+      <h1>Transactions</h1>
 
-			{hasPermission("transaction", "view") && (
-				<div>{/* Transaction list */}</div>
-			)}
+      {hasPermission('transaction', 'view') && (
+        <div>{/* Transaction list */}</div>
+      )}
 
-			{hasPermission("transaction", "export") && (
-				<button>Export Transactions</button>
-			)}
+      {hasPermission('transaction', 'export') && (
+        <button>Export Transactions</button>
+      )}
 
-			{hasPermission("transaction", "create") && (
-				<button>Create New Transaction</button>
-			)}
-		</div>
-	);
+      {hasPermission('transaction', 'create') && (
+        <button>Create New Transaction</button>
+      )}
+    </div>
+  )
 }
 ```
 
