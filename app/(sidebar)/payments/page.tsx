@@ -6,7 +6,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { createSupabaseServer } from "@/db/supabase/server";
+import { db } from "@/lib/db";
+import { payments, user, paymentCategories } from "@/lib/schema";
+import { eq, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import {
 	IconArrowDownLeft,
@@ -32,60 +34,58 @@ export default async function PaymentsPage() {
 		redirect("/login");
 	}
 
-	// Create Supabase server client
-	const supabase = await createSupabaseServer();
+	// Fetch payments with user and category data using Drizzle
+	let paymentsData: Payment[] = [];
+	let error: string | null = null;
 
-	// Fetch payments with user and category data
-	const { data: paymentsData, error } = await supabase
-		.from("payments")
-		.select(
-			`
-			id,
-			amount,
-			created_at,
-			interval_type,
-			notes,
-			payment_date,
-			period_start,
-			period_end,
-			user_id,
-			user:user_id (
-				name,
-				houseNumber
-			),
-			payment_categories:category_id (
-				name
+	try {
+		const result = await db
+			.select({
+				id: payments.id,
+				amount: payments.amount,
+				created_at: payments.createdAt,
+				interval_type: payments.intervalType,
+				notes: payments.notes,
+				payment_date: payments.paymentDate,
+				period_start: payments.periodStart,
+				period_end: payments.periodEnd,
+				user_id: payments.userId,
+				user_name: user.name,
+				house_number: user.houseNumber,
+				category_name: paymentCategories.name,
+			})
+			.from(payments)
+			.leftJoin(user, eq(payments.userId, user.id))
+			.leftJoin(
+				paymentCategories,
+				eq(payments.categoryId, paymentCategories.id)
 			)
-		`
-		)
-		.order("payment_date", { ascending: false });
+			.orderBy(desc(payments.paymentDate));
 
-	if (error) {
-		console.error("Error fetching payments:", error);
-	}
-
-	// Transform the data to match our Payment type
-	const transformedPayments: Payment[] = (paymentsData || []).map(
-		payment => ({
+		// Transform the data to match our Payment type
+		paymentsData = result.map(payment => ({
 			id: payment.id,
-			amount: payment.amount,
-			created_at: payment.created_at,
+			amount: parseFloat(payment.amount || "0"),
+			created_at: payment.created_at?.toISOString() || null,
 			interval_type: payment.interval_type,
 			notes: payment.notes,
-			payment_date: payment.payment_date,
-			period_start: payment.period_start,
-			period_end: payment.period_end,
+			payment_date: payment.payment_date || null,
+			period_start: payment.period_start || null,
+			period_end: payment.period_end || null,
 			user_id: payment.user_id,
-			user_name: payment.user?.name || "Unknown",
-			house_number: payment.user?.houseNumber || "Unknown",
-			category_name: payment.payment_categories?.name || "Uncategorized",
-		})
-	);
+			user_name: payment.user_name || "Unknown",
+			house_number: payment.house_number || "Unknown",
+			category_name: payment.category_name || "Uncategorized",
+		}));
+	} catch (err) {
+		console.error("Error fetching payments:", err);
+		error = err instanceof Error ? err.message : "Unknown error occurred";
+	}
 
-	// Use the transformed payments data or fallback to sample data
+	// Use the fetched payments data or fallback to sample data
 	const finalPayments: Payment[] =
-		transformedPayments.length > 0
-			? transformedPayments
+		paymentsData.length > 0
+			? paymentsData
 			: [
 					{
 						id: "sample-1",
@@ -281,7 +281,7 @@ export default async function PaymentsPage() {
 								<div className='text-center py-8 text-muted-foreground'>
 									<p>Failed to load payment data</p>
 									<p className='text-sm mt-2'>
-										Error: {error?.message}
+										Error: {error}
 									</p>
 								</div>
 							</CardContent>
