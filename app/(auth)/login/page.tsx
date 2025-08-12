@@ -27,8 +27,8 @@ import { signIn } from "../actions";
 import { signInSchema } from "@/lib/schemas";
 import { motion as m } from "motion/react";
 import Link from "next/link";
-import LiquidChrome from "@/components/ui/Backgrounds/LiquidChrome/LiquidChrome";
 import { Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { DotBackground } from "@/components/ui/dot-background";
 
 export default function LoginPage() {
 	const router = useRouter();
@@ -84,19 +84,11 @@ export default function LoginPage() {
 	const MotionCard = m.create(Card);
 
 	return (
-		<div style={{ width: "100%", height: "100vh", position: "relative" }}>
-			<LiquidChrome
-				baseColor={[0.015, 0.015, 0.015]}
-				speed={0.07}
-				amplitude={2}
-				interactive={false}
-				frequencyX={1}
-				frequencyY={0.2}
-			/>
-			<div className='flex min-h-screen items-center justify-center absolute inset-0 pointer-events-none'>
+		<div className='flex min-h-screen items-center justify-center'>
+			<DotBackground>
 				<MotionCard
 					layoutId='authCard'
-					className='w-full max-w-md relative backdrop-blur-2xl bg-background/75 border-2 pointer-events-auto'
+					className='w-full max-w-md relative backdrop-blur-2xl bg-background/75 border-2'
 				>
 					<CardHeader className='text-center'>
 						<CardTitle className='text-3xl font-bold'>
@@ -220,7 +212,7 @@ export default function LoginPage() {
 						</div>
 					</CardContent>
 				</MotionCard>
-			</div>
+			</DotBackground>
 		</div>
 	);
 }
