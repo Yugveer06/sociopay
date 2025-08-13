@@ -31,6 +31,7 @@ export const user = pgTable('user', {
   phone: text('phone').notNull(),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
+  role: text('role'),
 })
 
 export const account = pgTable('account', {

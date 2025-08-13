@@ -33,6 +33,11 @@ export const auth = betterAuth({
           message: 'Please enter a valid 10-digit phone number.',
         },
       },
+      role: {
+        type: 'string',
+        required: false,
+        defaultValue: 'user',
+      },
     },
   },
   emailAndPassword: { enabled: true },

@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 // Define the schemas for auth actions
 export const signInSchema = z.object({
-  email: z.string().email({
+  email: z.email({
     message: 'Please enter a valid email address.',
   }),
   password: z.string().min(6, {
@@ -18,7 +18,7 @@ export const signUpSchema = z
     houseNumber: z.string().regex(/^[A-Z]-\d{1,2}$/, {
       message: 'Please enter a valid house number (e.g., A-1, B-9, C-23).',
     }),
-    email: z.string().email({
+    email: z.email({
       message: 'Please enter a valid email address.',
     }),
     phone: z.string().regex(/^[0-9]{10}$/, {
@@ -38,14 +38,14 @@ export const signUpSchema = z
 
 // Password reset schemas
 export const forgotPasswordSchema = z.object({
-  email: z.string().email({
+  email: z.email({
     message: 'Please enter a valid email address.',
   }),
 })
 
 export const resetPasswordSchema = z
   .object({
-    email: z.string().email({
+    email: z.email({
       message: 'Please enter a valid email address.',
     }),
     otp: z.string().length(6, {
