@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { IconCaretUpDown } from '@tabler/icons-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
+import { RowActions } from './row-actions'
 
 export const PaymentSchema = z.object({
   id: z.string(),
@@ -149,6 +150,14 @@ export const columns: ColumnDef<Payment>[] = [
           {notes}
         </div>
       )
+    },
+  },
+  {
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      const payment = row.original
+      return <RowActions payment={payment} />
     },
   },
 ]

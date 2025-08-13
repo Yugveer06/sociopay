@@ -7,6 +7,7 @@ import { addPaymentSchema, AddPaymentData } from '@/lib/schemas'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
+import { eq } from 'drizzle-orm'
 
 async function addPaymentAction(data: AddPaymentData): Promise<ActionState> {
   try {
@@ -277,6 +278,130 @@ export async function exportPaymentsToPDF() {
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Failed to export PDF',
+    }
+  }
+}
+
+export async function deletePayment(paymentId: string): Promise<ActionState> {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      return {
+        success: false,
+        message: 'You must be logged in to delete payments',
+      }
+    }
+
+    // Delete the payment from the database
+    const deletedPayment = await db
+      .delete(payments)
+      .where(eq(payments.id, paymentId))
+      .returning()
+
+    if (deletedPayment.length === 0) {
+      return {
+        success: false,
+        message: 'Payment not found',
+      }
+    }
+
+    // Revalidate the payments page to reflect the deletion
+    revalidatePath('/payments')
+
+    return {
+      success: true,
+      message: 'Payment deleted successfully',
+    }
+  } catch (error) {
+    console.error('Delete payment error:', error)
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : 'Failed to delete payment',
+    }
+  }
+}
+
+export async function generatePaymentReceipt(
+  paymentId: string
+): Promise<ActionState> {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      return {
+        success: false,
+        message: 'You must be logged in to generate receipts',
+      }
+    }
+
+    // Fetch the specific payment with related data
+    const { user, paymentCategories } = await import('@/lib/schema')
+
+    const result = await db
+      .select({
+        id: payments.id,
+        amount: payments.amount,
+        created_at: payments.createdAt,
+        interval_type: payments.intervalType,
+        notes: payments.notes,
+        payment_date: payments.paymentDate,
+        period_start: payments.periodStart,
+        period_end: payments.periodEnd,
+        user_id: payments.userId,
+        user_name: user.name,
+        house_number: user.houseNumber,
+        category_name: paymentCategories.name,
+      })
+      .from(payments)
+      .leftJoin(user, eq(payments.userId, user.id))
+      .leftJoin(
+        paymentCategories,
+        eq(payments.categoryId, paymentCategories.id)
+      )
+      .where(eq(payments.id, paymentId))
+      .limit(1)
+
+    if (result.length === 0) {
+      return {
+        success: false,
+        message: 'Payment not found',
+      }
+    }
+
+    const payment = result[0]
+
+    // Transform data for receipt generation
+    const receiptData = {
+      id: payment.id,
+      amount: parseFloat(payment.amount || '0'),
+      paymentDate: payment.payment_date,
+      userName: payment.user_name || 'Unknown',
+      houseNumber: payment.house_number || 'Unknown',
+      category: payment.category_name || 'Uncategorized',
+      intervalType: payment.interval_type || '',
+      periodStart: payment.period_start || '',
+      periodEnd: payment.period_end || '',
+      notes: payment.notes || '',
+      createdAt: payment.created_at?.toISOString() || '',
+    }
+
+    return {
+      success: true,
+      data: receiptData,
+      message: 'Receipt data generated successfully',
+    }
+  } catch (error) {
+    console.error('Generate receipt error:', error)
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : 'Failed to generate receipt',
     }
   }
 }
