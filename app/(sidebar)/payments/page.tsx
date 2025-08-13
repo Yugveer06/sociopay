@@ -14,7 +14,6 @@ import {
   IconArrowDownLeft,
   IconArrowUpRight,
   IconCreditCard,
-  IconDownload,
   IconFilter,
   IconRefresh,
 } from '@tabler/icons-react'
@@ -24,6 +23,7 @@ import { redirect } from 'next/navigation'
 import { columns, Payment } from './columns'
 import { DataTable } from './data-table'
 import { AddPaymentForm } from './add-payment-form'
+import { ExportDropdown } from './export-dropdown'
 
 export default async function PaymentsPage() {
   const session = await auth.api.getSession({
@@ -219,10 +219,21 @@ export default async function PaymentsPage() {
                 <IconFilter className="mr-2 h-4 w-4" />
                 Filter
               </Button>
-              <Button variant="outline" size="sm">
-                <IconDownload className="mr-2 h-4 w-4" />
-                Export
-              </Button>
+              <ExportDropdown
+                data={finalPayments.map(payment => ({
+                  id: payment.id,
+                  amount: payment.amount,
+                  paymentDate: payment.payment_date,
+                  userName: payment.user_name,
+                  houseNumber: payment.house_number,
+                  category: payment.category_name,
+                  intervalType: payment.interval_type,
+                  periodStart: payment.period_start,
+                  periodEnd: payment.period_end,
+                  notes: payment.notes,
+                  createdAt: payment.created_at,
+                }))}
+              />
               <AddPaymentForm users={users} categories={categories} />
             </div>
           </div>

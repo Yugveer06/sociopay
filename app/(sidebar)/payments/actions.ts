@@ -87,3 +87,196 @@ async function addPaymentAction(data: AddPaymentData): Promise<ActionState> {
 
 // Export the validated action using the form schema
 export const addPayment = validatedAction(addPaymentSchema, addPaymentAction)
+
+export async function exportPaymentsToCSV() {
+  'use server'
+
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      throw new Error('You must be logged in to export payments')
+    }
+
+    // Import csv-writer dynamically since it's a Node.js module
+    const createCsvWriter = (await import('csv-writer')).createObjectCsvWriter
+
+    // Fetch all payments with related data
+    const { db } = await import('@/lib/db')
+    const { payments, user, paymentCategories } = await import('@/lib/schema')
+    const { eq, desc } = await import('drizzle-orm')
+
+    const result = await db
+      .select({
+        id: payments.id,
+        amount: payments.amount,
+        created_at: payments.createdAt,
+        interval_type: payments.intervalType,
+        notes: payments.notes,
+        payment_date: payments.paymentDate,
+        period_start: payments.periodStart,
+        period_end: payments.periodEnd,
+        user_id: payments.userId,
+        user_name: user.name,
+        house_number: user.houseNumber,
+        category_name: paymentCategories.name,
+      })
+      .from(payments)
+      .leftJoin(user, eq(payments.userId, user.id))
+      .leftJoin(
+        paymentCategories,
+        eq(payments.categoryId, paymentCategories.id)
+      )
+      .orderBy(desc(payments.paymentDate))
+
+    // Transform data for CSV
+    const csvData = result.map(payment => ({
+      ID: payment.id,
+      Amount: payment.amount,
+      'Payment Date': payment.payment_date,
+      'User Name': payment.user_name || 'Unknown',
+      'House Number': payment.house_number || 'Unknown',
+      Category: payment.category_name || 'Uncategorized',
+      'Interval Type': payment.interval_type || '',
+      'Period Start': payment.period_start || '',
+      'Period End': payment.period_end || '',
+      Notes: payment.notes || '',
+      'Created At': payment.created_at?.toISOString() || '',
+    }))
+
+    // Create CSV content
+    const csvWriter = createCsvWriter({
+      path: '', // We won't write to file, just get the content
+      header: [
+        { id: 'ID', title: 'ID' },
+        { id: 'Amount', title: 'Amount (INR)' },
+        { id: 'Payment Date', title: 'Payment Date' },
+        { id: 'User Name', title: 'User Name' },
+        { id: 'House Number', title: 'House Number' },
+        { id: 'Category', title: 'Category' },
+        { id: 'Interval Type', title: 'Interval Type' },
+        { id: 'Period Start', title: 'Period Start' },
+        { id: 'Period End', title: 'Period End' },
+        { id: 'Notes', title: 'Notes' },
+        { id: 'Created At', title: 'Created At' },
+      ],
+    })
+
+    // Generate CSV content manually since csv-writer doesn't have a method to get content without writing to file
+    const header = [
+      'ID',
+      'Amount (INR)',
+      'Payment Date',
+      'User Name',
+      'House Number',
+      'Category',
+      'Interval Type',
+      'Period Start',
+      'Period End',
+      'Notes',
+      'Created At',
+    ]
+    const csvContent = [
+      header.join(','),
+      ...csvData.map(row =>
+        [
+          row.ID,
+          row.Amount,
+          row['Payment Date'],
+          `"${row['User Name']}"`,
+          `"${row['House Number']}"`,
+          `"${row.Category}"`,
+          row['Interval Type'],
+          row['Period Start'],
+          row['Period End'],
+          `"${row.Notes}"`,
+          row['Created At'],
+        ].join(',')
+      ),
+    ].join('\n')
+
+    return {
+      success: true,
+      data: csvContent,
+      filename: `maintenance-payments-${new Date().toISOString().split('T')[0]}.csv`,
+    }
+  } catch (error) {
+    console.error('Export CSV error:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to export CSV',
+    }
+  }
+}
+
+export async function exportPaymentsToPDF() {
+  'use server'
+
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      throw new Error('You must be logged in to export payments')
+    }
+
+    // Note: PDF generation on server side with jsPDF is complex
+    // We'll return the data and let the client handle PDF generation
+    const { db } = await import('@/lib/db')
+    const { payments, user, paymentCategories } = await import('@/lib/schema')
+    const { eq, desc } = await import('drizzle-orm')
+
+    const result = await db
+      .select({
+        id: payments.id,
+        amount: payments.amount,
+        created_at: payments.createdAt,
+        interval_type: payments.intervalType,
+        notes: payments.notes,
+        payment_date: payments.paymentDate,
+        period_start: payments.periodStart,
+        period_end: payments.periodEnd,
+        user_id: payments.userId,
+        user_name: user.name,
+        house_number: user.houseNumber,
+        category_name: paymentCategories.name,
+      })
+      .from(payments)
+      .leftJoin(user, eq(payments.userId, user.id))
+      .leftJoin(
+        paymentCategories,
+        eq(payments.categoryId, paymentCategories.id)
+      )
+      .orderBy(desc(payments.paymentDate))
+
+    // Transform data for PDF
+    const pdfData = result.map(payment => ({
+      id: payment.id,
+      amount: parseFloat(payment.amount || '0'),
+      paymentDate: payment.payment_date,
+      userName: payment.user_name || 'Unknown',
+      houseNumber: payment.house_number || 'Unknown',
+      category: payment.category_name || 'Uncategorized',
+      intervalType: payment.interval_type || '',
+      periodStart: payment.period_start || '',
+      periodEnd: payment.period_end || '',
+      notes: payment.notes || '',
+      createdAt: payment.created_at?.toISOString() || '',
+    }))
+
+    return {
+      success: true,
+      data: pdfData,
+      filename: `maintenance-payments-${new Date().toISOString().split('T')[0]}.pdf`,
+    }
+  } catch (error) {
+    console.error('Export PDF error:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to export PDF',
+    }
+  }
+}
