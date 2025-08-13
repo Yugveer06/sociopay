@@ -1,6 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,10 +19,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { IconDots, IconReceipt, IconTrash } from '@tabler/icons-react'
-import { Payment } from './columns'
-import { deletePayment, generatePaymentReceipt } from './actions'
-import { toast } from 'sonner'
 import jsPDF from 'jspdf'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { deletePayment, generatePaymentReceipt } from './actions'
+import { Payment } from './columns'
 
 type ReceiptData = {
   id: string
@@ -35,6 +45,7 @@ interface RowActionsProps {
 
 export function RowActions({ payment }: RowActionsProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const handleGenerateReceipt = async () => {
     setIsLoading(true)
@@ -229,20 +240,13 @@ export function RowActions({ payment }: RowActionsProps) {
   }
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this payment? This action cannot be undone.'
-      )
-    ) {
-      return
-    }
-
     setIsLoading(true)
     try {
       const result = await deletePayment(payment.id)
 
       if (result.success) {
         toast.success('Payment deleted successfully!')
+        setShowDeleteDialog(false)
       } else {
         toast.error(result.message || 'Failed to delete payment')
       }
@@ -255,32 +259,67 @@ export function RowActions({ payment }: RowActionsProps) {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="data-[state=open]:bg-muted flex h-8 w-8 p-0"
-          disabled={isLoading}
-        >
-          <IconDots className="h-4 w-4" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem onClick={handleGenerateReceipt} disabled={isLoading}>
-          <IconReceipt className="mr-2 h-4 w-4" />
-          Generate Receipt
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleDelete}
-          disabled={isLoading}
-          className="text-red-600 focus:text-red-600"
-        >
-          <IconTrash className="mr-2 h-4 w-4" />
-          Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="data-[state=open]:bg-muted flex h-8 w-8 p-0"
+            disabled={isLoading}
+          >
+            <IconDots className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem
+            onClick={handleGenerateReceipt}
+            disabled={isLoading}
+          >
+            <IconReceipt className="mr-2 h-4 w-4" />
+            Generate Receipt
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={isLoading}
+            className="text-red-600 focus:text-red-600"
+          >
+            <IconTrash className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              payment record for <strong>{payment.user_name}</strong> (House{' '}
+              {payment.house_number}) amounting to{' '}
+              <strong>
+                {new Intl.NumberFormat('en-IN', {
+                  style: 'currency',
+                  currency: 'INR',
+                }).format(payment.amount)}
+              </strong>
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isLoading ? 'Deleting...' : 'Delete Payment'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
