@@ -41,7 +41,7 @@ export function validatedAction<T extends z.ZodSchema, K>(
 
 // Define the schemas for auth actions
 export const signInSchema = z.object({
-  email: z.string().email({
+  email: z.email({
     message: 'Please enter a valid email address.',
   }),
   password: z.string().min(6, {
