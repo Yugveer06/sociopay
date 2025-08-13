@@ -36,7 +36,7 @@ const data = {
     },
     {
       title: 'Society Members',
-      url: '#',
+      url: '/society-members',
       icon: Users,
     },
   ],
