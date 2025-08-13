@@ -2,7 +2,20 @@
 
 ## Overview
 
-SocioPay uses Next.js Server Actions for secure, type-safe API operations. All authentication-related operations are handled through validated server actions.
+SocioPay uses Next.js Server Actions for secure, type-safe API operations. The application includes authentication, payment management, and expense tracking through validated server actions.
+
+## API Structure
+
+### Authentication API (`/api/auth/[...all]`)
+
+Better Auth handles all authentication endpoints through a single catch-all route:
+
+- `POST /api/auth/sign-in` - User authentication
+- `POST /api/auth/sign-up` - User registration
+- `POST /api/auth/sign-out` - User logout
+- `POST /api/auth/forgot-password` - Password reset initiation
+- `POST /api/auth/reset-password` - Password reset completion
+- `GET /api/auth/session` - Get current session
 
 ## Server Actions
 
@@ -412,6 +425,217 @@ type ActionState<T = any> = {
 - Detailed validation errors only for client-side feedback
 - Server errors logged but not exposed to client
 
+## Payment Actions (`app/(sidebar)/payments/actions.ts`)
+
+### `addPayment(data: AddPaymentData)`
+
+Creates a new payment record for a community member.
+
+**Parameters:**
+
+```typescript
+type AddPaymentData = {
+  userId: string // User ID from session
+  categoryId: string // Payment category ID
+  amount: string // Payment amount (e.g., "1500.00")
+  paymentDate: Date // Date of payment
+  periodStart?: Date // Start of payment period (optional)
+  periodEnd?: Date // End of payment period (optional)
+  intervalType?: 'monthly' | 'quarterly' | 'half_yearly' | 'annually' // Payment interval (optional)
+  notes?: string // Additional notes (optional)
+}
+```
+
+**Returns:**
+
+```typescript
+type ActionState = {
+  success: boolean
+  message: string
+  data?: {
+    payment: Payment
+  }
+  errors?: Record<string, string[]>
+}
+```
+
+**Example Usage:**
+
+```typescript
+import { addPayment } from '@/app/(sidebar)/payments/actions'
+
+const result = await addPayment({
+  userId: session.user.id,
+  categoryId: '1',
+  amount: '1500.00',
+  paymentDate: new Date(),
+  intervalType: 'monthly',
+  notes: 'Monthly maintenance fee',
+})
+```
+
+### `exportPaymentsToCSV()`
+
+Exports all payments to CSV format with user and category information.
+
+**Returns:**
+
+```typescript
+type ExportResult = {
+  success: boolean
+  message?: string
+  data?: string // CSV content
+  filename?: string // Suggested filename
+}
+```
+
+### `exportPaymentsToPDF()`
+
+Exports payment data for PDF generation (client-side processing).
+
+**Returns:**
+
+```typescript
+type ExportResult = {
+  success: boolean
+  message?: string
+  data?: PaymentExportData[]
+  filename?: string
+}
+```
+
+## Expense Actions (`app/(sidebar)/expenses/actions.ts`)
+
+### `addExpense(data: AddExpenseData)`
+
+Creates a new expense record for the community.
+
+**Parameters:**
+
+```typescript
+type AddExpenseData = {
+  categoryId: string // Expense category ID (converted to integer)
+  amount: string // Expense amount as string (e.g., "2500.00")
+  expenseDate: string // Date when expense occurred (ISO date string)
+  notes?: string // Additional notes (optional)
+}
+```
+
+**Returns:**
+
+```typescript
+type ActionState = {
+  success: boolean
+  message: string
+  errors?: Record<string, string[]>
+}
+```
+
+**Example Usage:**
+
+```typescript
+import { addExpense } from '@/app/(sidebar)/expenses/actions'
+
+const result = await addExpense({
+  categoryId: '2',
+  amount: '2500.00',
+  expenseDate: new Date().toISOString().split('T')[0],
+  notes: 'Monthly maintenance supplies',
+})
+
+if (result.success) {
+  console.log('Expense added successfully')
+} else {
+  console.error(result.message)
+}
+```
+
+**Behavior:**
+
+- Validates input using `addExpenseSchema`
+- Converts categoryId to integer and validates amount
+- Requires user authentication
+- Handles database constraint violations
+- Returns user-friendly error messages
+
+### `exportExpensesToCSV()`
+
+Exports all expense records to CSV format with complete category information.
+
+**Returns:**
+
+```typescript
+type ExportResult = {
+  success: boolean
+  message?: string
+  data?: string // CSV content
+  filename?: string // Suggested filename
+}
+```
+
+**CSV Columns:**
+
+- ID, Amount, Expense Date, Category, Notes, Created At
+
+### `exportExpensesToPDF()`
+
+Exports expense data for PDF generation (client-side processing).
+
+**Returns:**
+
+```typescript
+type ExportResult = {
+  success: boolean
+  message?: string
+  data?: ExpenseExportData[]
+  filename?: string
+}
+```
+
+## Data Types
+
+### Payment Types
+
+```typescript
+type Payment = {
+  id: string
+  userId: string
+  categoryId: number
+  amount: string
+  paymentDate: Date | null
+  periodStart: Date | null
+  periodEnd: Date | null
+  intervalType: 'monthly' | 'quarterly' | 'half_yearly' | 'annually' | null
+  notes: string | null
+  createdAt: Date | null
+}
+
+type PaymentCategory = {
+  id: number
+  name: string
+  description: string | null
+}
+```
+
+### Expense Types
+
+```typescript
+type Expense = {
+  id: string
+  categoryId: number
+  amount: string
+  expenseDate: Date | null
+  notes: string | null
+  createdAt: Date | null
+}
+
+type ExpenseCategory = {
+  id: number
+  name: string
+  description: string | null
+}
+```
+
 ## Best Practices
 
 ### Using Server Actions
@@ -421,6 +645,8 @@ type ActionState<T = any> = {
 3. **Use TypeScript** for type safety
 4. **Implement loading states** for better UX
 5. **Follow security best practices** for sensitive operations
+6. **Check authentication** before performing operations
+7. **Revalidate paths** after data mutations
 
 ### Example Implementation
 
@@ -428,24 +654,27 @@ type ActionState<T = any> = {
 "use client";
 
 import { useState, useTransition } from "react";
-import { signIn } from "@/app/(auth)/actions";
+import { addPayment } from "@/app/(sidebar)/payments/actions";
 
-export function LoginForm() {
+export function AddPaymentForm() {
 	const [isPending, startTransition] = useTransition();
 	const [result, setResult] = useState(null);
 
 	const handleSubmit = (formData: FormData) => {
 		startTransition(async () => {
 			const data = {
-				email: formData.get("email") as string,
-				password: formData.get("password") as string,
+				userId: session.user.id,
+				categoryId: formData.get("categoryId") as string,
+				amount: formData.get("amount") as string,
+				paymentDate: new Date(formData.get("paymentDate") as string),
+				notes: formData.get("notes") as string,
 			};
 
-			const result = await signIn(data);
+			const result = await addPayment(data);
 			setResult(result);
 
 			if (result.success) {
-				// Handle success (redirect, etc.)
+				// Handle success (show toast, reset form, etc.)
 			}
 		});
 	};
@@ -454,7 +683,7 @@ export function LoginForm() {
 		<form action={handleSubmit}>
 			{/* Form fields */}
 			<button disabled={isPending}>
-				{isPending ? "Signing in..." : "Sign In"}
+				{isPending ? "Adding Payment..." : "Add Payment"}
 			</button>
 		</form>
 	);

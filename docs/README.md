@@ -65,8 +65,11 @@ SocioPay is built with:
 
 ## Key Features
 
-- Community member authentication with house number validation
-- Phone-based verification system
-- Secure session management
-- Type-safe database operations with Drizzle ORM
-- Modern React components with form validation
+- **Community Management**: Member authentication with house number validation (A-1, B-9, C-23 format)
+- **Payment System**: Track member payments with categories, intervals, and export functionality
+- **Expense Management**: Record and categorize community expenses with detailed reporting
+- **Dashboard Analytics**: Interactive charts and data visualization for financial insights
+- **Data Export**: CSV and PDF export capabilities for payments and expenses
+- **Type-Safe Operations**: Full type safety with Drizzle ORM and TypeScript
+- **Modern UI**: Responsive design with shadcn/ui components and drag-and-drop tables
+- **Email Integration**: OTP-based password reset with Resend email service

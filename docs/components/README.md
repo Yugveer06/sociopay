@@ -2,18 +2,31 @@
 
 ## Overview
 
-SocioPay uses a component-based architecture with shadcn/ui components and custom authentication components.
+SocioPay uses a component-based architecture with shadcn/ui components, custom application components, and advanced data visualization components.
 
 ## Component Architecture
 
 ```
 components/
-├── ui/                 # shadcn/ui base components
-│   ├── button.tsx     # Button component
-│   ├── card.tsx       # Card components
-│   ├── form.tsx       # Form components
-│   └── input.tsx      # Input component
-└── [custom]/          # Custom application components
+├── ui/                    # shadcn/ui base components
+│   ├── button.tsx        # Button component
+│   ├── card.tsx          # Card components
+│   ├── form.tsx          # Form components
+│   ├── input.tsx         # Input component
+│   ├── sidebar.tsx       # Sidebar navigation components
+│   ├── table.tsx         # Table components
+│   ├── tabs.tsx          # Tab components
+│   └── ...               # Other UI primitives
+├── app-sidebar.tsx       # Main application sidebar
+├── nav-main.tsx          # Main navigation component
+├── nav-user.tsx          # User navigation component
+├── data-table.tsx        # Advanced data table with drag-and-drop
+├── chart-area-interactive.tsx # Interactive area chart
+├── section-cards.tsx     # Dashboard summary cards
+└── [feature]/            # Feature-specific components
+    ├── add-payment-form.tsx
+    ├── add-expense-form.tsx
+    └── export-dropdown.tsx
 ```
 
 ## UI Components (shadcn/ui)
@@ -187,6 +200,355 @@ import { DotBackground } from "@/components/ui/dot-background";
 - Applies CSS mask for circular highlight effect
 - Base dot pattern with interactive overlay
 - Automatic theme-aware color switching
+
+## Application Components
+
+### App Sidebar (`components/app-sidebar.tsx`)
+
+**Purpose**: Main application navigation sidebar with collapsible functionality.
+
+**Features**:
+
+- Collapsible sidebar with icon-only mode
+- Dynamic navigation items
+- User profile section with random avatar assignment
+- Society branding header
+
+**Usage**:
+
+```typescript
+import { AppSidebar } from '@/components/app-sidebar'
+
+<AppSidebar />
+```
+
+**Navigation Items**:
+
+- Dashboard - Overview and analytics
+- Payments - Member payment management
+- Expenses - Community expense tracking
+- Society Members - Member directory
+
+### Data Table (`components/data-table.tsx`)
+
+**Purpose**: Advanced data table with drag-and-drop reordering, filtering, and export capabilities.
+
+**Features**:
+
+- **Drag & Drop**: Reorder rows using @dnd-kit
+- **Column Management**: Show/hide columns dynamically
+- **Pagination**: Configurable page sizes
+- **Row Selection**: Multi-select with bulk actions
+- **Responsive Design**: Mobile-friendly with drawer details
+- **Export Options**: CSV and PDF export functionality
+- **Interactive Charts**: Embedded chart visualization in row details
+
+**Usage**:
+
+```typescript
+import { DataTable } from '@/components/data-table'
+
+<DataTable data={tableData} />
+```
+
+**Props**:
+
+```typescript
+interface DataTableProps {
+  data: Array<{
+    id: number
+    header: string
+    type: string
+    status: string
+    target: string
+    limit: string
+    reviewer: string
+  }>
+}
+```
+
+### Chart Area Interactive (`components/chart-area-interactive.tsx`)
+
+**Purpose**: Interactive area chart for displaying financial data trends.
+
+**Features**:
+
+- Responsive chart design
+- Multiple data series support
+- Interactive tooltips
+- Time-based data visualization
+- Theme-aware colors
+
+**Usage**:
+
+```typescript
+import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+
+<ChartAreaInteractive />
+```
+
+### Section Cards (`components/section-cards.tsx`)
+
+**Purpose**: Dashboard summary cards displaying key metrics.
+
+**Features**:
+
+- Financial summary cards
+- Trend indicators
+- Responsive grid layout
+- Icon-based visual hierarchy
+
+**Usage**:
+
+```typescript
+import { SectionCards } from '@/components/section-cards'
+
+<SectionCards />
+```
+
+### Navigation Components
+
+#### Nav Main (`components/nav-main.tsx`)
+
+**Purpose**: Main navigation menu with icon and text labels.
+
+**Props**:
+
+```typescript
+interface NavMainProps {
+  items: Array<{
+    title: string
+    url: string
+    icon?: LucideIcon
+  }>
+}
+```
+
+#### Nav User (`components/nav-user.tsx`)
+
+**Purpose**: User profile section in sidebar with avatar and user info.
+
+**Props**:
+
+```typescript
+interface NavUserProps {
+  user: {
+    name: string
+    email: string
+    avatar: string
+  }
+}
+```
+
+## Feature-Specific Components
+
+### Payment Components
+
+#### Add Payment Form (`app/(sidebar)/payments/add-payment-form.tsx`)
+
+**Purpose**: Form for adding new member payments.
+
+**Features**:
+
+- Category selection
+- Amount validation
+- Date picker integration
+- Period and interval selection
+- Notes field
+
+**Form Schema**:
+
+```typescript
+const addPaymentSchema = z.object({
+  userId: z.string(),
+  categoryId: z.string(),
+  amount: z.string().min(1),
+  paymentDate: z.date(),
+  periodStart: z.date().optional(),
+  periodEnd: z.date().optional(),
+  intervalType: z
+    .enum(['monthly', 'quarterly', 'half_yearly', 'annually'])
+    .optional(),
+  notes: z.string().optional(),
+})
+```
+
+#### Export Dropdown (`app/(sidebar)/payments/export-dropdown.tsx`)
+
+**Purpose**: Export options for payment data.
+
+**Features**:
+
+- CSV export with full data
+- PDF export with formatting
+- Loading states during export
+- Error handling
+
+### Expense Components
+
+#### Add Expense Form (`app/(sidebar)/expenses/add-expense-form.tsx`)
+
+**Purpose**: Form for recording community expenses with popover interface.
+
+**Features**:
+
+- **Category Selection**: Dropdown with available expense categories
+- **Amount Input**: Numeric input with step validation (0.01)
+- **Date Picker**: Calendar component for expense date selection
+- **Notes Field**: Optional text input for additional information
+- **Popover Interface**: Clean popover-based form interface
+- **Real-time Validation**: Client-side validation with Zod schema
+- **Loading States**: Visual feedback during form submission
+- **Error Handling**: Display of validation and server errors
+
+**Usage**:
+
+```typescript
+import { AddExpenseForm } from '@/app/(sidebar)/expenses/add-expense-form'
+
+<AddExpenseForm
+  categories={expenseCategories}
+/>
+```
+
+**Form Schema**:
+
+```typescript
+const addExpenseSchema = z.object({
+  categoryId: z.string().min(1, 'Please select a category.'),
+  amount: z
+    .string()
+    .min(1, 'Please enter an amount.')
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: 'Amount must be a positive number.',
+    }),
+  expenseDate: z.string().min(1, 'Please select an expense date.'),
+  notes: z.string().optional(),
+})
+```
+
+#### Expense Data Table (`app/(sidebar)/expenses/data-table.tsx`)
+
+**Purpose**: Advanced data table for expense management with TanStack Table.
+
+**Features**:
+
+- **Sortable Columns**: Click headers to sort by expense date, amount, category
+- **Column Filtering**: Filter by category name
+- **Column Visibility**: Show/hide columns dynamically
+- **Row Selection**: Multi-select with selection count
+- **Pagination**: Navigate through large datasets
+- **Responsive Design**: Mobile-friendly layout
+
+**Usage**:
+
+```typescript
+import { DataTable } from '@/app/(sidebar)/expenses/data-table'
+import { columns } from '@/app/(sidebar)/expenses/columns'
+
+<DataTable columns={columns} data={expenses} />
+```
+
+#### Expense Columns (`app/(sidebar)/expenses/columns.tsx`)
+
+**Purpose**: Column definitions for expense data table.
+
+**Columns**:
+
+- **Expense Date**: Sortable date with relative time display
+- **Amount**: Sortable currency amount in INR (red color for expenses)
+- **Category**: Badge display of expense category
+- **Notes**: Truncated notes with full text on hover
+
+**Type Definition**:
+
+```typescript
+export type Expense = {
+  id: string
+  amount: number
+  created_at: string | null
+  notes: string | null
+  expense_date: string | null
+  category_name: string
+}
+```
+
+#### Export Dropdown (`app/(sidebar)/expenses/export-dropdown.tsx`)
+
+**Purpose**: Export options for expense data with CSV and PDF generation.
+
+**Features**:
+
+- **CSV Export**: Server-side CSV generation with download
+- **PDF Export**: Client-side PDF generation using jsPDF
+- **Dynamic Import**: Lazy loading of PDF libraries
+- **Error Handling**: Toast notifications for success/failure
+- **File Naming**: Automatic filename generation with dates
+
+**Usage**:
+
+```typescript
+import { ExportDropdown } from '@/app/(sidebar)/expenses/export-dropdown'
+
+<ExportDropdown
+  data={expenses.map(expense => ({
+    id: expense.id,
+    amount: expense.amount,
+    expenseDate: expense.expense_date,
+    category: expense.category_name,
+    notes: expense.notes,
+    createdAt: expense.created_at,
+  }))}
+/>
+```
+
+#### Expenses Page (`app/(sidebar)/expenses/page.tsx`)
+
+**Purpose**: Main expenses page with overview cards and data management.
+
+**Features**:
+
+- **Financial Overview**: Summary cards showing total expenses, monthly spending, and daily averages
+- **Data Fetching**: Server-side data fetching with Drizzle ORM
+- **Error Handling**: Graceful error handling with fallback data
+- **Refresh Action**: Server action to refresh data
+- **Responsive Layout**: Mobile-friendly grid layout
+- **Authentication**: Protected route with session verification
+
+**Key Metrics**:
+
+- Total Expenses: Sum of all expense amounts
+- Monthly Spending: Current month expenses with percentage change
+- Daily Average: Average daily expense for current month
+
+**Usage**:
+
+```typescript
+// Server component with data fetching
+export default async function ExpensesPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (!session) {
+    redirect('/login')
+  }
+
+  // Fetch expenses and categories
+  const expensesData = await db
+    .select({...})
+    .from(expenses)
+    .leftJoin(expenseCategories, ...)
+    .orderBy(desc(expenses.expenseDate))
+
+  return (
+    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+      {/* Overview cards */}
+      {/* Data table */}
+    </div>
+  )
+}
+```
 
 ## Authentication Components
 
