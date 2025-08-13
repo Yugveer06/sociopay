@@ -96,10 +96,6 @@ export default async function AccountPage() {
                     Active User
                   </Badge>
                 </div>
-                <Button variant="outline" size="sm">
-                  <IconEdit className="mr-2 h-4 w-4" />
-                  Edit Profile
-                </Button>
               </div>
 
               <Separator />
