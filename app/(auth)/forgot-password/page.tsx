@@ -64,13 +64,13 @@ export default function ForgotPasswordPage() {
         if (result.errors) {
           // Set form errors from validation
           Object.entries(result.errors).forEach(([field, messages]) => {
-            form.setError(field as any, {
+            form.setError(field as keyof typeof form.formState.errors, {
               type: 'manual',
               message: messages[0],
             })
           })
         }
-      } catch (error) {
+      } catch {
         setActionResult({
           success: false,
           message: 'An unexpected error occurred',

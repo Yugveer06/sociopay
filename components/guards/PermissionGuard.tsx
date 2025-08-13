@@ -42,7 +42,7 @@ const AccessDenied = () => (
     <div className="text-center">
       <h1 className="mb-4 text-4xl font-bold text-gray-900">Access Denied</h1>
       <p className="mb-8 text-lg text-gray-600">
-        You don't have permission to access this page.
+        You don&apos;t have permission to access this page.
       </p>
       <button
         onClick={() => window.history.back()}
@@ -138,7 +138,8 @@ export function PermissionGuard({
   }
 
   // Get user role from session (you may need to adjust this based on your user schema)
-  const userRole = ((session.data.user as any).role as Role) || 'user'
+  const userRole =
+    ((session.data.user as unknown as { role?: Role }).role as Role) || 'user'
 
   // Check role-based access
   if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
@@ -186,7 +187,8 @@ export function usePermissions() {
 
   const hasRole = (role: Role): boolean => {
     if (!session.data?.user) return false
-    const userRole = ((session.data.user as any).role as Role) || 'user'
+    const userRole =
+      ((session.data.user as unknown as { role?: Role }).role as Role) || 'user'
     return userRole === role || userRole === 'admin'
   }
 
@@ -196,7 +198,8 @@ export function usePermissions() {
   ): boolean => {
     if (!session.data?.user) return false
 
-    const userRole = ((session.data.user as any).role as Role) || 'user'
+    const userRole =
+      ((session.data.user as unknown as { role?: Role }).role as Role) || 'user'
     return checkUserPermission(userRole, resource, action)
   }
 
@@ -227,7 +230,9 @@ export function usePermissions() {
   return {
     isLoading: false, // Better Auth doesn't expose loading state the same way
     isAuthenticated: !!session.data?.user,
-    userRole: ((session.data?.user as any)?.role as Role) || 'user',
+    userRole:
+      ((session.data?.user as unknown as { role?: Role })?.role as Role) ||
+      'user',
     hasRole,
     hasPermission,
     canAccess,

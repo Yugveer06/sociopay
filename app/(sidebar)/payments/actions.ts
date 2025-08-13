@@ -101,9 +101,6 @@ export async function exportPaymentsToCSV() {
       throw new Error('You must be logged in to export payments')
     }
 
-    // Import csv-writer dynamically since it's a Node.js module
-    const createCsvWriter = (await import('csv-writer')).createObjectCsvWriter
-
     // Fetch all payments with related data
     const { db } = await import('@/lib/db')
     const { payments, user, paymentCategories } = await import('@/lib/schema')
@@ -146,24 +143,6 @@ export async function exportPaymentsToCSV() {
       Notes: payment.notes || '',
       'Created At': payment.created_at?.toISOString() || '',
     }))
-
-    // Create CSV content
-    const csvWriter = createCsvWriter({
-      path: '', // We won't write to file, just get the content
-      header: [
-        { id: 'ID', title: 'ID' },
-        { id: 'Amount', title: 'Amount (INR)' },
-        { id: 'Payment Date', title: 'Payment Date' },
-        { id: 'User Name', title: 'User Name' },
-        { id: 'House Number', title: 'House Number' },
-        { id: 'Category', title: 'Category' },
-        { id: 'Interval Type', title: 'Interval Type' },
-        { id: 'Period Start', title: 'Period Start' },
-        { id: 'Period End', title: 'Period End' },
-        { id: 'Notes', title: 'Notes' },
-        { id: 'Created At', title: 'Created At' },
-      ],
-    })
 
     // Generate CSV content manually since csv-writer doesn't have a method to get content without writing to file
     const header = [

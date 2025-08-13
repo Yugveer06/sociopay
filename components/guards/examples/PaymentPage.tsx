@@ -28,7 +28,7 @@ export default function PaymentPage() {
         fallback={
           <div className="rounded-lg bg-gray-100 p-6 text-center">
             <p className="text-gray-600">
-              You don't have permission to create payments
+              You don&apos;t have permission to create payments
             </p>
           </div>
         }

@@ -9,16 +9,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  IconDots,
-  IconReceipt,
-  IconTrash,
-  IconDownload,
-} from '@tabler/icons-react'
+import { IconDots, IconReceipt, IconTrash } from '@tabler/icons-react'
 import { Payment } from './columns'
 import { deletePayment, generatePaymentReceipt } from './actions'
 import { toast } from 'sonner'
 import jsPDF from 'jspdf'
+
+type ReceiptData = {
+  id: string
+  amount: number
+  paymentDate: string | null
+  userName: string
+  houseNumber: string
+  category: string
+  intervalType: string
+  periodStart: string
+  periodEnd: string
+  notes: string
+  createdAt: string
+}
 
 interface RowActionsProps {
   payment: Payment
@@ -33,6 +42,8 @@ export function RowActions({ payment }: RowActionsProps) {
       const result = await generatePaymentReceipt(payment.id)
 
       if (result.success && result.data) {
+        const receiptData = result.data as ReceiptData
+
         // Generate PDF receipt
         const doc = new jsPDF()
         const pageWidth = doc.internal.pageSize.width
@@ -67,7 +78,7 @@ export function RowActions({ payment }: RowActionsProps) {
         doc.setFont('helvetica', 'bold')
         doc.text('Receipt ID:', 20, 70)
         doc.setFont('helvetica', 'normal')
-        doc.text(result.data.id, 50, 70)
+        doc.text(receiptData.id, 50, 70)
 
         doc.setFont('helvetica', 'bold')
         doc.text('Issue Date:', 20, 80)
@@ -103,41 +114,41 @@ export function RowActions({ payment }: RowActionsProps) {
         doc.setFont('helvetica', 'bold')
         doc.text('Paid By:', leftCol, yPosition)
         doc.setFont('helvetica', 'normal')
-        doc.text(result.data.userName, leftCol, yPosition + 10)
+        doc.text(receiptData.userName, leftCol, yPosition + 10)
 
         doc.setFont('helvetica', 'bold')
         doc.text('House Number:', leftCol, yPosition + 25)
         doc.setFont('helvetica', 'normal')
-        doc.text(result.data.houseNumber, leftCol, yPosition + 35)
+        doc.text(receiptData.houseNumber, leftCol, yPosition + 35)
 
         doc.setFont('helvetica', 'bold')
         doc.text('Category:', leftCol, yPosition + 50)
         doc.setFont('helvetica', 'normal')
-        doc.text(result.data.category, leftCol, yPosition + 60)
+        doc.text(receiptData.category, leftCol, yPosition + 60)
 
         // Right column
         doc.setFont('helvetica', 'bold')
         doc.text('Payment Date:', rightCol, yPosition)
         doc.setFont('helvetica', 'normal')
-        doc.text(result.data.paymentDate || 'N/A', rightCol, yPosition + 10)
+        doc.text(receiptData.paymentDate || 'N/A', rightCol, yPosition + 10)
 
-        if (result.data.intervalType) {
+        if (receiptData.intervalType) {
           doc.setFont('helvetica', 'bold')
           doc.text('Interval Type:', rightCol, yPosition + 25)
           doc.setFont('helvetica', 'normal')
           doc.text(
-            result.data.intervalType.replace('_', ' ').toUpperCase(),
+            receiptData.intervalType.replace('_', ' ').toUpperCase(),
             rightCol,
             yPosition + 35
           )
         }
 
         // Period info (if available)
-        if (result.data.periodStart && result.data.periodEnd) {
+        if (receiptData.periodStart && receiptData.periodEnd) {
           doc.setFont('helvetica', 'bold')
           doc.text('Service Period:', rightCol, yPosition + 50)
           doc.setFont('helvetica', 'normal')
-          const periodText = `${result.data.periodStart} to ${result.data.periodEnd}`
+          const periodText = `${receiptData.periodStart} to ${receiptData.periodEnd}`
           doc.text(periodText, rightCol, yPosition + 60)
         }
 
@@ -152,14 +163,14 @@ export function RowActions({ payment }: RowActionsProps) {
         doc.text('AMOUNT PAID', 20, yPosition + 5)
 
         // Fix rupee symbol by using Rs. instead of ₹
-        const amountText = `Rs. ${result.data.amount.toFixed(2)}`
+        const amountText = `Rs. ${receiptData.amount.toFixed(2)}`
         doc.setFontSize(20)
         doc.text(amountText, pageWidth - 20, yPosition + 8, { align: 'right' })
 
         doc.setTextColor(0, 0, 0) // Reset to black
 
         // Notes section (if available)
-        if (result.data.notes) {
+        if (receiptData.notes) {
           yPosition += 40
           doc.setFontSize(12)
           doc.setFont('helvetica', 'bold')
@@ -169,7 +180,7 @@ export function RowActions({ payment }: RowActionsProps) {
           doc.setFont('helvetica', 'normal')
           // Split long notes into multiple lines
           const splitNotes = doc.splitTextToSize(
-            result.data.notes,
+            receiptData.notes,
             pageWidth - 40
           )
           doc.text(splitNotes, 20, yPosition + 10)

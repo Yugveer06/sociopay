@@ -52,7 +52,7 @@ export function UpdateUserForm({ user }: UpdateUserFormProps) {
     setIsLoading(true)
 
     try {
-      const { data, error } = await authClient.updateUser({
+      const { error } = await authClient.updateUser({
         name: name.trim(),
         // Note: Better Auth doesn't support updating email directly through updateUser
         // You would need to implement changeEmail separately if needed
@@ -65,7 +65,7 @@ export function UpdateUserForm({ user }: UpdateUserFormProps) {
         // Refresh the page to show updated data
         window.location.reload()
       }
-    } catch (error) {
+    } catch {
       toast.error('An unexpected error occurred')
     } finally {
       setIsLoading(false)

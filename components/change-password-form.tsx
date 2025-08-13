@@ -35,7 +35,7 @@ export function ChangePasswordForm() {
     setIsLoading(true)
 
     try {
-      const { data, error } = await authClient.changePassword({
+      const { error } = await authClient.changePassword({
         newPassword,
         currentPassword,
         revokeOtherSessions: true, // Revoke other sessions for security
@@ -53,7 +53,7 @@ export function ChangePasswordForm() {
         setNewPassword('')
         setConfirmPassword('')
       }
-    } catch (error) {
+    } catch {
       toast.error('An unexpected error occurred')
     } finally {
       setIsLoading(false)

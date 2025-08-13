@@ -202,7 +202,7 @@ async function sendEmailWithResend({ to, otp, type }: SendOTPEmailParams) {
 
       // Handle the specific case where domain verification is required
       const errorMessage = error.message || ''
-      const errorData = error as any // Type assertion for accessing additional properties
+      const errorData = error as unknown as { statusCode?: number } // Type assertion for accessing additional properties
 
       if (
         errorMessage.includes('verify a domain') ||

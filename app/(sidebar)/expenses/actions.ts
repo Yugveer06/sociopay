@@ -177,7 +177,7 @@ export async function exportExpensesToCSV(): Promise<
 }
 
 export async function exportExpensesToPDF(): Promise<
-  ActionState & { filename?: string; data?: any }
+  ActionState & { filename?: string; data?: unknown }
 > {
   try {
     // Check if user is authenticated

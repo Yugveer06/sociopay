@@ -1,7 +1,6 @@
 import { ChangePasswordForm } from '@/components/change-password-form'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -13,7 +12,6 @@ import { Separator } from '@/components/ui/separator'
 import { auth } from '@/lib/auth'
 import {
   IconCalendar,
-  IconEdit,
   IconHome,
   IconMail,
   IconPhone,

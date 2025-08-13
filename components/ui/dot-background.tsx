@@ -3,8 +3,8 @@ import React from 'react'
 import { motion as m, useMotionTemplate, useMotionValue } from 'motion/react'
 
 export function DotBackground({ children }: { children: React.ReactNode }) {
-  let mouseX = useMotionValue(0)
-  let mouseY = useMotionValue(0)
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
 
   function handleMouseMove({
     currentTarget,
@@ -12,7 +12,7 @@ export function DotBackground({ children }: { children: React.ReactNode }) {
     clientY,
   }: React.MouseEvent<HTMLDivElement>) {
     if (!currentTarget) return
-    let { left, top } = currentTarget.getBoundingClientRect()
+    const { left, top } = currentTarget.getBoundingClientRect()
 
     mouseX.set(clientX - left)
     mouseY.set(clientY - top)

@@ -22,7 +22,17 @@ interface ExportDropdownProps {
   }>
 }
 
-export function ExportDropdown({ data }: ExportDropdownProps) {
+type ExpenseData = {
+  id: string
+  amount: number
+  expenseDate: string | null
+  category: string
+  notes: string
+  createdAt: string
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function ExportDropdown({ data: _ }: ExportDropdownProps) {
   const handleCSVExport = async () => {
     try {
       const result = await exportExpensesToCSV()
@@ -69,23 +79,25 @@ export function ExportDropdown({ data }: ExportDropdownProps) {
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 25)
 
         // Calculate total expenses
-        const totalExpenses = result.data.reduce(
-          (sum: number, expense: any) => sum + expense.amount,
+        const totalExpenses = (result.data as ExpenseData[]).reduce(
+          (sum: number, expense: ExpenseData) => sum + expense.amount,
           0
         )
         doc.text(`Total Expenses: ₹${totalExpenses.toFixed(2)}`, 14, 32)
 
         // Prepare table data
-        const tableData = result.data.map((expense: any) => [
-          expense.id,
-          `₹${expense.amount.toFixed(2)}`,
-          expense.expenseDate || '',
-          expense.category,
-          expense.notes || '',
-          expense.createdAt
-            ? new Date(expense.createdAt).toLocaleDateString()
-            : '',
-        ])
+        const tableData = (result.data as ExpenseData[]).map(
+          (expense: ExpenseData) => [
+            expense.id,
+            `₹${expense.amount.toFixed(2)}`,
+            expense.expenseDate || '',
+            expense.category,
+            expense.notes || '',
+            expense.createdAt
+              ? new Date(expense.createdAt).toLocaleDateString()
+              : '',
+          ]
+        )
 
         // Add table
         autoTable(doc, {

@@ -27,7 +27,22 @@ interface ExportDropdownProps {
   }>
 }
 
-export function ExportDropdown({ data }: ExportDropdownProps) {
+type PaymentData = {
+  id: string
+  amount: number
+  paymentDate: string | null
+  userName: string
+  houseNumber: string
+  category: string
+  intervalType: string
+  periodStart: string
+  periodEnd: string
+  notes: string
+  createdAt: string
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function ExportDropdown({ data: _ }: ExportDropdownProps) {
   const handleCSVExport = async () => {
     try {
       const result = await exportPaymentsToCSV()
@@ -74,16 +89,18 @@ export function ExportDropdown({ data }: ExportDropdownProps) {
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 25)
 
         // Prepare table data
-        const tableData = result.data.map((payment: any) => [
-          payment.id,
-          `₹${payment.amount.toFixed(2)}`,
-          payment.paymentDate || '',
-          payment.userName,
-          payment.houseNumber,
-          payment.category,
-          payment.intervalType || '',
-          payment.notes || '',
-        ])
+        const tableData = (result.data as PaymentData[]).map(
+          (payment: PaymentData) => [
+            payment.id,
+            `₹${payment.amount.toFixed(2)}`,
+            payment.paymentDate || '',
+            payment.userName,
+            payment.houseNumber,
+            payment.category,
+            payment.intervalType || '',
+            payment.notes || '',
+          ]
+        )
 
         // Add table
         autoTable(doc, {
