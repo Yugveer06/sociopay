@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export default function PaymentsLoading() {
+export default function ExpensesLoading() {
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
@@ -9,7 +9,7 @@ export default function PaymentsLoading() {
           {/* Header skeleton */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-8 w-48" />
               <Skeleton className="mt-2 h-4 w-80" />
             </div>
             <div className="flex gap-2">
@@ -20,7 +20,7 @@ export default function PaymentsLoading() {
             </div>
           </div>
 
-          {/* Balance Overview Cards skeleton */}
+          {/* Expense Overview Cards skeleton */}
           <div className="grid gap-4 md:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <Card key={i}>
@@ -36,7 +36,7 @@ export default function PaymentsLoading() {
             ))}
           </div>
 
-          {/* Maintenance Payments Table skeleton */}
+          {/* Expenses Table skeleton */}
           <Card>
             <CardHeader>
               <Skeleton className="h-6 w-48" />
@@ -53,7 +53,7 @@ export default function PaymentsLoading() {
                 <div className="rounded-md border">
                   {/* Table header */}
                   <div className="bg-muted/50 flex border-b p-4">
-                    {Array.from({ length: 8 }).map((_, i) => (
+                    {Array.from({ length: 6 }).map((_, i) => (
                       <div key={i} className="flex-1">
                         <Skeleton className="h-4 w-20" />
                       </div>
@@ -63,7 +63,7 @@ export default function PaymentsLoading() {
                   {/* Table rows */}
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="flex border-b p-4 last:border-0">
-                      {Array.from({ length: 8 }).map((_, j) => (
+                      {Array.from({ length: 6 }).map((_, j) => (
                         <div key={j} className="flex-1">
                           <Skeleton className="h-4 w-16" />
                         </div>
