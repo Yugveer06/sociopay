@@ -13,6 +13,7 @@ import {
 } from '@tabler/icons-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
+import { RowActions } from './row-actions'
 
 export const SocietyMemberSchema = z.object({
   id: z.string(),
@@ -154,7 +155,12 @@ export const columns: ColumnDef<SocietyMember>[] = [
               </Badge>
               {banExpires && isTemporary && (
                 <span className="text-muted-foreground mt-1 text-xs">
-                  Until {new Date(banExpires).toLocaleDateString()}
+                  Until{' '}
+                  {new Date(banExpires).toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
                 </span>
               )}
             </div>
@@ -164,8 +170,11 @@ export const columns: ColumnDef<SocietyMember>[] = [
 
       return (
         <div className="flex items-center gap-2">
-          <IconUserCheck className="h-4 w-4 text-green-500" />
-          <Badge variant="outline" className="border-green-200 text-green-700">
+          <IconUserCheck className="h-4 w-4 text-green-700 dark:text-green-500" />
+          <Badge
+            variant="outline"
+            className="border border-green-200 text-green-700 dark:border-green-900 dark:text-green-500"
+          >
             Active
           </Badge>
         </div>
@@ -206,11 +215,23 @@ export const columns: ColumnDef<SocietyMember>[] = [
       return (
         <div className="flex flex-col">
           <span className="font-medium">
-            {joinDate.toLocaleDateString('en-IN')}
+            {joinDate.toLocaleDateString('en-IN', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
           </span>
           <span className="text-muted-foreground text-xs">{timeAgo}</span>
         </div>
       )
+    },
+  },
+  {
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      const member = row.original
+      return <RowActions member={member} />
     },
   },
 ]

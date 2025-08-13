@@ -6,18 +6,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { db } from '@/lib/db'
 import { user } from '@/drizzle/schema'
-import { desc, count, eq } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
-import {
-  IconUsers,
-  IconUserCheck,
-  IconUserX,
-  IconRefresh,
-  IconFilter,
-  IconShield,
-} from '@tabler/icons-react'
+import { db } from '@/lib/db'
+import { IconRefresh, IconUserCheck, IconUsers } from '@tabler/icons-react'
+import { desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -144,11 +137,6 @@ export default async function SocietyMembersPage() {
   const totalMembers = finalMembers.length
   const activeMembers = finalMembers.filter(member => !member.banned).length
   const bannedMembers = finalMembers.filter(member => member.banned).length
-  const adminMembers = finalMembers.filter(
-    member =>
-      member.role &&
-      ['admin', 'treasurer', 'secretary'].includes(member.role.toLowerCase())
-  ).length
 
   // Refresh action
   async function refreshData() {
@@ -169,15 +157,9 @@ export default async function SocietyMembersPage() {
               </p>
             </div>
             <div className="flex gap-2">
-              <form action={refreshData}>
-                <Button variant="outline" size="sm" type="submit">
-                  <IconRefresh className="mr-2 h-4 w-4" />
-                  Refresh
-                </Button>
-              </form>
-              <Button variant="outline" size="sm">
-                <IconFilter className="mr-2 h-4 w-4" />
-                Filter
+              <Button variant="outline" size="sm" onClick={refreshData}>
+                <IconRefresh className="mr-2 h-4 w-4" />
+                Refresh
               </Button>
             </div>
           </div>
