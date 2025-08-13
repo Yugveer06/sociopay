@@ -31,7 +31,7 @@ const data = {
     },
     {
       title: 'Expenses',
-      url: '#',
+      url: '/expenses',
       icon: BanknoteArrowDown,
     },
     {
