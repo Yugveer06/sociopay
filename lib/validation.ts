@@ -57,7 +57,7 @@ export const signUpSchema = z
     houseNumber: z.string().regex(/^[A-Z]-\d{1,2}$/, {
       message: 'Please enter a valid house number (e.g., A-1, B-9, C-23).',
     }),
-    email: z.string().email({
+    email: z.email({
       message: 'Please enter a valid email address.',
     }),
     phone: z.string().regex(/^[0-9]{10}$/, {
