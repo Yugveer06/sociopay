@@ -11,7 +11,6 @@
     "format:check": "prettier --check .",
     "auth:generate": "cross-env NODE_OPTIONS=\"-r dotenv/config\" DOTENV_CONFIG_PATH=.env.local npx @better-auth/cli generate",
     "auth:migrate": "cross-env NODE_OPTIONS=\"-r dotenv/config\" DOTENV_CONFIG_PATH=.env.local npx @better-auth/cli migrate",
-    "db:types": "echo '⚠️  DEPRECATED: Use Drizzle types from lib/types.ts instead. This command is kept for backward compatibility.' && pnpm dlx supabase gen types typescript --project-id \"tqouszaaxafqemrwpmcn\" --schema public > db/types.ts",
     "db:generate": "cross-env NODE_OPTIONS=\"-r dotenv/config\" DOTENV_CONFIG_PATH=.env.local drizzle-kit generate",
     "db:push": "cross-env NODE_OPTIONS=\"-r dotenv/config\" DOTENV_CONFIG_PATH=.env.local drizzle-kit push",
     "db:studio": "cross-env NODE_OPTIONS=\"-r dotenv/config\" DOTENV_CONFIG_PATH=.env.local drizzle-kit studio",
