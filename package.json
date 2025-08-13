@@ -43,6 +43,7 @@
     "better-auth-supabase-plugin": "^0.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.4",
     "gsap": "^3.13.0",

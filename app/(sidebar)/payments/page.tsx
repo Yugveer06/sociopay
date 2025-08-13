@@ -16,7 +16,6 @@ import {
   IconCreditCard,
   IconDownload,
   IconFilter,
-  IconPlus,
   IconRefresh,
 } from '@tabler/icons-react'
 import { revalidatePath } from 'next/cache'
@@ -24,6 +23,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { columns, Payment } from './columns'
 import { DataTable } from './data-table'
+import { AddPaymentForm } from './add-payment-form'
 
 export default async function PaymentsPage() {
   const session = await auth.api.getSession({
@@ -36,9 +36,12 @@ export default async function PaymentsPage() {
 
   // Fetch payments with user and category data using Drizzle
   let paymentsData: Payment[] = []
+  let users: Array<{ id: string; name: string; houseNumber: string }> = []
+  let categories: Array<{ id: number; name: string }> = []
   let error: string | null = null
 
   try {
+    // Fetch payments
     const result = await db
       .select({
         id: payments.id,
@@ -61,6 +64,26 @@ export default async function PaymentsPage() {
         eq(payments.categoryId, paymentCategories.id)
       )
       .orderBy(desc(payments.paymentDate))
+
+    // Fetch all users for the form
+    const usersResult = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        houseNumber: user.houseNumber,
+      })
+      .from(user)
+
+    // Fetch all categories for the form
+    const categoriesResult = await db
+      .select({
+        id: paymentCategories.id,
+        name: paymentCategories.name,
+      })
+      .from(paymentCategories)
+
+    users = usersResult
+    categories = categoriesResult
 
     // Transform the data to match our Payment type
     paymentsData = result.map(payment => ({
@@ -167,9 +190,9 @@ export default async function PaymentsPage() {
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
     }).format(amount)
   }
 
@@ -200,10 +223,7 @@ export default async function PaymentsPage() {
                 <IconDownload className="mr-2 h-4 w-4" />
                 Export
               </Button>
-              <Button size="sm">
-                <IconPlus className="mr-2 h-4 w-4" />
-                Add Payment
-              </Button>
+              <AddPaymentForm users={users} categories={categories} />
             </div>
           </div>
 
