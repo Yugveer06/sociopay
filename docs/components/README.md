@@ -344,6 +344,128 @@ interface NavUserProps {
 
 ### Payment Components
 
+#### Payments Page (`app/(sidebar)/payments/page.tsx`)
+
+**Purpose**: Main payments page displaying maintenance payments with overview cards and data management.
+
+**Features**:
+
+- **Financial Overview**: Summary cards showing total maintenance, monthly expenses, and monthly received
+- **Data Fetching**: Server-side data fetching with Drizzle ORM joins
+- **Error Handling**: Graceful error handling with fallback sample data
+- **Refresh Action**: Server action to refresh payment data
+- **Responsive Layout**: Mobile-friendly grid layout with proper spacing
+- **Authentication**: Protected route with session verification
+- **Export Functionality**: CSV and PDF export capabilities
+
+**Key Metrics**:
+
+- Total Maintenance: Sum of all payment amounts
+- Monthly Expenses: Current month payments with percentage change from last month
+- Monthly Received: Current month maintenance received
+
+**Layout Structure**:
+
+```typescript
+<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+  <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
+    <div className="flex flex-col gap-6">
+      {/* Header with actions */}
+      {/* Balance overview cards */}
+      {/* Payments data table */}
+    </div>
+  </div>
+</div>
+```
+
+#### Payments Loading Component (`app/(sidebar)/payments/loading.tsx`)
+
+**Purpose**: Loading skeleton for the payments page that matches the exact layout structure.
+
+**Features**:
+
+- **Layout Consistency**: Mirrors the exact structure of the main payments page
+- **Responsive Design**: Matches mobile and desktop layouts with proper spacing
+- **Comprehensive Skeletons**: Includes skeletons for all page sections:
+  - Header with title, description, and action buttons
+  - Three balance overview cards with icons and metrics
+  - Data table with search input, table headers, rows, and pagination
+- **Proper Spacing**: Uses the same gap and padding classes as the main page
+- **Skeleton Variety**: Different skeleton sizes for various content types
+
+**Layout Structure**:
+
+```typescript
+<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+  <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
+    <div className="flex flex-col gap-6">
+      {/* Header skeleton */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="mt-2 h-4 w-80" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-20" />
+          <Skeleton className="h-9 w-16" />
+          <Skeleton className="h-9 w-20" />
+          <Skeleton className="h-9 w-32" />
+        </div>
+      </div>
+
+      {/* Balance Overview Cards skeleton */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="mb-2 h-8 w-24" />
+              <Skeleton className="h-3 w-36" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Table skeleton with search, headers, rows, and pagination */}
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center py-4">
+              <Skeleton className="h-10 w-64" />
+            </div>
+            <div className="rounded-md border">
+              {/* Table headers and rows */}
+            </div>
+            <div className="flex items-center justify-between px-2">
+              {/* Pagination skeleton */}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+</div>
+```
+
+**Usage**:
+
+```typescript
+// Automatically used by Next.js when loading the payments page
+// File: app/(sidebar)/payments/loading.tsx
+export default function PaymentsLoading() {
+  return (
+    // Loading skeleton that matches payments page layout
+  )
+}
+```
+
 #### Add Payment Form (`app/(sidebar)/payments/add-payment-form.tsx`)
 
 **Purpose**: Form for adding new member payments.
@@ -607,6 +729,130 @@ const [actionResult, setActionResult] = useState<{
 - Confirm Password (must match)
 
 ## Component Patterns
+
+### Loading State Pattern
+
+All pages with complex layouts should have corresponding loading components that match the exact structure:
+
+```typescript
+// File: app/(sidebar)/[feature]/loading.tsx
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+
+export default function FeatureLoading() {
+  return (
+    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
+        <div className="flex flex-col gap-6">
+          {/* Header skeleton - matches page header */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="mt-2 h-4 w-80" />
+            </div>
+            <div className="flex gap-2">
+              {/* Action button skeletons */}
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-32" />
+            </div>
+          </div>
+
+          {/* Overview cards skeleton */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="mb-2 h-8 w-24" />
+                  <Skeleton className="h-3 w-36" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Data table skeleton */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Search input skeleton */}
+                <div className="flex items-center py-4">
+                  <Skeleton className="h-10 w-64" />
+                </div>
+
+                {/* Table skeleton */}
+                <div className="rounded-md border">
+                  {/* Table header */}
+                  <div className="flex border-b bg-muted/50 p-4">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="flex-1">
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Table rows */}
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="flex border-b p-4 last:border-0">
+                      {Array.from({ length: 8 }).map((_, j) => (
+                        <div key={j} className="flex-1">
+                          <Skeleton className="h-4 w-16" />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination skeleton */}
+                <div className="flex items-center justify-between px-2">
+                  <Skeleton className="h-4 w-32" />
+                  <div className="flex items-center space-x-6 lg:space-x-8">
+                    <div className="flex items-center space-x-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-8 w-16" />
+                    </div>
+                    <div className="flex w-24 items-center justify-center">
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Skeleton className="h-8 w-8" />
+                      <Skeleton className="h-8 w-8" />
+                      <Skeleton className="h-8 w-8" />
+                      <Skeleton className="h-8 w-8" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+**Loading Component Best Practices**:
+
+1. **Layout Consistency**: Loading skeletons should match the exact layout structure of the actual page
+2. **Responsive Design**: Use the same responsive classes and breakpoints
+3. **Proper Spacing**: Match gap, padding, and margin classes exactly
+4. **Skeleton Variety**: Use different skeleton sizes for different content types:
+   - `h-8 w-64` for page titles
+   - `h-4 w-80` for descriptions
+   - `h-9 w-20` for buttons
+   - `h-4 w-4` for icons
+   - `h-8 w-24` for large numbers/amounts
+   - `h-3 w-36` for small text/percentages
+5. **Card Structure**: Include proper Card, CardHeader, and CardContent components
+6. **Table Skeletons**: Show realistic table structure with headers and multiple rows
+7. **Pagination Skeletons**: Include pagination controls that match the data table
 
 ### Form Validation Pattern
 
