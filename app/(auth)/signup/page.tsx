@@ -1,10 +1,10 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -23,12 +23,10 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { signUp } from '../actions'
 import { signUpSchema } from '@/lib/schemas'
-import { motion as m } from 'motion/react'
-import Link from 'next/link'
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react'
-import { DotBackground } from '@/components/ui/dot-background'
+import Link from 'next/link'
+import { signUp } from '../actions'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -83,216 +81,193 @@ export default function SignupPage() {
     })
   }
 
-  const MotionCard = m.create(Card)
-
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <DotBackground>
-        <MotionCard
-          layoutId="authCard"
-          className="bg-background/75 relative w-full max-w-md border-2 backdrop-blur-2xl"
-        >
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
-            <CardDescription className="mt-2">
-              Sign up for a new account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {actionResult && !actionResult.success && (
-              <div className="text-destructive bg-destructive/10 border-destructive/20 mb-4 rounded-md border p-3 text-sm">
-                {actionResult.message}
-              </div>
-            )}
+    <Card className="bg-background/75 relative w-full max-w-md border-2 backdrop-blur-2xl">
+      <CardHeader className="text-center">
+        <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
+        <CardDescription className="mt-2">
+          Sign up for a new account
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {actionResult && !actionResult.success && (
+          <div className="text-destructive bg-destructive/10 border-destructive/20 mb-4 rounded-md border p-3 text-sm">
+            {actionResult.message}
+          </div>
+        )}
 
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
-                {/* Personal Information Section */}
-                <div className="space-y-4">
-                  <h3 className="text-muted-foreground border-b pb-2 text-sm font-medium">
-                    Personal Information
-                  </h3>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Personal Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-muted-foreground border-b pb-2 text-sm font-medium">
+                Personal Information
+              </h3>
 
-                  <FormField
-                    control={form.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter your full name"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="houseNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>House Number</FormLabel>
-                          <FormControl>
-                            <Input placeholder="A-10" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="tel"
-                              maxLength={10}
-                              placeholder="10-digit number"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Account Information Section */}
-                <div className="space-y-4">
-                  <h3 className="text-muted-foreground border-b pb-2 text-sm font-medium">
-                    Account Information
-                  </h3>
-
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="Enter your email address"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-1 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Create a strong password"
-                                {...field}
-                                className="pr-12"
-                              />
-                              <Button
-                                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                variant="outline"
-                                onClick={() => setShowPassword(!showPassword)}
-                              >
-                                {showPassword ? (
-                                  <EyeOff className="h-4 w-4 text-gray-400" />
-                                ) : (
-                                  <Eye className="h-4 w-4 text-gray-400" />
-                                )}
-                              </Button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input
-                                type={showConfirmPassword ? 'text' : 'password'}
-                                placeholder="Confirm your password"
-                                {...field}
-                                className="pr-12"
-                              />
-                              <Button
-                                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                                variant="outline"
-                                onClick={() =>
-                                  setShowConfirmPassword(!showConfirmPassword)
-                                }
-                              >
-                                {showConfirmPassword ? (
-                                  <EyeOff className="h-4 w-4 text-gray-400" />
-                                ) : (
-                                  <Eye className="h-4 w-4 text-gray-400" />
-                                )}
-                              </Button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="mt-8 w-full"
-                  disabled={isPending}
-                >
-                  {isPending ? (
-                    <>
-                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                      <m.span layoutId="authSubmit" layout="position">
-                        Create Account
-                      </m.span>
-                    </>
-                  ) : (
-                    <m.span layoutId="authSubmit" layout="position">
-                      Create Account
-                    </m.span>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="houseNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>House Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="A-10" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </Button>
-              </form>
-            </Form>
-            <div className="mt-6 text-center">
-              <p className="text-sm">
-                Already have an account?{' '}
-                <Link href="/login" className="text-primary font-medium">
-                  Sign in
-                </Link>
-              </p>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="tel"
+                          maxLength={10}
+                          placeholder="10-digit number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-          </CardContent>
-        </MotionCard>
-      </DotBackground>
-    </div>
+
+            {/* Account Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-muted-foreground border-b pb-2 text-sm font-medium">
+                Account Information
+              </h3>
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Enter your email address"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 gap-4">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Create a strong password"
+                            {...field}
+                            className="pr-12"
+                          />
+                          <Button
+                            className="absolute inset-y-0 right-0 flex items-center pr-3"
+                            variant="outline"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-gray-400" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-gray-400" />
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            placeholder="Confirm your password"
+                            {...field}
+                            className="pr-12"
+                          />
+                          <Button
+                            className="absolute inset-y-0 right-0 flex items-center pr-3"
+                            variant="outline"
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-4 w-4 text-gray-400" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-gray-400" />
+                            )}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <Button type="submit" className="mt-8 w-full" disabled={isPending}>
+              {isPending ? (
+                <>
+                  <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Create Account</span>
+                </>
+              ) : (
+                <span>Create Account</span>
+              )}
+            </Button>
+          </form>
+        </Form>
+        <div className="mt-6 text-center">
+          <p className="text-sm">
+            Already have an account?{' '}
+            <Link href="/login" className="text-primary font-medium">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
