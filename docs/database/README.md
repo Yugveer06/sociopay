@@ -20,30 +20,43 @@ The database type system has been migrated from Supabase-generated types to Driz
 
 ### Architecture
 
-The database uses a hybrid approach:
+The database uses a modern, type-safe approach:
 
 - **Drizzle ORM** for type-safe database operations and schema definitions
 - **Better Auth** with Drizzle adapter for authentication table management
-- **Supabase PostgreSQL** as the underlying database
+- **PostgreSQL** as the underlying database (Supabase or self-hosted)
+- **Modular Schema Organization** with separate files for different domains
 
 ### Tables Overview
 
-The database consists of authentication tables and application tables:
+The database consists of authentication tables and application tables organized in a modular schema structure:
 
 #### Authentication Tables (Better Auth + Drizzle)
 
-- **`user`** - User accounts with community-specific fields
-- **`account`** - Authentication provider accounts
-- **`session`** - Active user sessions
-- **`verification`** - Email verification tokens
+- **`user`** - User accounts with community-specific fields (house number, phone, role, ban status)
+- **`account`** - Authentication provider accounts and password storage
+- **`session`** - Active user sessions with IP tracking and user agent
+- **`verification`** - Email verification and OTP tokens
 
 #### Application Tables (Drizzle ORM)
 
-- **`payment_categories`** - Payment category definitions
-- **`expense_categories`** - Expense category definitions
-- **`payments`** - Member payment records
-- **`expenses`** - Community expense records
-- **`society_funds`** - Community fund tracking
+- **`payment_categories`** - Payment category definitions (maintenance, utilities, etc.)
+- **`expense_categories`** - Expense category definitions (repairs, supplies, etc.)
+- **`payments`** - Member payment records with intervals and periods
+- **`expenses`** - Community expense records with categorization
+- **`society_funds`** - Community fund tracking and balance management
+
+#### Schema Organization
+
+```
+db/schema/
+├── index.ts           # Schema exports and cross-table relations
+├── auth.ts            # Better Auth tables (user, account, session, verification)
+├── categories.ts      # Category tables (payment_categories, expense_categories)
+├── payments.ts        # Payment system tables and relations
+├── expenses.ts        # Expense management tables and relations
+└── funds.ts           # Society funds and financial tracking
+```
 
 ## User Table
 

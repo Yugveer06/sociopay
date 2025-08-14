@@ -21,6 +21,8 @@ Better Auth handles all authentication endpoints through a single catch-all rout
 
 ### Authentication Actions (`app/(auth)/actions.ts`)
 
+The authentication system has been enhanced with comprehensive server actions for user management, including sign-in, sign-up, password reset, and session management.
+
 #### `signIn(data: SignInData)`
 
 Authenticates a user with email and password.
@@ -427,20 +429,22 @@ type ActionState<T = any> = {
 
 ## Payment Actions (`app/(sidebar)/payments/actions.ts`)
 
+The payment management system provides comprehensive server actions for handling member payments, including creation, export, and data management.
+
 ### `addPayment(data: AddPaymentData)`
 
-Creates a new payment record for a community member.
+Creates a new payment record for a community member with comprehensive validation and error handling.
 
 **Parameters:**
 
 ```typescript
 type AddPaymentData = {
   userId: string // User ID from session
-  categoryId: string // Payment category ID
-  amount: string // Payment amount (e.g., "1500.00")
-  paymentDate: Date // Date of payment
-  periodStart?: Date // Start of payment period (optional)
-  periodEnd?: Date // End of payment period (optional)
+  categoryId: string // Payment category ID (converted to integer)
+  amount: string // Payment amount as string (e.g., "1500.00")
+  paymentDate: string // Payment date as ISO string
+  periodStart?: string // Start of payment period (ISO string, optional)
+  periodEnd?: string // End of payment period (ISO string, optional)
   intervalType?: 'monthly' | 'quarterly' | 'half_yearly' | 'annually' // Payment interval (optional)
   notes?: string // Additional notes (optional)
 }
@@ -468,15 +472,37 @@ const result = await addPayment({
   userId: session.user.id,
   categoryId: '1',
   amount: '1500.00',
-  paymentDate: new Date(),
+  paymentDate: new Date().toISOString().split('T')[0],
   intervalType: 'monthly',
   notes: 'Monthly maintenance fee',
 })
+
+if (result.success) {
+  console.log('Payment added successfully')
+  // Handle success (show toast, refresh data, etc.)
+} else {
+  console.error(result.message)
+  // Handle validation errors
+  if (result.errors) {
+    Object.entries(result.errors).forEach(([field, messages]) => {
+      console.error(`${field}: ${messages.join(', ')}`)
+    })
+  }
+}
 ```
+
+**Behavior:**
+
+- Validates input using `addPaymentSchema` with Zod
+- Converts categoryId to integer and validates amount
+- Requires user authentication via session
+- Handles database constraint violations gracefully
+- Returns user-friendly error messages
+- Revalidates payment data after successful creation
 
 ### `exportPaymentsToCSV()`
 
-Exports all payments to CSV format with user and category information.
+Exports all payment records to CSV format with complete user and category information.
 
 **Returns:**
 
@@ -485,13 +511,35 @@ type ExportResult = {
   success: boolean
   message?: string
   data?: string // CSV content
-  filename?: string // Suggested filename
+  filename?: string // Suggested filename with timestamp
+}
+```
+
+**CSV Columns:**
+
+- Payment ID, User Name, House Number, Category, Amount, Payment Date, Period Start, Period End, Interval Type, Notes, Created At
+
+**Example Usage:**
+
+```typescript
+import { exportPaymentsToCSV } from '@/app/(sidebar)/payments/actions'
+
+const result = await exportPaymentsToCSV()
+
+if (result.success && result.data) {
+  // Create download link
+  const blob = new Blob([result.data], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = result.filename || 'payments.csv'
+  a.click()
 }
 ```
 
 ### `exportPaymentsToPDF()`
 
-Exports payment data for PDF generation (client-side processing).
+Exports payment data for client-side PDF generation with formatted data structure.
 
 **Returns:**
 
@@ -500,7 +548,45 @@ type ExportResult = {
   success: boolean
   message?: string
   data?: PaymentExportData[]
-  filename?: string
+  filename?: string // Suggested filename with timestamp
+}
+
+type PaymentExportData = {
+  id: string
+  userName: string
+  houseNumber: string
+  category: string
+  amount: number
+  paymentDate: string
+  periodStart: string | null
+  periodEnd: string | null
+  intervalType: string | null
+  notes: string | null
+  createdAt: string
+}
+```
+
+**Example Usage:**
+
+```typescript
+import { exportPaymentsToPDF } from '@/app/(sidebar)/payments/actions'
+
+const result = await exportPaymentsToPDF()
+
+if (result.success && result.data) {
+  // Use with jsPDF for client-side PDF generation
+  const { jsPDF } = await import('jspdf')
+  const doc = new jsPDF()
+
+  // Add title
+  doc.text('Payment Records', 20, 20)
+
+  // Add data (implementation depends on PDF library)
+  result.data.forEach((payment, index) => {
+    doc.text(`${payment.userName} - ₹${payment.amount}`, 20, 40 + index * 10)
+  })
+
+  doc.save(result.filename || 'payments.pdf')
 }
 ```
 
@@ -591,6 +677,123 @@ type ExportResult = {
   filename?: string
 }
 ```
+
+## Society Members Actions (`app/(sidebar)/society-members/actions.ts`)
+
+The society members management system provides server actions for user administration, including ban/unban functionality and member management.
+
+### `banUser(data: BanUserData)`
+
+Bans a society member with optional reason and expiration date.
+
+**Parameters:**
+
+```typescript
+type BanUserData = {
+  userId: string // ID of user to ban
+  reason?: string // Reason for ban (optional)
+  banExpires?: string // Ban expiration date as ISO string (optional)
+}
+```
+
+**Returns:**
+
+```typescript
+type ActionState = {
+  success: boolean
+  message: string
+  errors?: Record<string, string[]>
+}
+```
+
+**Example Usage:**
+
+```typescript
+import { banUser } from '@/app/(sidebar)/society-members/actions'
+
+const result = await banUser({
+  userId: 'user-id-123',
+  reason: 'Violation of community guidelines',
+  banExpires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+})
+
+if (result.success) {
+  console.log('User banned successfully')
+} else {
+  console.error(result.message)
+}
+```
+
+**Behavior:**
+
+- Validates input using `banUserSchema`
+- Requires admin authentication
+- Updates user record with ban status, reason, and expiration
+- Handles database errors gracefully
+- Revalidates society members data after successful ban
+
+### `unbanUser(data: UnbanUserData)`
+
+Removes ban from a society member, restoring their access.
+
+**Parameters:**
+
+```typescript
+type UnbanUserData = {
+  userId: string // ID of user to unban
+}
+```
+
+**Returns:**
+
+```typescript
+type ActionState = {
+  success: boolean
+  message: string
+  errors?: Record<string, string[]>
+}
+```
+
+**Example Usage:**
+
+```typescript
+import { unbanUser } from '@/app/(sidebar)/society-members/actions'
+
+const result = await unbanUser({
+  userId: 'user-id-123',
+})
+
+if (result.success) {
+  console.log('User unbanned successfully')
+} else {
+  console.error(result.message)
+}
+```
+
+**Behavior:**
+
+- Validates input using `unbanUserSchema`
+- Requires admin authentication
+- Clears ban status, reason, and expiration from user record
+- Handles database errors gracefully
+- Revalidates society members data after successful unban
+
+### Authentication Requirements
+
+Both ban and unban actions require:
+
+- Valid user session
+- Admin role permissions
+- Proper input validation
+- Database transaction handling
+
+### Security Considerations
+
+- **Admin Only**: Only users with admin role can ban/unban members
+- **Audit Trail**: Ban reasons are stored for accountability
+- **Temporary Bans**: Support for time-limited bans with automatic expiration
+- **Input Validation**: All inputs validated with Zod schemas
+- **Error Handling**: Secure error messages that don't expose sensitive information
 
 ## Data Types
 

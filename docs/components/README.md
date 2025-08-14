@@ -201,6 +201,151 @@ import { DotBackground } from "@/components/ui/dot-background";
 - Base dot pattern with interactive overlay
 - Automatic theme-aware color switching
 
+### Alert Dialog Component
+
+**Location**: `components/ui/alert-dialog.tsx`
+
+**Purpose**: Modal dialog for confirmations and important alerts with accessible design.
+
+**Components**:
+
+- `AlertDialog` - Root dialog container
+- `AlertDialogTrigger` - Trigger button for opening dialog
+- `AlertDialogContent` - Dialog content container
+- `AlertDialogHeader` - Header section with title and description
+- `AlertDialogTitle` - Dialog title
+- `AlertDialogDescription` - Dialog description text
+- `AlertDialogFooter` - Footer section with action buttons
+- `AlertDialogAction` - Primary action button
+- `AlertDialogCancel` - Cancel/secondary action button
+
+**Usage**:
+
+```typescript
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+<AlertDialog>
+  <AlertDialogTrigger asChild>
+    <Button variant="destructive">Delete Item</Button>
+  </AlertDialogTrigger>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+      <AlertDialogDescription>
+        This action cannot be undone. This will permanently delete the item.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Cancel</AlertDialogCancel>
+      <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>;
+```
+
+**Features**:
+
+- **Accessible**: Full keyboard navigation and screen reader support
+- **Customizable**: Flexible styling with Tailwind CSS
+- **Responsive**: Works on all screen sizes
+- **Focus Management**: Proper focus trapping and restoration
+- **Animation**: Smooth enter/exit animations
+
+### Month Selector Component
+
+**Location**: `components/ui/month-selector.tsx`
+
+**Purpose**: Month selection component for date filtering and navigation.
+
+**Usage**:
+
+```typescript
+import { MonthSelector } from "@/components/ui/month-selector";
+
+<MonthSelector
+  value={selectedMonth}
+  onChange={setSelectedMonth}
+  placeholder="Select month"
+/>;
+```
+
+**Props**:
+
+```typescript
+interface MonthSelectorProps {
+  value?: Date // Currently selected month
+  onChange?: (date: Date | undefined) => void // Change handler
+  placeholder?: string // Placeholder text
+  disabled?: boolean // Disable the selector
+  className?: string // Additional CSS classes
+}
+```
+
+**Features**:
+
+- **Month Navigation**: Easy month selection with dropdown
+- **Year Support**: Includes year selection
+- **Keyboard Navigation**: Full keyboard accessibility
+- **Customizable**: Flexible styling and behavior
+- **Responsive**: Mobile-friendly interface
+
+### Scroll Area Component
+
+**Location**: `components/ui/scroll-area.tsx`
+
+**Purpose**: Custom scrollable area with styled scrollbars for better UX.
+
+**Components**:
+
+- `ScrollArea` - Main scrollable container
+- `ScrollBar` - Custom scrollbar component
+
+**Usage**:
+
+```typescript
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+<ScrollArea className="h-72 w-48 rounded-md border">
+  <div className="p-4">
+    {/* Your scrollable content */}
+    <div>Item 1</div>
+    <div>Item 2</div>
+    {/* ... more items */}
+  </div>
+</ScrollArea>;
+```
+
+**Features**:
+
+- **Custom Scrollbars**: Styled scrollbars that match your design
+- **Cross-browser**: Consistent appearance across browsers
+- **Responsive**: Adapts to container size
+- **Smooth Scrolling**: Enhanced scrolling experience
+- **Accessibility**: Maintains native scrolling behavior for assistive technologies
+
+**Advanced Usage**:
+
+```typescript
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
+<ScrollArea className="w-96 whitespace-nowrap rounded-md border">
+  <div className="flex w-max space-x-4 p-4">
+    {/* Horizontal scrolling content */}
+  </div>
+  <ScrollBar orientation="horizontal" />
+</ScrollArea>;
+```
+
 ## Application Components
 
 ### App Sidebar (`components/app-sidebar.tsx`)

@@ -21,6 +21,10 @@ DATABASE_URL=postgresql://username:password@host:port/database
 
 # Better Auth Configuration
 BETTER_AUTH_SECRET=your-cryptographically-secure-secret-key
+BETTER_AUTH_URL=http://localhost:3000  # Base URL for auth callbacks
+
+# Email Service Configuration (for OTP)
+RESEND_API_KEY=your-resend-api-key
 
 # Node Environment
 NODE_ENV=development|production
@@ -47,12 +51,26 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 - **Generation**: Use `openssl rand -base64 32` or similar
 - **Required**: Yes
 
+#### `BETTER_AUTH_URL`
+
+- **Purpose**: Base URL for Better Auth callbacks and redirects
+- **Format**: Full URL including protocol
+- **Example**: `http://localhost:3000` (development), `https://yourdomain.com` (production)
+- **Required**: Yes for proper authentication flow
+
+#### `RESEND_API_KEY`
+
+- **Purpose**: API key for Resend email service (OTP delivery)
+- **Format**: Resend API key starting with `re_`
+- **Example**: `re_123456789_abcdefghijklmnop`
+- **Required**: Yes for password reset functionality
+
 #### `NODE_ENV`
 
 - **Purpose**: Determines runtime environment
 - **Values**: `development`, `production`, `test`
 - **Default**: `development`
-- **Impact**: Affects SSL settings, error handling, optimizations
+- **Impact**: Affects SSL settings, error handling, optimizations, email fallbacks
 
 ## Next.js Configuration
 

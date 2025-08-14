@@ -18,15 +18,6 @@ Welcome to the SocioPay documentation. This guide covers all aspects of the comm
 4. **Database Schema**: Run `pnpm db:push` to sync Drizzle schema with database
 5. **Development**: Run `pnpm dev` to start the development server
 
-## 🚨 Database Type Migration
-
-The project has migrated from Supabase-generated types to Drizzle ORM types.
-
-**Quick Links:**
-
-- **[Migration Summary](./MIGRATION_SUMMARY.md)** - Complete overview of changes
-- **[Type Migration Guide](./database/type-migration.md)** - Detailed migration instructions
-
 ## Development Commands
 
 ### Core Development Scripts
