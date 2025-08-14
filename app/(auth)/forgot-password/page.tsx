@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { forgotPasswordSchema } from '@/lib/schemas'
+import { forgotPasswordSchema } from '@/lib/zod'
 import { ArrowLeft, LoaderCircle } from 'lucide-react'
 import Link from 'next/link'
 import { forgotPassword } from '../actions'

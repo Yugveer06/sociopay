@@ -1,9 +1,9 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { expenses, expenseCategories } from '@/drizzle/schema'
+import { db } from '@/db/drizzle'
+import { expenses, expenseCategories } from '@/db/schema'
 import { validatedAction, ActionState } from '@/lib/action-helpers'
-import { addExpenseSchema, AddExpenseData } from '@/lib/schemas'
+import { addExpenseSchema, AddExpenseData } from '@/lib/zod'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'

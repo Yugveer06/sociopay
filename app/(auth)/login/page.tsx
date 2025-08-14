@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { signInSchema } from '@/lib/schemas'
+import { signInSchema } from '@/lib/zod'
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react'
 import Link from 'next/link'
 import { signIn } from '../actions'

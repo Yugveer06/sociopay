@@ -11,7 +11,7 @@ import {
   SignUpData,
   ForgotPasswordData,
   ResetPasswordData,
-} from '@/lib/schemas'
+} from '@/lib/zod'
 import { headers } from 'next/headers'
 
 // Raw action functions that perform the actual auth operations

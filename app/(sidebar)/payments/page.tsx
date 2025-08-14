@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { db } from '@/lib/db'
-import { payments, user, paymentCategories } from '@/lib/schema'
+import { db } from '@/db/drizzle'
+import { payments, user, paymentCategories } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import {
@@ -106,39 +106,7 @@ export default async function PaymentsPage() {
   }
 
   // Use the fetched payments data or fallback to sample data
-  const finalPayments: Payment[] =
-    paymentsData.length > 0
-      ? paymentsData
-      : [
-          {
-            id: 'sample-1',
-            amount: 150.0,
-            created_at: '2025-08-12T10:30:00Z',
-            interval_type: 'monthly' as const,
-            notes: 'Sample maintenance payment',
-            payment_date: '2025-08-12',
-            period_start: '2025-08-01',
-            period_end: '2025-08-31',
-            user_id: session.user.id,
-            user_name: session.user.name || 'Sample User',
-            house_number: 'A-101',
-            category_name: 'Maintenance',
-          },
-          {
-            id: 'sample-2',
-            amount: 200.0,
-            created_at: '2025-08-11T14:15:00Z',
-            interval_type: 'monthly' as const,
-            notes: 'Sample utility payment',
-            payment_date: '2025-08-11',
-            period_start: '2025-08-01',
-            period_end: '2025-08-31',
-            user_id: session.user.id,
-            user_name: session.user.name || 'Sample User',
-            house_number: 'A-101',
-            category_name: 'Utilities',
-          },
-        ]
+  const finalPayments: Payment[] = paymentsData.length > 0 ? paymentsData : []
 
   // Calculate totals from actual data
   const totalBalance = finalPayments.reduce(

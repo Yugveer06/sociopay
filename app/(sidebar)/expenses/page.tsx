@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { db } from '@/lib/db'
-import { expenses, expenseCategories } from '@/drizzle/schema'
+import { db } from '@/db/drizzle'
+import { expenses, expenseCategories } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import {
@@ -71,7 +71,7 @@ export default async function ExpensesPage() {
     expensesData = result.map(expense => ({
       id: expense.id,
       amount: parseFloat(expense.amount || '0'),
-      created_at: expense.created_at || null,
+      created_at: expense.created_at?.toISOString() || null,
       notes: expense.notes,
       expense_date: expense.expense_date || null,
       category_name: expense.category_name || 'Uncategorized',
@@ -82,27 +82,7 @@ export default async function ExpensesPage() {
   }
 
   // Use the fetched expenses data or fallback to sample data
-  const finalExpenses: Expense[] =
-    expensesData.length > 0
-      ? expensesData
-      : [
-          {
-            id: 'sample-1',
-            amount: 500.0,
-            created_at: '2025-08-12T10:30:00Z',
-            notes: 'Sample maintenance expense for common area',
-            expense_date: '2025-08-12',
-            category_name: 'Maintenance',
-          },
-          {
-            id: 'sample-2',
-            amount: 300.0,
-            created_at: '2025-08-11T14:15:00Z',
-            notes: 'Sample utility bill payment',
-            expense_date: '2025-08-11',
-            category_name: 'Utilities',
-          },
-        ]
+  const finalExpenses: Expense[] = expensesData.length > 0 ? expensesData : []
 
   // Calculate totals from actual data
   const totalExpenses = finalExpenses.reduce(
