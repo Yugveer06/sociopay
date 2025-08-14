@@ -6,9 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { user } from '@/drizzle/schema'
+import { user } from '@/db/schema'
 import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { db } from '@/db/drizzle'
 import { IconRefresh, IconUserCheck, IconUsers } from '@tabler/icons-react'
 import { desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
@@ -60,9 +60,9 @@ export default async function SocietyMembersPage() {
       role: member.role,
       banned: member.banned,
       banReason: member.banReason,
-      banExpires: member.banExpires,
+      banExpires: member.banExpires?.toISOString() || null,
       image: member.image,
-      createdAt: member.createdAt,
+      createdAt: member.createdAt.toISOString(),
       emailVerified: member.emailVerified,
     }))
   } catch (err) {

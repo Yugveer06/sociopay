@@ -1,45 +1,6 @@
 import { z } from 'zod'
 
-export type ActionState<T = unknown> = {
-  success: boolean
-  message: string
-  data?: T
-  errors?: Record<string, string[]>
-}
-
-export function validatedAction<T extends z.ZodSchema, K>(
-  schema: T,
-  action: (data: z.infer<T>) => Promise<ActionState<K>>
-) {
-  return async (formData: z.infer<T>): Promise<ActionState<K>> => {
-    try {
-      // Validate the form data
-      const validatedData = schema.parse(formData)
-
-      // Execute the action with validated data
-      return await action(validatedData)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Return validation errors
-        const errors = error.flatten().fieldErrors
-        return {
-          success: false,
-          message: 'Validation failed',
-          errors,
-        }
-      }
-
-      // Handle other errors
-      return {
-        success: false,
-        message:
-          error instanceof Error ? error.message : 'An unknown error occurred',
-      }
-    }
-  }
-}
-
-// Define the schemas for auth actions
+// Authentication schemas
 export const signInSchema = z.object({
   email: z.email({
     message: 'Please enter a valid email address.',
@@ -75,5 +36,35 @@ export const signUpSchema = z
     path: ['confirmPassword'],
   })
 
+// Password reset schemas
+export const forgotPasswordSchema = z.object({
+  email: z.email({
+    message: 'Please enter a valid email address.',
+  }),
+})
+
+export const resetPasswordSchema = z
+  .object({
+    email: z.email({
+      message: 'Please enter a valid email address.',
+    }),
+    otp: z.string().length(6, {
+      message: 'OTP must be exactly 6 digits.',
+    }),
+    password: z.string().min(6, {
+      message: 'Password must be at least 6 characters.',
+    }),
+    confirmPassword: z.string().min(6, {
+      message: 'Please confirm your password.',
+    }),
+  })
+  .refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
+
+// Type exports
 export type SignInData = z.infer<typeof signInSchema>
 export type SignUpData = z.infer<typeof signUpSchema>
+export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>

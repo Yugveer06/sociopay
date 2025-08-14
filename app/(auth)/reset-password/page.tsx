@@ -28,7 +28,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp'
-import { resetPasswordSchema } from '@/lib/schemas'
+import { resetPasswordSchema } from '@/lib/zod'
 import { ArrowLeft, Eye, EyeOff, LoaderCircle } from 'lucide-react'
 import Link from 'next/link'
 import { resetPassword } from '../actions'

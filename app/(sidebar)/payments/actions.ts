@@ -1,9 +1,9 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { payments } from '@/lib/schema'
+import { db } from '@/db/drizzle'
+import { payments } from '@/db/schema'
 import { validatedAction, ActionState } from '@/lib/action-helpers'
-import { addPaymentSchema, AddPaymentData } from '@/lib/schemas'
+import { addPaymentSchema, AddPaymentData } from '@/lib/zod'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
@@ -102,8 +102,8 @@ export async function exportPaymentsToCSV() {
     }
 
     // Fetch all payments with related data
-    const { db } = await import('@/lib/db')
-    const { payments, user, paymentCategories } = await import('@/lib/schema')
+    const { db } = await import('@/db/drizzle')
+    const { payments, user, paymentCategories } = await import('@/db/schema')
     const { eq, desc } = await import('drizzle-orm')
 
     const result = await db
@@ -205,8 +205,8 @@ export async function exportPaymentsToPDF() {
 
     // Note: PDF generation on server side with jsPDF is complex
     // We'll return the data and let the client handle PDF generation
-    const { db } = await import('@/lib/db')
-    const { payments, user, paymentCategories } = await import('@/lib/schema')
+    const { db } = await import('@/db/drizzle')
+    const { payments, user, paymentCategories } = await import('@/db/schema')
     const { eq, desc } = await import('drizzle-orm')
 
     const result = await db
@@ -320,7 +320,7 @@ export async function generatePaymentReceipt(
     }
 
     // Fetch the specific payment with related data
-    const { user, paymentCategories } = await import('@/lib/schema')
+    const { user, paymentCategories } = await import('@/db/schema')
 
     const result = await db
       .select({

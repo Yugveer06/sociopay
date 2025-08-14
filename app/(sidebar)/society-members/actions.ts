@@ -1,7 +1,7 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { user } from '@/drizzle/schema'
+import { db } from '@/db/drizzle'
+import { user } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
@@ -62,7 +62,7 @@ export async function banSocietyMember(
       .set({
         banned: true,
         banReason: banReason || 'No reason provided',
-        banExpires: banExpires || null,
+        banExpires: banExpires ? new Date(banExpires) : null,
       })
       .where(eq(user.id, memberId))
 
