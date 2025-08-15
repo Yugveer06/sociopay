@@ -32,6 +32,15 @@ import {
 import { IconPlus, IconLoader2, IconCalendar } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 
 interface AddPaymentFormProps {
   users: Array<{ id: string; name: string; houseNumber: string }>
@@ -40,6 +49,7 @@ interface AddPaymentFormProps {
 
 export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
   const [open, setOpen] = useState(false)
+  const [userPopoverOpen, setUserPopoverOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   const form = useForm<AddPaymentData>({
@@ -51,7 +61,7 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
       paymentDate: new Date().toISOString().split('T')[0],
       periodStart: '',
       periodEnd: '',
-      intervalType: 'monthly',
+      intervalType: 'quarterly',
       notes: '',
     },
   })
@@ -114,35 +124,81 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>User</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
+                    <Popover
+                      open={userPopoverOpen}
+                      onOpenChange={setUserPopoverOpen}
                     >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue
-                            placeholder="Select a user"
-                            className="truncate"
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-w-none">
-                        {users.map(user => (
-                          <SelectItem
-                            key={user.id}
-                            value={user.id}
-                            className="max-w-none"
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              'justify-between',
+                              !field.value && 'text-muted-foreground'
+                            )}
                           >
-                            <div className="flex w-full min-w-0 items-center gap-2">
-                              <span className="text-muted-foreground shrink-0">
-                                ({user.houseNumber})
-                              </span>
-                              <span className="truncate">{user.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                            {field.value ? (
+                              <div className="flex w-full min-w-0 items-center gap-2">
+                                <span className="text-muted-foreground shrink-0">
+                                  (
+                                  {
+                                    users.find(user => user.id === field.value)
+                                      ?.houseNumber
+                                  }
+                                  )
+                                </span>
+                                <span className="truncate">
+                                  {
+                                    users.find(user => user.id === field.value)
+                                      ?.name
+                                  }
+                                </span>
+                              </div>
+                            ) : (
+                              'Select a user'
+                            )}
+                            <ChevronsUpDown className="opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search user..."
+                            className="h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>No user found.</CommandEmpty>
+                            <CommandGroup>
+                              {users.map(user => (
+                                <CommandItem
+                                  value={`${user.houseNumber} ${user.name}`}
+                                  key={user.id}
+                                  onSelect={() => {
+                                    form.setValue('userId', user.id)
+                                    setUserPopoverOpen(false)
+                                  }}
+                                >
+                                  <span className="text-muted-foreground shrink-0">
+                                    ({user.houseNumber})
+                                  </span>
+                                  <span className="truncate">{user.name}</span>
+                                  <Check
+                                    className={cn(
+                                      'ml-auto',
+                                      user.id === field.value
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -193,8 +249,8 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
                       <FormControl>
                         <Input
                           type="number"
-                          step="0.01"
-                          placeholder="0.00"
+                          step="1"
+                          placeholder="0"
                           {...field}
                         />
                       </FormControl>
