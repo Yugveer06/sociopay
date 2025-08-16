@@ -11,8 +11,10 @@ import { DotBackground } from '@/components/ui/dot-background'
 import RotatingText from '@/components/ui/rotating-text'
 import Link from 'next/link'
 import { motion as m } from 'motion/react'
+import { useSession } from '@/lib/auth-client'
 
 export default function Home() {
+  const { data: session } = useSession()
   const MotionCard = m.create(Card)
   return (
     <DotBackground>
@@ -59,17 +61,27 @@ export default function Home() {
               Join our community or sign in to your account
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Link href="/login" className="block">
-              <Button className="w-full" size="lg">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/signup" className="block">
-              <Button variant="outline" className="w-full" size="lg">
-                Sign Up
-              </Button>
-            </Link>
+          <CardContent>
+            {session && session.user ? (
+              <Link href="/dashboard" className="block">
+                <Button variant="outline" className="w-full" size="lg">
+                  Go to dashboard
+                </Button>
+              </Link>
+            ) : (
+              <div className="space-y-4">
+                <Link href="/login" className="block">
+                  <Button className="w-full" size="lg">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/signup" className="block">
+                  <Button variant="outline" className="w-full" size="lg">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
           </CardContent>
         </MotionCard>
       </div>
