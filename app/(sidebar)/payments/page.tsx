@@ -8,29 +8,23 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { db } from '@/db/drizzle'
-import { payments, user, paymentCategories } from '@/db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { paymentCategories, payments, user } from '@/db/schema'
 import { auth } from '@/lib/auth'
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  CreditCard,
-  Filter,
-  RefreshCw,
-} from 'lucide-react'
-import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { columns, Payment } from './columns'
-import { DataTable } from './data-table'
-import { AddPaymentForm } from './add-payment-form'
-import { ExportDropdown } from './export-dropdown'
-import { MaintenanceDueTable } from './maintenance-due-table'
-import { dueColumns, MaintenanceDueType } from './due-columns'
 import {
   calculateAllMaintenanceDue,
   PaymentPeriod,
 } from '@/lib/maintenance-due-calculator'
+import { desc, eq } from 'drizzle-orm'
+import { ArrowDownLeft, CreditCard, RefreshCw } from 'lucide-react'
+import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { AddPaymentForm } from './add-payment-form'
+import { columns, Payment } from './columns'
+import { DataTable } from './data-table'
+import { dueColumns, MaintenanceDueType } from './due-columns'
+import { ExportDropdown } from './export-dropdown'
+import { MaintenanceDueTable } from './maintenance-due-table'
 
 export default async function PaymentsPage() {
   const session = await auth.api.getSession({
@@ -239,10 +233,7 @@ export default async function PaymentsPage() {
                   Refresh
                 </Button>
               </form>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filter
-              </Button>
+
               <ExportDropdown
                 data={finalPayments.map(payment => ({
                   id: payment.id,
@@ -263,7 +254,7 @@ export default async function PaymentsPage() {
           </div>
 
           {/* Balance Overview */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -280,23 +271,7 @@ export default async function PaymentsPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  This Month Expense
-                </CardTitle>
-                <ArrowUpRight className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {formatCurrency(monthlySpent)}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {monthlyChange >= 0 ? '+' : ''}
-                  {monthlyChange.toFixed(1)}% from last month
-                </p>
-              </CardContent>
-            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">

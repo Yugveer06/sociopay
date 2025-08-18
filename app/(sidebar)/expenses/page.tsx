@@ -7,22 +7,21 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { db } from '@/db/drizzle'
-import { expenses, expenseCategories } from '@/db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { expenseCategories, expenses } from '@/db/schema'
 import { auth } from '@/lib/auth'
 import {
   IconArrowUpRight,
   IconCreditCard,
-  IconFilter,
   IconRefresh,
   IconTrendingUp,
 } from '@tabler/icons-react'
+import { desc, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { AddExpenseForm } from './add-expense-form'
 import { columns, Expense } from './columns'
 import { DataTable } from './data-table'
-import { AddExpenseForm } from './add-expense-form'
 import { ExportDropdown } from './export-dropdown'
 
 export default async function ExpensesPage() {
@@ -162,10 +161,7 @@ export default async function ExpensesPage() {
                   Refresh
                 </Button>
               </form>
-              <Button variant="outline" size="sm">
-                <IconFilter className="mr-2 h-4 w-4" />
-                Filter
-              </Button>
+
               <ExportDropdown
                 data={finalExpenses.map(expense => ({
                   id: expense.id,
@@ -181,7 +177,7 @@ export default async function ExpensesPage() {
           </div>
 
           {/* Expense Overview */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -212,22 +208,6 @@ export default async function ExpensesPage() {
                 <p className="text-muted-foreground text-xs">
                   {monthlyChange >= 0 ? '+' : ''}
                   {monthlyChange.toFixed(1)}% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Daily Average
-                </CardTitle>
-                <IconTrendingUp className="h-4 w-4 text-orange-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">
-                  {formatCurrency(averageDailyExpense)}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  Average expense per day this month
                 </p>
               </CardContent>
             </Card>
