@@ -21,9 +21,7 @@ export const addPaymentSchema = z.object({
   }),
   periodStart: z.string().optional().or(z.literal('')),
   periodEnd: z.string().optional().or(z.literal('')),
-  intervalType: z
-    .enum(['monthly', 'quarterly', 'half_yearly', 'annually'])
-    .optional(),
+  intervalType: z.enum(['monthly', 'quarterly', 'half_yearly', 'annually']),
   notes: z.string().optional().or(z.literal('')),
 })
 
