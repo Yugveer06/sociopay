@@ -204,7 +204,13 @@ function MonthSelector({
   const isRangeEnd = (date: Date) => {
     if (!isRangeMode) return false
     const range = (props as MonthSelectorRangeProps).selected
-    return range?.to?.getTime() === date.getTime()
+    if (!range?.to) return false
+
+    // Compare by year and month since 'to' is set to last day of month
+    return (
+      range.to.getFullYear() === date.getFullYear() &&
+      range.to.getMonth() === date.getMonth()
+    )
   }
 
   const isRangeMiddle = (date: Date) => {
@@ -212,11 +218,19 @@ function MonthSelector({
     const range = (props as MonthSelectorRangeProps).selected
     if (!range?.from || !range?.to) return false
 
-    const dateTime = date.getTime()
-    const fromTime = range.from.getTime()
-    const toTime = range.to.getTime()
+    const dateYear = date.getFullYear()
+    const dateMonth = date.getMonth()
+    const fromYear = range.from.getFullYear()
+    const fromMonth = range.from.getMonth()
+    const toYear = range.to.getFullYear()
+    const toMonth = range.to.getMonth()
 
-    return dateTime > fromTime && dateTime < toTime
+    // Create comparable date values (year * 12 + month)
+    const dateValue = dateYear * 12 + dateMonth
+    const fromValue = fromYear * 12 + fromMonth
+    const toValue = toYear * 12 + toMonth
+
+    return dateValue > fromValue && dateValue < toValue
   }
 
   // Handle month selection
@@ -476,6 +490,12 @@ function DefaultMonthButton({
   className?: string
   children: React.ReactNode
 }) {
+  console.log('date', date)
+  console.log('selected', selected)
+  console.log('isCurrentMonth', isCurrentMonth)
+  console.log('isRangeStart', isRangeStart)
+  console.log('isRangeEnd', isRangeEnd)
+  console.log('isRangeMiddle', isRangeMiddle)
   return (
     <Button
       variant="ghost"
