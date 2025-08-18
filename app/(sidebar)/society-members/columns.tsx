@@ -28,6 +28,7 @@ export const SocietyMemberSchema = z.object({
   image: z.string().nullable(),
   createdAt: z.string(),
   emailVerified: z.boolean(),
+  houseOwnership: z.string().nullable(),
 })
 
 export type SocietyMember = z.infer<typeof SocietyMemberSchema>

@@ -20,15 +20,28 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   IconDots,
   IconUserX,
   IconUserCheck,
   IconCalendar,
+  IconEdit,
 } from '@tabler/icons-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { banSocietyMember, unbanSocietyMember } from './actions'
+import {
+  banSocietyMember,
+  unbanSocietyMember,
+  editUserDetails,
+} from './actions'
 import { SocietyMember } from './columns'
+import { EditUserDetailsData } from '@/lib/zod/auth'
 
 interface RowActionsProps {
   member: SocietyMember
@@ -37,8 +50,66 @@ interface RowActionsProps {
 export function RowActions({ member }: RowActionsProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showBanDialog, setShowBanDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
   const [banReason, setBanReason] = useState('')
   const [banExpires, setBanExpires] = useState('')
+
+  // Edit form state
+  const [editForm, setEditForm] = useState<EditUserDetailsData>({
+    name: member.name,
+    email: member.email,
+    houseNumber: member.houseNumber,
+    phone: member.phone.replace('+91 ', ''), // Remove country code for editing
+    role: member.role || 'user',
+    houseOwnership: (member.houseOwnership === 'Renter'
+      ? 'Renter'
+      : 'Owner') as 'Owner' | 'Renter',
+  })
+
+  // Reset form when dialog opens to ensure fresh data
+  useEffect(() => {
+    if (showEditDialog) {
+      setEditForm({
+        name: member.name,
+        email: member.email,
+        houseNumber: member.houseNumber,
+        phone: member.phone.replace('+91 ', ''),
+        role: member.role || 'user',
+        houseOwnership: (member.houseOwnership === 'Renter'
+          ? 'Renter'
+          : 'Owner') as 'Owner' | 'Renter',
+      })
+    }
+  }, [
+    showEditDialog,
+    member.name,
+    member.email,
+    member.houseNumber,
+    member.phone,
+    member.role,
+    member.houseOwnership,
+  ])
+
+  // Reset form when member prop changes (e.g., after successful update)
+  useEffect(() => {
+    setEditForm({
+      name: member.name,
+      email: member.email,
+      houseNumber: member.houseNumber,
+      phone: member.phone.replace('+91 ', ''),
+      role: member.role || 'user',
+      houseOwnership: (member.houseOwnership === 'Renter'
+        ? 'Renter'
+        : 'Owner') as 'Owner' | 'Renter',
+    })
+  }, [
+    member.name,
+    member.email,
+    member.houseNumber,
+    member.phone,
+    member.role,
+    member.houseOwnership,
+  ])
 
   const handleBan = async () => {
     setIsLoading(true)
@@ -83,6 +154,42 @@ export function RowActions({ member }: RowActionsProps) {
     }
   }
 
+  const handleEditDetails = async () => {
+    setIsLoading(true)
+    try {
+      const result = await editUserDetails(member.id, editForm)
+
+      if (result.success) {
+        toast.success('Member details updated successfully!')
+        setShowEditDialog(false)
+        // Reset form on successful update
+        resetEditForm()
+      } else {
+        toast.error(result.message || 'Failed to update member details')
+        // Don't reset form on error - let user fix their input
+      }
+    } catch (error) {
+      console.error('Error updating member details:', error)
+      toast.error('Failed to update member details')
+      // Don't reset form on error - let user fix their input
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const resetEditForm = () => {
+    setEditForm({
+      name: member.name,
+      email: member.email,
+      houseNumber: member.houseNumber,
+      phone: member.phone.replace('+91 ', ''),
+      role: member.role || 'user',
+      houseOwnership: (member.houseOwnership === 'Renter'
+        ? 'Renter'
+        : 'Owner') as 'Owner' | 'Renter',
+    })
+  }
+
   const getTomorrowDate = () => {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
@@ -103,6 +210,14 @@ export function RowActions({ member }: RowActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem
+            onClick={() => setShowEditDialog(true)}
+            disabled={isLoading}
+            className="text-blue-600 focus:text-blue-600"
+          >
+            <IconEdit className="mr-2 h-4 w-4" />
+            Edit Details
+          </DropdownMenuItem>
           {member.banned ? (
             <DropdownMenuItem
               onClick={handleUnban}
@@ -187,6 +302,155 @@ export function RowActions({ member }: RowActionsProps) {
               className="bg-orange-600 hover:bg-orange-700 focus:ring-orange-600"
             >
               {isLoading ? 'Banning...' : 'Ban Member'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Details Dialog */}
+      <AlertDialog
+        open={showEditDialog}
+        onOpenChange={open => {
+          setShowEditDialog(open)
+          if (!open) {
+            // Reset form when dialog is closed
+            resetEditForm()
+          }
+        }}
+      >
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <IconEdit className="h-5 w-5 text-blue-600" />
+              Edit Member Details
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Edit details for <strong>{member.name}</strong>. All fields are
+              required and must be unique where applicable.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="max-h-96 space-y-4 overflow-y-auto py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Full Name</Label>
+              <Input
+                id="edit-name"
+                placeholder="Enter full name"
+                value={editForm.name}
+                onChange={e =>
+                  setEditForm(prev => ({ ...prev, name: e.target.value }))
+                }
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email Address</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                placeholder="Enter email address"
+                value={editForm.email}
+                onChange={e =>
+                  setEditForm(prev => ({ ...prev, email: e.target.value }))
+                }
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-house">House Number</Label>
+              <Input
+                id="edit-house"
+                placeholder="e.g., A-1, B-9, C-23"
+                value={editForm.houseNumber}
+                onChange={e =>
+                  setEditForm(prev => ({
+                    ...prev,
+                    houseNumber: e.target.value,
+                  }))
+                }
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Phone Number</Label>
+              <Input
+                id="edit-phone"
+                placeholder="10-digit phone number"
+                value={editForm.phone}
+                onChange={e =>
+                  setEditForm(prev => ({ ...prev, phone: e.target.value }))
+                }
+                disabled={isLoading}
+                maxLength={10}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">Role</Label>
+              <Select
+                value={editForm.role || 'user'}
+                onValueChange={value =>
+                  setEditForm(prev => ({ ...prev, role: value }))
+                }
+                disabled={isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="treasurer">Treasurer</SelectItem>
+                  <SelectItem value="secretary">Secretary</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-ownership">House Ownership</Label>
+              <Select
+                value={editForm.houseOwnership}
+                onValueChange={value =>
+                  setEditForm(prev => ({
+                    ...prev,
+                    houseOwnership: value as 'Owner' | 'Renter',
+                  }))
+                }
+                disabled={isLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select ownership type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Owner">Owner</SelectItem>
+                  <SelectItem value="Renter">Renter</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-muted-foreground text-xs">
+                Automatically determined but can be overridden manually
+              </p>
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isLoading}
+              onClick={() => {
+                resetEditForm()
+                setShowEditDialog(false)
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleEditDetails}
+              disabled={isLoading}
+              className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-600"
+            >
+              {isLoading ? 'Updating...' : 'Update Details'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

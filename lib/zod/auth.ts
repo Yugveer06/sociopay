@@ -63,8 +63,29 @@ export const resetPasswordSchema = z
     path: ['confirmPassword'],
   })
 
+// Admin edit user details schema
+export const editUserDetailsSchema = z.object({
+  name: z.string().min(2, {
+    message: 'Full name must be at least 2 characters.',
+  }),
+  email: z.email({
+    message: 'Please enter a valid email address.',
+  }),
+  houseNumber: z.string().regex(/^[A-Z]-\d{1,2}$/, {
+    message: 'Please enter a valid house number (e.g., A-1, B-9, C-23).',
+  }),
+  phone: z.string().regex(/^[0-9]{10}$/, {
+    message: 'Please enter a valid 10-digit phone number.',
+  }),
+  role: z.string().nullable(),
+  houseOwnership: z.enum(['Owner', 'Renter'], {
+    message: 'Please select either Owner or Renter.',
+  }),
+})
+
 // Type exports
 export type SignInData = z.infer<typeof signInSchema>
 export type SignUpData = z.infer<typeof signUpSchema>
 export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>
 export type ResetPasswordData = z.infer<typeof resetPasswordSchema>
+export type EditUserDetailsData = z.infer<typeof editUserDetailsSchema>

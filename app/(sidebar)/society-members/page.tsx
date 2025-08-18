@@ -46,6 +46,7 @@ export default async function SocietyMembersPage() {
         image: user.image,
         createdAt: user.createdAt,
         emailVerified: user.emailVerified,
+        houseOwnership: user.houseOwnership,
       })
       .from(user)
       .orderBy(desc(user.createdAt))
@@ -64,6 +65,7 @@ export default async function SocietyMembersPage() {
       image: member.image,
       createdAt: member.createdAt.toISOString(),
       emailVerified: member.emailVerified,
+      houseOwnership: member.houseOwnership,
     }))
   } catch (err) {
     console.error('Error fetching society members:', err)
@@ -88,6 +90,7 @@ export default async function SocietyMembersPage() {
             image: null,
             createdAt: '2024-01-15T10:30:00Z',
             emailVerified: true,
+            houseOwnership: 'Owner',
           },
           {
             id: 'sample-2',
@@ -102,6 +105,7 @@ export default async function SocietyMembersPage() {
             image: null,
             createdAt: '2024-02-20T14:15:00Z',
             emailVerified: true,
+            houseOwnership: 'Owner',
           },
           {
             id: 'sample-3',
@@ -116,6 +120,7 @@ export default async function SocietyMembersPage() {
             image: null,
             createdAt: '2024-03-10T09:45:00Z',
             emailVerified: false,
+            houseOwnership: 'Renter',
           },
           {
             id: 'sample-4',
@@ -130,6 +135,7 @@ export default async function SocietyMembersPage() {
             image: null,
             createdAt: '2024-04-05T16:20:00Z',
             emailVerified: true,
+            houseOwnership: 'Owner',
           },
         ]
 
