@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { IconCaretUpDown } from '@tabler/icons-react'
+import { ChevronsUpDown } from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
 import { RowActions } from './row-actions'
@@ -36,7 +36,7 @@ export const columns: ColumnDef<Payment>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Payment Date
-          <IconCaretUpDown className="ml-2 h-4 w-4" />
+          <ChevronsUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
@@ -79,7 +79,7 @@ export const columns: ColumnDef<Payment>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Amount
-          <IconCaretUpDown className="ml-2 h-4 w-4" />
+          <ChevronsUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
@@ -101,7 +101,7 @@ export const columns: ColumnDef<Payment>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           User Name
-          <IconCaretUpDown className="ml-2 h-4 w-4" />
+          <ChevronsUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },

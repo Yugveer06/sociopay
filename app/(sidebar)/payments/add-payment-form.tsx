@@ -29,7 +29,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { IconPlus, IconLoader2, IconCalendar } from '@tabler/icons-react'
+import { Plus, Loader2, Calendar as CalendarIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Check, ChevronsUpDown } from 'lucide-react'
@@ -103,7 +103,7 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button size="sm">
-          <IconPlus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 h-4 w-4" />
           Add Payment
         </Button>
       </PopoverTrigger>
@@ -280,7 +280,7 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
                               ) : (
                                 <span>Pick a date</span>
                               )}
-                              <IconCalendar className="ml-auto h-4 w-4 opacity-50" />
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -378,7 +378,7 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
                               ) : (
                                 <span>Pick a date</span>
                               )}
-                              <IconCalendar className="ml-auto h-4 w-4 opacity-50" />
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -432,7 +432,7 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
                               ) : (
                                 <span>Pick a date</span>
                               )}
-                              <IconCalendar className="ml-auto h-4 w-4 opacity-50" />
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -495,7 +495,7 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
                 </Button>
                 <Button type="submit" disabled={isPending}>
                   {isPending && (
-                    <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
                   Add Payment
                 </Button>
