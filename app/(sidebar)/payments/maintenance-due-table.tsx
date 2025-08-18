@@ -115,7 +115,7 @@ export function MaintenanceDueTable({
         <Input
           placeholder="Filter by user name..."
           value={
-            (table.getColumn('userName')?.getFilterValue() as string) ?? ''
+            (table.getColumn('userName')?.getFilterValue() as string) || ''
           }
           onChange={event =>
             table.getColumn('userName')?.setFilterValue(event.target.value)
