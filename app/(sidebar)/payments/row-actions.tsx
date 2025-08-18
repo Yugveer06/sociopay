@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { IconDots, IconReceipt, IconTrash } from '@tabler/icons-react'
+import { MoreHorizontal, Receipt, Trash2 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -267,7 +267,7 @@ export function RowActions({ payment }: RowActionsProps) {
             className="data-[state=open]:bg-muted flex h-8 w-8 p-0"
             disabled={isLoading}
           >
-            <IconDots className="h-4 w-4" />
+            <MoreHorizontal className="h-4 w-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
@@ -276,7 +276,7 @@ export function RowActions({ payment }: RowActionsProps) {
             onClick={handleGenerateReceipt}
             disabled={isLoading}
           >
-            <IconReceipt className="mr-2 h-4 w-4" />
+            <Receipt className="mr-2 h-4 w-4" />
             Generate Receipt
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -285,7 +285,7 @@ export function RowActions({ payment }: RowActionsProps) {
             disabled={isLoading}
             className="text-red-600 focus:text-red-600"
           >
-            <IconTrash className="mr-2 h-4 w-4" />
+            <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

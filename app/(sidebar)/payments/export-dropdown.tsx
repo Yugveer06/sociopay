@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { IconDownload, IconFile, IconFileTypePdf } from '@tabler/icons-react'
+import { Download, File, FileText } from 'lucide-react'
 import { exportPaymentsToCSV, exportPaymentsToPDF } from './actions'
 import { toast } from 'sonner'
 
@@ -156,17 +156,17 @@ export function ExportDropdown({ data: _ }: ExportDropdownProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          <IconDownload className="mr-2 h-4 w-4" />
+          <Download className="mr-2 h-4 w-4" />
           Export
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={handleCSVExport}>
-          <IconFile className="mr-2 h-4 w-4" />
+          <File className="mr-2 h-4 w-4" />
           Export as CSV
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handlePDFExport}>
-          <IconFileTypePdf className="mr-2 h-4 w-4" />
+          <FileText className="mr-2 h-4 w-4" />
           Export as PDF
         </DropdownMenuItem>
       </DropdownMenuContent>

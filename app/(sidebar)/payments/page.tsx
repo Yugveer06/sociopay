@@ -6,17 +6,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { db } from '@/db/drizzle'
 import { payments, user, paymentCategories } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import {
-  IconArrowDownLeft,
-  IconArrowUpRight,
-  IconCreditCard,
-  IconFilter,
-  IconRefresh,
-} from '@tabler/icons-react'
+  ArrowDownLeft,
+  ArrowUpRight,
+  CreditCard,
+  Filter,
+  RefreshCw,
+} from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -24,6 +25,12 @@ import { columns, Payment } from './columns'
 import { DataTable } from './data-table'
 import { AddPaymentForm } from './add-payment-form'
 import { ExportDropdown } from './export-dropdown'
+import { MaintenanceDueTable } from './maintenance-due-table'
+import { dueColumns, MaintenanceDueType } from './due-columns'
+import {
+  calculateAllMaintenanceDue,
+  PaymentPeriod,
+} from '@/lib/maintenance-due-calculator'
 
 export default async function PaymentsPage() {
   const session = await auth.api.getSession({
@@ -108,6 +115,55 @@ export default async function PaymentsPage() {
   // Use the fetched payments data or fallback to sample data
   const finalPayments: Payment[] = paymentsData.length > 0 ? paymentsData : []
 
+  // Calculate maintenance due data
+  let maintenanceDueData: MaintenanceDueType[] = []
+  let dueCalculationError: string | null = null
+
+  try {
+    // Fetch all payments with category information for due calculation
+    const allPaymentsForDue = await db
+      .select({
+        userId: payments.userId,
+        userName: user.name,
+        houseNumber: user.houseNumber,
+        periodStart: payments.periodStart,
+        periodEnd: payments.periodEnd,
+        paymentDate: payments.paymentDate,
+        categoryId: payments.categoryId,
+        categoryName: paymentCategories.name,
+      })
+      .from(payments)
+      .leftJoin(user, eq(payments.userId, user.id))
+      .leftJoin(
+        paymentCategories,
+        eq(payments.categoryId, paymentCategories.id)
+      )
+      .where(eq(payments.categoryId, 1)) // Only maintenance payments (categoryId = 1)
+
+    // Transform to PaymentPeriod format, filtering out invalid records
+    const paymentPeriods: PaymentPeriod[] = allPaymentsForDue
+      .filter(
+        payment => payment.userId && payment.userName && payment.houseNumber
+      )
+      .map(payment => ({
+        userId: payment.userId,
+        userName: payment.userName || 'Unknown',
+        houseNumber: payment.houseNumber || 'Unknown',
+        periodStart: payment.periodStart,
+        periodEnd: payment.periodEnd,
+        paymentDate: payment.paymentDate,
+        categoryId: payment.categoryId,
+      }))
+
+    const dueResult = calculateAllMaintenanceDue(paymentPeriods)
+    maintenanceDueData = dueResult.usersWithDue as MaintenanceDueType[]
+  } catch (err) {
+    console.error('Error calculating maintenance due:', err)
+    dueCalculationError =
+      err instanceof Error ? err.message : 'Failed to calculate maintenance due'
+    maintenanceDueData = []
+  }
+
   // Calculate totals from actual data
   const totalBalance = finalPayments.reduce(
     (sum, payment) => sum + payment.amount,
@@ -179,12 +235,12 @@ export default async function PaymentsPage() {
             <div className="flex gap-2">
               <form action={refreshData}>
                 <Button variant="outline" size="sm" type="submit">
-                  <IconRefresh className="mr-2 h-4 w-4" />
+                  <RefreshCw className="mr-2 h-4 w-4" />
                   Refresh
                 </Button>
               </form>
               <Button variant="outline" size="sm">
-                <IconFilter className="mr-2 h-4 w-4" />
+                <Filter className="mr-2 h-4 w-4" />
                 Filter
               </Button>
               <ExportDropdown
@@ -213,7 +269,7 @@ export default async function PaymentsPage() {
                 <CardTitle className="text-sm font-medium">
                   Total Maintenance
                 </CardTitle>
-                <IconCreditCard className="text-muted-foreground h-4 w-4" />
+                <CreditCard className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -229,7 +285,7 @@ export default async function PaymentsPage() {
                 <CardTitle className="text-sm font-medium">
                   This Month Expense
                 </CardTitle>
-                <IconArrowUpRight className="h-4 w-4 text-red-500" />
+                <ArrowUpRight className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-red-600">
@@ -246,7 +302,7 @@ export default async function PaymentsPage() {
                 <CardTitle className="text-sm font-medium">
                   This Month Maintenance Received
                 </CardTitle>
-                <IconArrowDownLeft className="h-4 w-4 text-green-500" />
+                <ArrowDownLeft className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
@@ -260,38 +316,92 @@ export default async function PaymentsPage() {
             </Card>
           </div>
 
-          {/* Maintenance Payments Table */}
-          {error && !finalPayments.length ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Error Loading Payments</CardTitle>
-                <CardDescription>
-                  There was an error loading payment data. Check console for
-                  details.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-muted-foreground py-8 text-center">
-                  <p>Failed to load payment data</p>
-                  <p className="mt-2 text-sm">Error: {error}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  Maintenance Payments ({finalPayments.length})
-                </CardTitle>
-                <CardDescription>
-                  Detailed view of all maintenance payments
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DataTable columns={columns} data={finalPayments} />
-              </CardContent>
-            </Card>
-          )}
+          {/* Tabbed Interface for Payments and Due */}
+          <Tabs defaultValue="payments" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="payments">Payments</TabsTrigger>
+              <TabsTrigger value="due">Maintenance Due</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="payments" className="space-y-4">
+              {error && !finalPayments.length ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Error Loading Payments</CardTitle>
+                    <CardDescription>
+                      There was an error loading payment data. Check console for
+                      details.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-muted-foreground py-8 text-center">
+                      <p>Failed to load payment data</p>
+                      <p className="mt-2 text-sm">Error: {error}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      Maintenance Payments ({finalPayments.length})
+                    </CardTitle>
+                    <CardDescription>
+                      Detailed view of all maintenance payments
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DataTable columns={columns} data={finalPayments} />
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="due" className="space-y-4">
+              {dueCalculationError ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Error Loading Due Data</CardTitle>
+                    <CardDescription>
+                      There was an error calculating maintenance due amounts.
+                      Check console for details.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-muted-foreground py-8 text-center">
+                      <p>Failed to calculate maintenance due data</p>
+                      <p className="mt-2 text-sm">
+                        Error: {dueCalculationError}
+                      </p>
+                      <form action={refreshData} className="mt-4">
+                        <Button variant="outline" size="sm" type="submit">
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Retry
+                        </Button>
+                      </form>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      Maintenance Due ({maintenanceDueData.length})
+                    </CardTitle>
+                    <CardDescription>
+                      Residents with overdue maintenance payments
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <MaintenanceDueTable
+                      columns={dueColumns}
+                      data={maintenanceDueData}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

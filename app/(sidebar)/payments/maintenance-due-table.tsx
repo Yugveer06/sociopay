@@ -30,18 +30,21 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Users, CheckCircle } from 'lucide-react'
+import { MaintenanceDueType } from './due-columns'
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+interface MaintenanceDueTableProps {
+  columns: ColumnDef<MaintenanceDueType, unknown>[]
+  data: MaintenanceDueType[]
 }
 
-export function DataTable<TData, TValue>({
+export function MaintenanceDueTable({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+}: MaintenanceDueTableProps) {
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'overdueDays', desc: true }, // Default sort by most overdue first
+  ])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
@@ -65,16 +68,57 @@ export function DataTable<TData, TValue>({
     },
   })
 
+  // Empty state when no users are overdue
+  if (data.length === 0) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center py-4">
+          <Input
+            placeholder="Filter by user name..."
+            disabled
+            className="max-w-sm opacity-50"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto" disabled>
+                Columns <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+          </DropdownMenu>
+        </div>
+
+        <div className="rounded-md border">
+          <div className="flex flex-col items-center justify-center px-4 py-16">
+            <CheckCircle className="mb-4 h-16 w-16 text-green-500" />
+            <h3 className="mb-2 text-center text-lg font-semibold">
+              All maintenance payments are up to date!
+            </h3>
+            <p className="text-muted-foreground max-w-md text-center">
+              Great news! No residents have overdue maintenance payments at this
+              time.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="text-muted-foreground flex-1 text-sm">
+            0 of 0 row(s) selected.
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter by user name..."
           value={
-            (table.getColumn('user_name')?.getFilterValue() as string) ?? ''
+            (table.getColumn('userName')?.getFilterValue() as string) ?? ''
           }
           onChange={event =>
-            table.getColumn('user_name')?.setFilterValue(event.target.value)
+            table.getColumn('userName')?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -96,13 +140,22 @@ export function DataTable<TData, TValue>({
                     checked={column.getIsVisible()}
                     onCheckedChange={value => column.toggleVisibility(!!value)}
                   >
-                    {column.id}
+                    {column.id === 'userName'
+                      ? 'User Name'
+                      : column.id === 'houseNumber'
+                        ? 'House Number'
+                        : column.id === 'lastPaidPeriodEnd'
+                          ? 'Last Paid Period'
+                          : column.id === 'overdueDays'
+                            ? 'Overdue Duration'
+                            : column.id}
                   </DropdownMenuCheckboxItem>
                 )
               })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -146,13 +199,19 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Users className="text-muted-foreground mb-2 h-8 w-8" />
+                    <p className="text-muted-foreground">
+                      No users match the current filter.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{' '}
