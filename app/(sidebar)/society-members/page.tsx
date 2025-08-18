@@ -40,13 +40,13 @@ export default async function SocietyMembersPage() {
         houseNumber: user.houseNumber,
         phone: user.phone,
         role: user.role,
+        houseOwnership: user.houseOwnership,
         banned: user.banned,
         banReason: user.banReason,
         banExpires: user.banExpires,
         image: user.image,
         createdAt: user.createdAt,
         emailVerified: user.emailVerified,
-        houseOwnership: user.houseOwnership,
       })
       .from(user)
       .orderBy(desc(user.createdAt))
@@ -59,13 +59,13 @@ export default async function SocietyMembersPage() {
       houseNumber: member.houseNumber,
       phone: member.phone,
       role: member.role,
+      houseOwnership: member.houseOwnership,
       banned: member.banned,
       banReason: member.banReason,
       banExpires: member.banExpires?.toISOString() || null,
       image: member.image,
       createdAt: member.createdAt.toISOString(),
       emailVerified: member.emailVerified,
-      houseOwnership: member.houseOwnership,
     }))
   } catch (err) {
     console.error('Error fetching society members:', err)
@@ -74,70 +74,7 @@ export default async function SocietyMembersPage() {
 
   // Use the fetched members data or fallback to sample data
   const finalMembers: SocietyMember[] =
-    membersData.length > 0
-      ? membersData
-      : [
-          {
-            id: 'sample-1',
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            houseNumber: 'A-101',
-            phone: '+91 9876543210',
-            role: 'admin',
-            banned: false,
-            banReason: null,
-            banExpires: null,
-            image: null,
-            createdAt: '2024-01-15T10:30:00Z',
-            emailVerified: true,
-            houseOwnership: 'Owner',
-          },
-          {
-            id: 'sample-2',
-            name: 'Jane Smith',
-            email: 'jane.smith@example.com',
-            houseNumber: 'B-202',
-            phone: '+91 9876543211',
-            role: 'treasurer',
-            banned: false,
-            banReason: null,
-            banExpires: null,
-            image: null,
-            createdAt: '2024-02-20T14:15:00Z',
-            emailVerified: true,
-            houseOwnership: 'Owner',
-          },
-          {
-            id: 'sample-3',
-            name: 'Mike Johnson',
-            email: 'mike.johnson@example.com',
-            houseNumber: 'C-303',
-            phone: '+91 9876543212',
-            role: null,
-            banned: false,
-            banReason: null,
-            banExpires: null,
-            image: null,
-            createdAt: '2024-03-10T09:45:00Z',
-            emailVerified: false,
-            houseOwnership: 'Renter',
-          },
-          {
-            id: 'sample-4',
-            name: 'Sarah Wilson',
-            email: 'sarah.wilson@example.com',
-            houseNumber: 'D-404',
-            phone: '+91 9876543213',
-            role: 'secretary',
-            banned: true,
-            banReason: 'Violation of society rules',
-            banExpires: '2025-12-31T23:59:59Z',
-            image: null,
-            createdAt: '2024-04-05T16:20:00Z',
-            emailVerified: true,
-            houseOwnership: 'Owner',
-          },
-        ]
+    membersData.length > 0 ? membersData : []
 
   // Calculate statistics
   const totalMembers = finalMembers.length

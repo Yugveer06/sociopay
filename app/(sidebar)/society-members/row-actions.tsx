@@ -20,6 +20,19 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -27,21 +40,33 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  IconDots,
-  IconUserX,
-  IconUserCheck,
   IconCalendar,
-  IconEdit,
+  IconDots,
+  IconUserCheck,
+  IconUserX,
 } from '@tabler/icons-react'
-import { useState, useEffect } from 'react'
+import { format } from 'date-fns'
+import { CalendarIcon, Pencil, LoaderCircle } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { toast } from 'sonner'
 import {
   banSocietyMember,
   unbanSocietyMember,
-  editUserDetails,
+  editSocietyMember,
 } from './actions'
 import { SocietyMember } from './columns'
-import { EditUserDetailsData } from '@/lib/zod/auth'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { editMemberSchema } from '@/lib/zod/auth'
 
 interface RowActionsProps {
   member: SocietyMember
@@ -49,67 +74,23 @@ interface RowActionsProps {
 
 export function RowActions({ member }: RowActionsProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [showBanDialog, setShowBanDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [banReason, setBanReason] = useState('')
-  const [banExpires, setBanExpires] = useState('')
+  const [banExpires, setBanExpires] = useState<Date | null>()
 
-  // Edit form state
-  const [editForm, setEditForm] = useState<EditUserDetailsData>({
-    name: member.name,
-    email: member.email,
-    houseNumber: member.houseNumber,
-    phone: member.phone.replace('+91 ', ''), // Remove country code for editing
-    role: member.role || 'user',
-    houseOwnership: (member.houseOwnership === 'Renter'
-      ? 'Renter'
-      : 'Owner') as 'Owner' | 'Renter',
-  })
-
-  // Reset form when dialog opens to ensure fresh data
-  useEffect(() => {
-    if (showEditDialog) {
-      setEditForm({
-        name: member.name,
-        email: member.email,
-        houseNumber: member.houseNumber,
-        phone: member.phone.replace('+91 ', ''),
-        role: member.role || 'user',
-        houseOwnership: (member.houseOwnership === 'Renter'
-          ? 'Renter'
-          : 'Owner') as 'Owner' | 'Renter',
-      })
-    }
-  }, [
-    showEditDialog,
-    member.name,
-    member.email,
-    member.houseNumber,
-    member.phone,
-    member.role,
-    member.houseOwnership,
-  ])
-
-  // Reset form when member prop changes (e.g., after successful update)
-  useEffect(() => {
-    setEditForm({
-      name: member.name,
-      email: member.email,
+  const form = useForm<z.infer<typeof editMemberSchema>>({
+    resolver: zodResolver(editMemberSchema),
+    defaultValues: {
+      fullName: member.name,
       houseNumber: member.houseNumber,
-      phone: member.phone.replace('+91 ', ''),
-      role: member.role || 'user',
-      houseOwnership: (member.houseOwnership === 'Renter'
-        ? 'Renter'
-        : 'Owner') as 'Owner' | 'Renter',
-    })
-  }, [
-    member.name,
-    member.email,
-    member.houseNumber,
-    member.phone,
-    member.role,
-    member.houseOwnership,
-  ])
+      email: member.email,
+      phone: member.phone,
+      houseOwnership: (member.houseOwnership as 'owner' | 'renter') || 'owner',
+      role: (member.role as 'user' | 'admin') || 'user',
+    },
+  })
 
   const handleBan = async () => {
     setIsLoading(true)
@@ -117,14 +98,14 @@ export function RowActions({ member }: RowActionsProps) {
       const result = await banSocietyMember(
         member.id,
         banReason || undefined,
-        banExpires || undefined
+        banExpires!
       )
 
       if (result.success) {
         toast.success('Member banned successfully!')
         setShowBanDialog(false)
         setBanReason('')
-        setBanExpires('')
+        setBanExpires(null)
       } else {
         toast.error(result.message || 'Failed to ban member')
       }
@@ -154,46 +135,32 @@ export function RowActions({ member }: RowActionsProps) {
     }
   }
 
-  const handleEditDetails = async () => {
-    setIsLoading(true)
-    try {
-      const result = await editUserDetails(member.id, editForm)
+  const handleEditSubmit = (values: z.infer<typeof editMemberSchema>) => {
+    startTransition(async () => {
+      try {
+        const result = await editSocietyMember(member.id, values)
 
-      if (result.success) {
-        toast.success('Member details updated successfully!')
-        setShowEditDialog(false)
-        // Reset form on successful update
-        resetEditForm()
-      } else {
-        toast.error(result.message || 'Failed to update member details')
-        // Don't reset form on error - let user fix their input
+        if (result.success) {
+          toast.success('Member updated successfully!')
+          setShowEditDialog(false)
+          // Reset form with current member data
+          form.reset({
+            fullName: member.name,
+            houseNumber: member.houseNumber,
+            email: member.email,
+            phone: member.phone,
+            houseOwnership:
+              (member.houseOwnership as 'owner' | 'renter') || 'owner',
+            role: (member.role as 'user' | 'admin') || 'user',
+          })
+        } else {
+          toast.error(result.message || 'Failed to update member')
+        }
+      } catch (error) {
+        console.error('Error updating member:', error)
+        toast.error('Failed to update member')
       }
-    } catch (error) {
-      console.error('Error updating member details:', error)
-      toast.error('Failed to update member details')
-      // Don't reset form on error - let user fix their input
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const resetEditForm = () => {
-    setEditForm({
-      name: member.name,
-      email: member.email,
-      houseNumber: member.houseNumber,
-      phone: member.phone.replace('+91 ', ''),
-      role: member.role || 'user',
-      houseOwnership: (member.houseOwnership === 'Renter'
-        ? 'Renter'
-        : 'Owner') as 'Owner' | 'Renter',
     })
-  }
-
-  const getTomorrowDate = () => {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return tomorrow.toISOString().split('T')[0]
   }
 
   return (
@@ -213,16 +180,16 @@ export function RowActions({ member }: RowActionsProps) {
           <DropdownMenuItem
             onClick={() => setShowEditDialog(true)}
             disabled={isLoading}
-            className="text-blue-600 focus:text-blue-600"
           >
-            <IconEdit className="mr-2 h-4 w-4" />
-            Edit Details
+            <Pencil className="text-primary mr-2 h-4 w-4" />
+            Edit Member
           </DropdownMenuItem>
+
           {member.banned ? (
             <DropdownMenuItem
               onClick={handleUnban}
               disabled={isLoading}
-              className="text-green-600 focus:text-green-600"
+              className="text-green-600 focus:bg-green-600/10 focus:text-green-600"
             >
               <IconUserCheck className="mr-2 h-4 w-4" />
               Unban Member
@@ -231,9 +198,9 @@ export function RowActions({ member }: RowActionsProps) {
             <DropdownMenuItem
               onClick={() => setShowBanDialog(true)}
               disabled={isLoading}
-              className="text-orange-600 focus:text-orange-600"
+              className="text-destructive focus:text-destructive focus:bg-destructive/10"
             >
-              <IconUserX className="mr-2 h-4 w-4" />
+              <IconUserX className="text-primary mr-2 h-4 w-4" />
               Ban Member
             </DropdownMenuItem>
           )}
@@ -272,17 +239,48 @@ export function RowActions({ member }: RowActionsProps) {
                 <IconCalendar className="h-4 w-4" />
                 Ban Expiry Date (Optional)
               </Label>
-              <Input
-                id="ban-expires"
-                type="date"
-                min={getTomorrowDate()}
-                value={banExpires}
-                onChange={e => setBanExpires(e.target.value)}
-                disabled={isLoading}
-              />
-              <p className="text-muted-foreground text-xs">
-                Leave empty for indefinite ban
-              </p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    data-empty={!banExpires}
+                    className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon />
+                    {banExpires ? (
+                      format(banExpires, 'PPP')
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    disabled={{
+                      before: new Date(Date.now() + 24 * 60 * 60 * 1000), // disables all previous dates including today
+                    }}
+                    selected={banExpires!}
+                    onSelect={setBanExpires}
+                  />
+                </PopoverContent>
+              </Popover>
+              {banExpires ? (
+                <span className="text-muted-foreground text-xs">
+                  Ban will expire on{' '}
+                  {banExpires.toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    minute: '2-digit',
+                    hour: '2-digit',
+                  })}
+                </span>
+              ) : (
+                <span className="text-muted-foreground text-xs">
+                  Leave empty for indefinite ban
+                </span>
+              )}
             </div>
           </div>
 
@@ -291,7 +289,7 @@ export function RowActions({ member }: RowActionsProps) {
               disabled={isLoading}
               onClick={() => {
                 setBanReason('')
-                setBanExpires('')
+                setBanExpires(null)
               }}
             >
               Cancel
@@ -307,154 +305,192 @@ export function RowActions({ member }: RowActionsProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Edit Details Dialog */}
-      <AlertDialog
-        open={showEditDialog}
-        onOpenChange={open => {
-          setShowEditDialog(open)
-          if (!open) {
-            // Reset form when dialog is closed
-            resetEditForm()
-          }
-        }}
-      >
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <IconEdit className="h-5 w-5 text-blue-600" />
-              Edit Member Details
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Edit details for <strong>{member.name}</strong>. All fields are
-              required and must be unique where applicable.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      {/* Edit Member Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              Edit Member
+            </DialogTitle>
+            <DialogDescription>
+              Update member information for <strong>{member.name}</strong>
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="max-h-96 space-y-4 overflow-y-auto py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Full Name</Label>
-              <Input
-                id="edit-name"
-                placeholder="Enter full name"
-                value={editForm.name}
-                onChange={e =>
-                  setEditForm(prev => ({ ...prev, name: e.target.value }))
-                }
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email Address</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                placeholder="Enter email address"
-                value={editForm.email}
-                onChange={e =>
-                  setEditForm(prev => ({ ...prev, email: e.target.value }))
-                }
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-house">House Number</Label>
-              <Input
-                id="edit-house"
-                placeholder="e.g., A-1, B-9, C-23"
-                value={editForm.houseNumber}
-                onChange={e =>
-                  setEditForm(prev => ({
-                    ...prev,
-                    houseNumber: e.target.value,
-                  }))
-                }
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-phone">Phone Number</Label>
-              <Input
-                id="edit-phone"
-                placeholder="10-digit phone number"
-                value={editForm.phone}
-                onChange={e =>
-                  setEditForm(prev => ({ ...prev, phone: e.target.value }))
-                }
-                disabled={isLoading}
-                maxLength={10}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-role">Role</Label>
-              <Select
-                value={editForm.role || 'user'}
-                onValueChange={value =>
-                  setEditForm(prev => ({ ...prev, role: value }))
-                }
-                disabled={isLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="treasurer">Treasurer</SelectItem>
-                  <SelectItem value="secretary">Secretary</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-ownership">House Ownership</Label>
-              <Select
-                value={editForm.houseOwnership}
-                onValueChange={value =>
-                  setEditForm(prev => ({
-                    ...prev,
-                    houseOwnership: value as 'Owner' | 'Renter',
-                  }))
-                }
-                disabled={isLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select ownership type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Owner">Owner</SelectItem>
-                  <SelectItem value="Renter">Renter</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-muted-foreground text-xs">
-                Automatically determined but can be overridden manually
-              </p>
-            </div>
-          </div>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={isLoading}
-              onClick={() => {
-                resetEditForm()
-                setShowEditDialog(false)
-              }}
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleEditSubmit)}
+              className="space-y-6"
             >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleEditDetails}
-              disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-600"
-            >
-              {isLoading ? 'Updating...' : 'Update Details'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {/* Personal Information Section */}
+              <div className="space-y-4">
+                <h3 className="text-muted-foreground border-b pb-2 text-sm font-medium">
+                  Personal Information
+                </h3>
+
+                <FormField
+                  control={form.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter full name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="houseNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>House Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="A-10" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="tel"
+                            maxLength={10}
+                            placeholder="10-digit number"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="houseOwnership"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>House Ownership</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select ownership type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="owner">Owner</SelectItem>
+                          <SelectItem value="renter">Renter</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Account Information Section */}
+              <div className="space-y-4">
+                <h3 className="text-muted-foreground border-b pb-2 text-sm font-medium">
+                  Account Information
+                </h3>
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="Enter email address"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="user">User</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowEditDialog(false)
+                    // Reset form with original member data
+                    form.reset({
+                      fullName: member.name,
+                      houseNumber: member.houseNumber,
+                      email: member.email,
+                      phone: member.phone,
+                      houseOwnership:
+                        (member.houseOwnership as 'owner' | 'renter') ||
+                        'owner',
+                      role: (member.role as 'user' | 'admin') || 'user',
+                    })
+                  }}
+                  disabled={isPending}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? (
+                    <>
+                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>Save Changes</span>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

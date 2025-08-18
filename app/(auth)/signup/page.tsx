@@ -23,7 +23,14 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { signUpSchema } from '@/lib/zod'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { signUpSchema } from '@/lib/zod/auth'
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react'
 import Link from 'next/link'
 import { signUp } from '../actions'
@@ -46,6 +53,7 @@ export default function SignupPage() {
       houseNumber: '',
       email: '',
       phone: '',
+      houseOwnership: undefined,
       password: '',
       confirmPassword: '',
     },
@@ -152,6 +160,31 @@ export default function SignupPage() {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="houseOwnership"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>House Ownership</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select ownership type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="owner">Owner</SelectItem>
+                        <SelectItem value="renter">Renter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Account Information Section */}

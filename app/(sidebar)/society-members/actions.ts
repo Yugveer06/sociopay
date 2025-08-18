@@ -6,7 +6,6 @@ import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
-import { editUserDetailsSchema, type EditUserDetailsData } from '@/lib/zod/auth'
 
 type ActionResult = {
   success: boolean
@@ -16,7 +15,7 @@ type ActionResult = {
 export async function banSocietyMember(
   memberId: string,
   banReason?: string,
-  banExpires?: string
+  banExpires?: Date
 ): Promise<ActionResult> {
   try {
     // Check if user is authenticated and has permission
@@ -63,7 +62,7 @@ export async function banSocietyMember(
       .set({
         banned: true,
         banReason: banReason || 'No reason provided',
-        banExpires: banExpires ? new Date(banExpires) : null,
+        banExpires: banExpires ? banExpires : null,
       })
       .where(eq(user.id, memberId))
 
@@ -141,9 +140,16 @@ export async function unbanSocietyMember(
   }
 }
 
-export async function editUserDetails(
+export async function editSocietyMember(
   memberId: string,
-  data: EditUserDetailsData
+  data: {
+    fullName: string
+    houseNumber: string
+    email: string
+    phone: string
+    houseOwnership: string
+    role: string
+  }
 ): Promise<ActionResult> {
   try {
     // Check if user is authenticated and has permission
@@ -172,21 +178,18 @@ export async function editUserDetails(
     ) {
       return {
         success: false,
-        message: 'You do not have permission to edit member details.',
+        message: 'You do not have permission to edit members.',
       }
     }
 
-    // Validate the data using Zod schema
-    const validatedData = editUserDetailsSchema.parse(data)
-
-    // Check if the new email or house number is already taken by another user
-    const existingUser = await db
+    // Check if email or house number already exists for other users
+    const existingUsers = await db
       .select()
       .from(user)
-      .where(eq(user.email, validatedData.email))
+      .where(eq(user.email, data.email))
       .limit(1)
 
-    if (existingUser[0] && existingUser[0].id !== memberId) {
+    if (existingUsers.length > 0 && existingUsers[0].id !== memberId) {
       return {
         success: false,
         message: 'Email address is already in use by another member.',
@@ -196,27 +199,29 @@ export async function editUserDetails(
     const existingHouseNumber = await db
       .select()
       .from(user)
-      .where(eq(user.houseNumber, validatedData.houseNumber))
+      .where(eq(user.houseNumber, data.houseNumber))
       .limit(1)
 
-    if (existingHouseNumber[0] && existingHouseNumber[0].id !== memberId) {
+    if (
+      existingHouseNumber.length > 0 &&
+      existingHouseNumber[0].id !== memberId
+    ) {
       return {
         success: false,
         message: 'House number is already assigned to another member.',
       }
     }
 
-    // Update the user's details
+    // Update the user's information
     await db
       .update(user)
       .set({
-        name: validatedData.name,
-        email: validatedData.email,
-        houseNumber: validatedData.houseNumber,
-        phone: validatedData.phone,
-        role: validatedData.role,
-        houseOwnership: validatedData.houseOwnership,
-        updatedAt: new Date(),
+        name: data.fullName,
+        houseNumber: data.houseNumber,
+        email: data.email,
+        phone: data.phone,
+        houseOwnership: data.houseOwnership,
+        role: data.role,
       })
       .where(eq(user.id, memberId))
 
@@ -224,13 +229,13 @@ export async function editUserDetails(
 
     return {
       success: true,
-      message: 'Member details updated successfully.',
+      message: 'Member updated successfully.',
     }
   } catch (error) {
-    console.error('Error updating member details:', error)
+    console.error('Error updating member:', error)
     return {
       success: false,
-      message: 'Failed to update member details. Please try again.',
+      message: 'Failed to update member. Please try again.',
     }
   }
 }
