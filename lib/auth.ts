@@ -37,6 +37,17 @@ export const auth = betterAuth({
         type: 'string',
         required: false,
         defaultValue: 'user',
+        validation: {
+          options: ['user', 'admin'],
+        },
+      },
+      houseOwnership: {
+        type: 'string',
+        required: true,
+        defaultValue: 'owner',
+        validation: {
+          options: ['owner', 'renter'],
+        },
       },
     },
   },

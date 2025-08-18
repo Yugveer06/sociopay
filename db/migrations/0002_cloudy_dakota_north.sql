@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "house_ownership" text DEFAULT 'owner';

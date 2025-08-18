@@ -20,6 +20,7 @@ export const user = pgTable('user', {
   banExpires: timestamp('ban_expires'),
   houseNumber: text('house_number').notNull().unique(),
   phone: text('phone').notNull(),
+  houseOwnership: text('house_ownership').default('owner').notNull(),
 })
 
 export const session = pgTable('session', {

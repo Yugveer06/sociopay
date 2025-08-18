@@ -22,6 +22,7 @@ export const SocietyMemberSchema = z.object({
   houseNumber: z.string(),
   phone: z.string(),
   role: z.string().nullable(),
+  houseOwnership: z.string().nullable(),
   banned: z.boolean().nullable(),
   banReason: z.string().nullable(),
   banExpires: z.string().nullable(),
@@ -124,9 +125,7 @@ export const columns: ColumnDef<SocietyMember>[] = [
         'default' | 'secondary' | 'destructive' | 'outline'
       > = {
         admin: 'default',
-        treasurer: 'default',
-        secretary: 'default',
-        member: 'secondary',
+        user: 'secondary',
       }
 
       return (

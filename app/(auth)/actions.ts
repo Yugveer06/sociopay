@@ -11,7 +11,7 @@ import {
   SignUpData,
   ForgotPasswordData,
   ResetPasswordData,
-} from '@/lib/zod'
+} from '@/lib/zod/auth'
 import { headers } from 'next/headers'
 
 // Raw action functions that perform the actual auth operations
@@ -49,6 +49,7 @@ async function signUpAction(data: SignUpData): Promise<ActionState> {
         password: data.password,
         houseNumber: data.houseNumber,
         phone: data.phone,
+        houseOwnership: data.houseOwnership,
       },
       headers: await headers(), // Add headers for cookie handling
     })
