@@ -19,9 +19,18 @@ export const addPaymentSchema = z.object({
   paymentDate: z.string().min(1, {
     message: 'Please select a payment date.',
   }),
+  paymentDuration: z
+    .object({
+      from: z.date().optional(),
+      to: z.date().optional(),
+    })
+    .optional(),
+  // Keep these for backward compatibility with server action
   periodStart: z.string().optional().or(z.literal('')),
   periodEnd: z.string().optional().or(z.literal('')),
-  intervalType: z.enum(['monthly', 'quarterly', 'half_yearly', 'annually']),
+  intervalType: z
+    .enum(['monthly', 'quarterly', 'half_yearly', 'annually'])
+    .optional(),
   notes: z.string().optional().or(z.literal('')),
 })
 

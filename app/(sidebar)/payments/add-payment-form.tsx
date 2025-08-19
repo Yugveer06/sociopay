@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import React, { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
@@ -41,6 +41,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import { PaymentDurationSelector } from '@/components/ui/payment-duration-selector'
 
 interface AddPaymentFormProps {
   users: Array<{ id: string; name: string; houseNumber: string }>
@@ -59,20 +60,94 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
       categoryId: '',
       amount: '',
       paymentDate: new Date().toISOString().split('T')[0],
-      periodStart: '',
-      periodEnd: '',
+      paymentDuration: undefined,
       intervalType: 'quarterly',
       notes: '',
     },
   })
 
+  // Watch for category changes to show/hide maintenance-specific fields
+  const selectedCategoryId = form.watch('categoryId')
+  const intervalType = form.watch('intervalType')
+  const isMaintenanceCategory = selectedCategoryId === '1'
+
+  // Clear maintenance-specific fields when category changes away from maintenance
+  React.useEffect(() => {
+    if (!isMaintenanceCategory) {
+      form.setValue('paymentDuration', undefined)
+      form.setValue('intervalType', undefined)
+    } else {
+      // Set default interval type when switching to maintenance
+      if (!intervalType) {
+        form.setValue('intervalType', 'quarterly')
+      }
+    }
+  }, [isMaintenanceCategory, form, intervalType])
+
+  // Helper function to get last day of month
+  const getLastDayOfMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0)
+  }
+
+  // Generate range based on interval type
+  const generateIntervalRange = (fromDate: Date, intervalType: string) => {
+    const from = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1)
+    let monthsToAdd = 0
+
+    switch (intervalType) {
+      case 'monthly':
+        monthsToAdd = 1
+        break
+      case 'quarterly':
+        monthsToAdd = 3
+        break
+      case 'half_yearly':
+        monthsToAdd = 6
+        break
+      case 'annually':
+        monthsToAdd = 12
+        break
+      default:
+        monthsToAdd = 3
+    }
+
+    const to = getLastDayOfMonth(
+      fromDate.getFullYear(),
+      fromDate.getMonth() + monthsToAdd - 1
+    )
+
+    return { from, to }
+  }
+
+  // Update payment duration when interval type changes
+  React.useEffect(() => {
+    const currentDuration = form.getValues('paymentDuration')
+
+    // Only update if we have a current duration with a 'from' date and we're in maintenance category
+    if (isMaintenanceCategory && intervalType && currentDuration?.from) {
+      const newDuration = generateIntervalRange(
+        currentDuration.from,
+        intervalType
+      )
+      form.setValue('paymentDuration', newDuration)
+    }
+  }, [intervalType, isMaintenanceCategory, form])
+
   const onSubmit = (data: AddPaymentData) => {
     startTransition(async () => {
-      // Clean up empty strings for optional fields
+      // Transform paymentDuration to periodStart/periodEnd for server compatibility
+      // Only include these fields for maintenance payments
       const cleanData = {
         ...data,
-        periodStart: data.periodStart || undefined,
-        periodEnd: data.periodEnd || undefined,
+        periodStart:
+          isMaintenanceCategory && data.paymentDuration?.from
+            ? format(data.paymentDuration.from, 'yyyy-MM-dd')
+            : '',
+        periodEnd:
+          isMaintenanceCategory && data.paymentDuration?.to
+            ? format(data.paymentDuration.to, 'yyyy-MM-dd')
+            : '',
+        intervalType: isMaintenanceCategory ? data.intervalType : undefined,
         notes: data.notes || undefined,
       }
 
@@ -318,157 +393,69 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="intervalType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Interval Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+              {isMaintenanceCategory && (
+                <FormField
+                  control={form.control}
+                  name="intervalType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Interval Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue
+                              placeholder="Select interval"
+                              className="truncate"
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-w-none">
+                          <SelectItem value="monthly" className="max-w-none">
+                            Monthly
+                          </SelectItem>
+                          <SelectItem value="quarterly" className="max-w-none">
+                            Quarterly
+                          </SelectItem>
+                          <SelectItem
+                            value="half_yearly"
+                            className="max-w-none"
+                          >
+                            Half Yearly
+                          </SelectItem>
+                          <SelectItem value="annually" className="max-w-none">
+                            Annually
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {isMaintenanceCategory && (
+                <FormField
+                  control={form.control}
+                  name="paymentDuration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Duration</FormLabel>
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue
-                            placeholder="Select interval"
-                            className="truncate"
-                          />
-                        </SelectTrigger>
+                        <PaymentDurationSelector
+                          value={field.value}
+                          onSelect={field.onChange}
+                          intervalType={intervalType}
+                          placeholder="Select payment period"
+                        />
                       </FormControl>
-                      <SelectContent className="max-w-none">
-                        <SelectItem value="monthly" className="max-w-none">
-                          Monthly
-                        </SelectItem>
-                        <SelectItem value="quarterly" className="max-w-none">
-                          Quarterly
-                        </SelectItem>
-                        <SelectItem value="half_yearly" className="max-w-none">
-                          Half Yearly
-                        </SelectItem>
-                        <SelectItem value="annually" className="max-w-none">
-                          Annually
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="periodStart"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Period Start</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? (
-                                format(new Date(field.value), 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            captionLayout="dropdown"
-                            startMonth={new Date(2000, 0)}
-                            endMonth={
-                              new Date(new Date().getFullYear() + 10, 11)
-                            }
-                            selected={
-                              field.value ? new Date(field.value) : undefined
-                            }
-                            onSelect={date =>
-                              field.onChange(
-                                date ? format(date, 'yyyy-MM-dd') : ''
-                              )
-                            }
-                            disabled={date =>
-                              date < new Date('1900-01-01') ||
-                              date > new Date('2100-12-31')
-                            }
-                            autoFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="periodEnd"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Period End</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                'w-full pl-3 text-left font-normal',
-                                !field.value && 'text-muted-foreground'
-                              )}
-                            >
-                              {field.value ? (
-                                format(new Date(field.value), 'PPP')
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            captionLayout="dropdown"
-                            startMonth={new Date(2000, 0)}
-                            endMonth={
-                              new Date(new Date().getFullYear() + 10, 11)
-                            }
-                            selected={
-                              field.value ? new Date(field.value) : undefined
-                            }
-                            onSelect={date =>
-                              field.onChange(
-                                date ? format(date, 'yyyy-MM-dd') : ''
-                              )
-                            }
-                            disabled={date => {
-                              const periodStart = form.getValues('periodStart')
-                              const minDate = periodStart
-                                ? new Date(periodStart)
-                                : new Date('1900-01-01')
-                              const maxDate = new Date('2100-12-31')
-                              return date < minDate || date > maxDate
-                            }}
-                            autoFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              )}
 
               <FormField
                 control={form.control}

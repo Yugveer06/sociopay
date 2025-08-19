@@ -13,7 +13,6 @@ import {
   IconArrowUpRight,
   IconCreditCard,
   IconRefresh,
-  IconTrendingUp,
 } from '@tabler/icons-react'
 import { desc, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
@@ -125,8 +124,6 @@ export default async function ExpensesPage() {
       : 0
 
   // Get average daily expenses this month
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-  const averageDailyExpense = monthlySpent / daysInMonth
 
   // Refresh action
   async function refreshData() {

@@ -25,12 +25,6 @@ const MONTHS = [
   'December',
 ]
 
-interface PresetConfig {
-  name: string
-  value: number // Number of months
-  label?: string // Optional display label, defaults to name
-}
-
 interface MonthSelectorSingleProps {
   mode?: 'single'
   selected?: Date
@@ -64,10 +58,8 @@ interface MonthSelectorBaseProps {
   showYearSelector?: boolean
   onYearChange?: (year: number) => void
 
-  // Preset functionality
-  enablePresets?: boolean
-  presets?: PresetConfig[]
-  defaultPreset?: string // Name of the default preset, 'custom' for manual selection
+  // Preset functionality - now externally controlled
+  presets?: React.ReactNode // Custom preset selector component
   onPresetChange?: (presetName: string) => void
 
   formatters?: {
@@ -113,10 +105,8 @@ function MonthSelector({
   buttonVariant = 'ghost',
   showYearSelector = false,
   onYearChange,
-  enablePresets = false,
-  presets = [],
-  defaultPreset = 'custom',
-  onPresetChange,
+  presets,
+  // onPresetChange,
   formatters,
   components,
   ...props
@@ -131,8 +121,7 @@ function MonthSelector({
       : (props.selected?.getFullYear() ?? currentYear)
   )
 
-  // Internal preset state
-  const [activePreset, setActivePreset] = React.useState(defaultPreset)
+  // Remove internal preset state - now handled externally
 
   const isRangeMode = props.mode === 'range'
 
@@ -141,21 +130,7 @@ function MonthSelector({
     return new Date(year, month + 1, 0)
   }
 
-  // Generate range based on preset
-  const generatePresetRange = (clickedDate: Date, presetName: string) => {
-    if (presetName === 'custom') return null
-
-    const preset = presets.find(p => p.name === presetName)
-    if (!preset) return null
-
-    const from = new Date(clickedDate.getFullYear(), clickedDate.getMonth(), 1)
-    const to = getLastDayOfMonth(
-      clickedDate.getFullYear(),
-      clickedDate.getMonth() + preset.value - 1
-    )
-
-    return { from, to }
-  }
+  // Remove preset generation logic - now handled externally
 
   // Create date for first day of month
   const createMonthDate = (year: number, month: number) => {
@@ -237,17 +212,6 @@ function MonthSelector({
   const handleMonthSelect = (date: Date) => {
     if (disabled) return
 
-    // Handle preset-based selection
-    if (enablePresets && activePreset !== 'custom') {
-      const presetRange = generatePresetRange(date, activePreset)
-      if (presetRange && isRangeMode) {
-        const rangeProps = props as MonthSelectorRangeProps
-        rangeProps.onSelect?.(presetRange)
-        return
-      }
-    }
-
-    // Default behavior for custom selection or single mode
     if (isRangeMode) {
       const rangeProps = props as MonthSelectorRangeProps
       const currentRange = rangeProps.selected
@@ -275,24 +239,7 @@ function MonthSelector({
     }
   }
 
-  // Handle preset change
-  const handlePresetChange = (presetName: string) => {
-    setActivePreset(presetName)
-    onPresetChange?.(presetName)
-
-    // If switching to a preset and we have a current selection, apply the preset
-    if (presetName !== 'custom' && isRangeMode) {
-      const rangeProps = props as MonthSelectorRangeProps
-      const currentRange = rangeProps.selected
-
-      if (currentRange?.from) {
-        const presetRange = generatePresetRange(currentRange.from, presetName)
-        if (presetRange) {
-          rangeProps.onSelect?.(presetRange)
-        }
-      }
-    }
-  }
+  // Remove preset change handler - now handled externally
 
   // Navigation handlers
   const handlePreviousYear = () => {
@@ -411,37 +358,8 @@ function MonthSelector({
         })}
       </div>
 
-      {/* Presets */}
-      {enablePresets && presets.length > 0 && isRangeMode && (
-        <div className="mt-4 border-t pt-4">
-          <div className="text-muted-foreground mb-2 text-xs font-medium">
-            Presets
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {presets.map(preset => (
-              <Button
-                key={preset.name}
-                variant={activePreset === preset.name ? 'default' : 'outline'}
-                size="sm"
-                className="h-8 text-xs"
-                onClick={() => handlePresetChange(preset.name)}
-                disabled={disabled}
-              >
-                {preset.label || preset.name}
-              </Button>
-            ))}
-            <Button
-              variant={activePreset === 'custom' ? 'default' : 'outline'}
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() => handlePresetChange('custom')}
-              disabled={disabled}
-            >
-              Custom
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* External Presets */}
+      {presets && <div className="mt-4 border-t pt-4">{presets}</div>}
     </div>
   )
 }
@@ -490,12 +408,6 @@ function DefaultMonthButton({
   className?: string
   children: React.ReactNode
 }) {
-  console.log('date', date)
-  console.log('selected', selected)
-  console.log('isCurrentMonth', isCurrentMonth)
-  console.log('isRangeStart', isRangeStart)
-  console.log('isRangeEnd', isRangeEnd)
-  console.log('isRangeMiddle', isRangeMiddle)
   return (
     <Button
       variant="ghost"
@@ -589,4 +501,4 @@ function DefaultYearSelector({
   )
 }
 
-export { MonthSelector, type MonthSelectorProps, type PresetConfig }
+export { MonthSelector, type MonthSelectorProps }
