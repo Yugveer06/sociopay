@@ -76,9 +76,14 @@ export async function uploadFileToSupabase(
   userId: string
 ): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
-    // Generate a unique filename
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${userId}/${Date.now()}.${fileExt}`
+    // Generate a unique filename while preserving the original name
+    const timestamp = Date.now()
+    const sanitizedOriginalName = file.name
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+      .replace(/_{2,}/g, '_') // Replace multiple underscores with single
+    
+    // Create a path that includes both timestamp and original name for uniqueness
+    const fileName = `${userId}/${timestamp}_${sanitizedOriginalName}`
 
     // Upload file to Supabase storage
     const { data, error } = await supabaseAdmin.storage
@@ -93,7 +98,7 @@ export async function uploadFileToSupabase(
       return { success: false, error: error.message }
     }
 
-    console.log(data)
+    console.log('File uploaded successfully:', data)
 
     // Get the public URL
     const { data: urlData } = supabaseAdmin.storage

@@ -145,28 +145,31 @@ export const columns: ColumnDef<KycDocument>[] = [
                 View Document
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
+                onClick={async () => {
                   try {
-                    // Create download link with proper attributes
+                    // Fetch the file as a blob to preserve filename and force download
+                    const response = await fetch(document.downloadUrl)
+                    
+                    if (!response.ok) {
+                      throw new Error('Failed to fetch file')
+                    }
+                    
+                    const blob = await response.blob()
+                    
+                    // Create blob URL and download link
+                    const blobUrl = window.URL.createObjectURL(blob)
                     const link = window.document.createElement('a')
-                    link.href = document.downloadUrl
-                    link.download = document.fileName
-                    link.target = '_blank'
-                    link.rel = 'noopener noreferrer'
-
-                    // Force download by setting the appropriate headers via URL params
-                    const url = new URL(document.downloadUrl)
-                    url.searchParams.set('download', 'true')
-                    url.searchParams.set(
-                      'response-content-disposition',
-                      `attachment; filename="${document.fileName}"`
-                    )
-                    link.href = url.toString()
-
+                    link.href = blobUrl
+                    link.download = document.fileName // This ensures the original filename is preserved
+                    link.style.display = 'none'
+                    
                     // Add to DOM, click, and cleanup
                     window.document.body.appendChild(link)
                     link.click()
                     window.document.body.removeChild(link)
+                    
+                    // Clean up the blob URL to free memory
+                    window.URL.revokeObjectURL(blobUrl)
 
                     toast.success('Download started! 📥')
                   } catch (error) {
