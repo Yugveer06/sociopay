@@ -28,7 +28,12 @@ export default async function RenterKycPage() {
 
   // Fetch KYC documents with user data using Drizzle
   let kycDocumentsData: KycDocument[] = []
-  let users: Array<{ id: string; name: string; houseNumber: string }> = []
+  let users: Array<{
+    id: string
+    name: string
+    houseNumber: string
+    houseOwnership: string
+  }> = []
   let error: string | null = null
 
   try {
@@ -73,6 +78,7 @@ export default async function RenterKycPage() {
         id: user.id,
         name: user.name,
         houseNumber: user.houseNumber,
+        houseOwnership: user.houseOwnership,
       })
       .from(user)
 

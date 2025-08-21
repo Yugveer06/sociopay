@@ -1,7 +1,14 @@
 'use client'
 
-import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import {
   Dialog,
   DialogContent,
@@ -20,25 +27,25 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Progress } from '@/components/ui/progress'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { uploadKycDocumentSchema, UploadKycDocumentData } from '@/lib/zod'
-import { uploadKycDocument, uploadFileToSupabase } from './actions'
-import { toast } from 'sonner'
-import { Plus, Upload, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { UploadKycDocumentData, uploadKycDocumentSchema } from '@/lib/zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Check, ChevronsUpDown, FileText, Plus, Upload } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { uploadFileToSupabase, uploadKycDocument } from './actions'
 
 interface User {
   id: string
   name: string
   houseNumber: string
+  houseOwnership: string
 }
 
 interface UploadKycFormProps {
@@ -47,6 +54,7 @@ interface UploadKycFormProps {
 
 export function UploadKycForm({ users }: UploadKycFormProps) {
   const [open, setOpen] = useState(false)
+  const [userPopoverOpen, setUserPopoverOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [dragActive, setDragActive] = useState(false)
@@ -62,6 +70,12 @@ export function UploadKycForm({ users }: UploadKycFormProps) {
   const selectedFile = form.watch('file')
 
   const handleSubmit = async (data: UploadKycDocumentData) => {
+    const selectedUser = users.find(user => user.id === data.userId)
+    if (selectedUser && selectedUser.houseOwnership !== 'renter') {
+      toast.error('User is not a renter')
+      return
+    }
+
     setIsUploading(true)
     setUploadProgress(0)
 
@@ -173,23 +187,83 @@ export function UploadKycForm({ users }: UploadKycFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Select Renter</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                  <Popover
+                    open={userPopoverOpen}
+                    onOpenChange={setUserPopoverOpen}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a renter" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {users.map(user => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.name} - House {user.houseNumber}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            'justify-between',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? (
+                            <div className="flex w-full min-w-0 items-center gap-2">
+                              <span className="text-muted-foreground shrink-0">
+                                (
+                                {
+                                  users.find(user => user.id === field.value)
+                                    ?.houseNumber
+                                }
+                                )
+                              </span>
+                              <span className="truncate">
+                                {
+                                  users.find(user => user.id === field.value)
+                                    ?.name
+                                }
+                              </span>
+                            </div>
+                          ) : (
+                            'Select a renter'
+                          )}
+                          <ChevronsUpDown className="opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search renter..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No user found.</CommandEmpty>
+                          <CommandGroup>
+                            {users
+                              .filter(user => user.houseOwnership === 'renter')
+                              .map(user => (
+                                <CommandItem
+                                  value={`${user.houseNumber} ${user.name}`}
+                                  key={user.id}
+                                  onSelect={() => {
+                                    form.setValue('userId', user.id)
+                                    setUserPopoverOpen(false)
+                                  }}
+                                >
+                                  <span className="text-muted-foreground shrink-0">
+                                    ({user.houseNumber})
+                                  </span>
+                                  <span className="truncate">{user.name}</span>
+                                  <Check
+                                    className={cn(
+                                      'ml-auto',
+                                      user.id === field.value
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
