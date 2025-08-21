@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, LayoutDashboard, Users } from 'lucide-react'
+import { Home, LayoutDashboard, Users, FileText } from 'lucide-react'
 import * as React from 'react'
 
 import { NavMain } from '@/components/nav-main'
@@ -33,6 +33,11 @@ const data = {
       title: 'Expenses',
       url: '/expenses',
       icon: BanknoteArrowDown,
+    },
+    {
+      title: 'Renter KYC',
+      url: '/renter-kyc',
+      icon: FileText,
     },
     {
       title: 'Society Members',
