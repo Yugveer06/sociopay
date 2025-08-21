@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MoreHorizontal, Download, Eye } from 'lucide-react'
+import { MoreHorizontal, Download, Eye, Trash2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +12,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { formatBytes } from '@/lib/utils'
 import { KycDocument } from '@/lib/zod'
+import { deleteKycDocument } from './actions'
+import { toast } from 'sonner'
+import { useState } from 'react'
 
 export const columns: ColumnDef<KycDocument>[] = [
   {
@@ -93,42 +106,113 @@ export const columns: ColumnDef<KycDocument>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const document = row.original
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [isDeleting, setIsDeleting] = useState(false)
+
+      const handleDelete = async () => {
+        try {
+          setIsDeleting(true)
+          const result = await deleteKycDocument({ id: document.id })
+
+          if (result.success) {
+            toast.success('KYC document deleted successfully! 🗑️')
+          } else {
+            toast.error(result.message || 'Failed to delete KYC document')
+          }
+        } catch (error) {
+          console.error('Delete error:', error)
+          toast.error('Something went wrong while deleting the document')
+        } finally {
+          setIsDeleting(false)
+        }
+      }
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => window.open(document.downloadUrl, '_blank')}
-            >
-              <Eye className="mr-2 h-4 w-4" />
-              View Document
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                const link = window.document.createElement('a')
-                link.href = document.downloadUrl
-                link.download = document.fileName
-                link.click()
-              }}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(document.id)}
-            >
-              Copy Document ID
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => window.open(document.downloadUrl, '_blank')}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                View Document
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const link = window.document.createElement('a')
+                  link.href = document.downloadUrl
+                  link.download = document.fileName
+                  link.click()
+                }}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText(document.id)}
+              >
+                Copy Document ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem
+                    onSelect={e => e.preventDefault()}
+                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Document
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <div className="text-muted-foreground space-y-2 text-sm">
+                      <div>
+                        This action cannot be undone and will permanently remove
+                        the document from both the database and storage.
+                      </div>
+                      <div className="bg-muted space-y-1 rounded-md p-3 text-sm">
+                        <div>
+                          <strong>Document:</strong> {document.fileName}
+                        </div>
+                        <div>
+                          <strong>Renter:</strong> {document.user_name} (House{' '}
+                          {document.house_number})
+                        </div>
+                        <div>
+                          <strong>Uploaded by:</strong>{' '}
+                          {document.uploaded_by_name}
+                        </div>
+                      </div>
+                    </div>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete Document'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )
     },
   },
