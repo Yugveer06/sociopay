@@ -146,10 +146,33 @@ export const columns: ColumnDef<KycDocument>[] = [
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  const link = window.document.createElement('a')
-                  link.href = document.downloadUrl
-                  link.download = document.fileName
-                  link.click()
+                  try {
+                    // Create download link with proper attributes
+                    const link = window.document.createElement('a')
+                    link.href = document.downloadUrl
+                    link.download = document.fileName
+                    link.target = '_blank'
+                    link.rel = 'noopener noreferrer'
+
+                    // Force download by setting the appropriate headers via URL params
+                    const url = new URL(document.downloadUrl)
+                    url.searchParams.set('download', 'true')
+                    url.searchParams.set(
+                      'response-content-disposition',
+                      `attachment; filename="${document.fileName}"`
+                    )
+                    link.href = url.toString()
+
+                    // Add to DOM, click, and cleanup
+                    window.document.body.appendChild(link)
+                    link.click()
+                    window.document.body.removeChild(link)
+
+                    toast.success('Download started! 📥')
+                  } catch (error) {
+                    console.error('Download error:', error)
+                    toast.error('Failed to download document')
+                  }
                 }}
               >
                 <Download className="mr-2 h-4 w-4" />
