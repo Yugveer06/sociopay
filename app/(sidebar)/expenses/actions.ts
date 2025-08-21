@@ -3,7 +3,12 @@
 import { db } from '@/db/drizzle'
 import { expenses, expenseCategories } from '@/db/schema'
 import { validatedAction, ActionState } from '@/lib/action-helpers'
-import { addExpenseSchema, AddExpenseData } from '@/lib/zod'
+import {
+  addExpenseSchema,
+  AddExpenseData,
+  deleteExpenseSchema,
+  DeleteExpenseData,
+} from '@/lib/zod'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
@@ -98,6 +103,60 @@ async function addExpenseAction(data: AddExpenseData): Promise<ActionState> {
 }
 
 export const addExpense = validatedAction(addExpenseSchema, addExpenseAction)
+
+// Delete expense action
+async function deleteExpenseAction(
+  data: DeleteExpenseData
+): Promise<ActionState> {
+  try {
+    console.log('Delete expense action received data:', data)
+
+    // Check if user is authenticated
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      return {
+        success: false,
+        message: 'You must be logged in to delete expenses',
+      }
+    }
+
+    // Delete the expense from the database
+    const result = await db
+      .delete(expenses)
+      .where(eq(expenses.id, data.id))
+      .returning()
+
+    console.log('Database delete result:', result)
+
+    if (result.length > 0) {
+      revalidatePath('/expenses')
+      return {
+        success: true,
+        message: 'Expense deleted successfully! 🗑️',
+      }
+    } else {
+      return {
+        success: false,
+        message: 'Expense not found or already deleted.',
+      }
+    }
+  } catch (error) {
+    console.error('Error deleting expense:', error)
+    return {
+      success: false,
+      message:
+        'An unexpected error occurred while deleting the expense. Please try again.',
+    }
+  }
+}
+
+export const deleteExpense = validatedAction(
+  deleteExpenseSchema,
+  deleteExpenseAction
+)
 
 export async function exportExpensesToCSV(): Promise<
   ActionState & { filename?: string; data?: string }

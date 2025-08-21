@@ -33,6 +33,14 @@ export const addExpenseServerSchema = z.object({
   notes: z.string().optional(),
 })
 
+// Delete expense schema
+export const deleteExpenseSchema = z.object({
+  id: z.string().uuid({
+    message: 'Invalid expense ID.',
+  }),
+})
+
 // Type exports
 export type AddExpenseData = z.infer<typeof addExpenseSchema>
 export type AddExpenseServerData = z.infer<typeof addExpenseServerSchema>
+export type DeleteExpenseData = z.infer<typeof deleteExpenseSchema>

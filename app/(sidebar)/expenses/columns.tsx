@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { IconCaretUpDown } from '@tabler/icons-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
+import { ExpenseActions } from './expense-actions'
 
 export const ExpenseSchema = z.object({
   id: z.string(),
@@ -100,6 +101,21 @@ export const columns: ColumnDef<Expense>[] = [
       return (
         <div className="max-w-[200px] truncate" title={notes}>
           {notes}
+        </div>
+      )
+    },
+  },
+  {
+    id: 'actions',
+    header: () => <div className="text-right">Actions</div>,
+    cell: ({ row }) => {
+      return (
+        <div className="text-right">
+          <ExpenseActions
+            expenseId={row.original.id}
+            expenseAmount={row.original.amount}
+            expenseCategory={row.original.category_name}
+          />
         </div>
       )
     },
