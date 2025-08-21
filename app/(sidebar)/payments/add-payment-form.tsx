@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useTransition } from 'react'
+import React, { useState, useTransition, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
@@ -85,39 +85,42 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
   }, [isMaintenanceCategory, form, intervalType])
 
   // Helper function to get last day of month
-  const getLastDayOfMonth = (year: number, month: number) => {
+  const getLastDayOfMonth = useCallback((year: number, month: number) => {
     return new Date(year, month + 1, 0)
-  }
+  }, [])
 
   // Generate range based on interval type
-  const generateIntervalRange = (fromDate: Date, intervalType: string) => {
-    const from = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1)
-    let monthsToAdd = 0
+  const generateIntervalRange = useCallback(
+    (fromDate: Date, intervalType: string) => {
+      const from = new Date(fromDate.getFullYear(), fromDate.getMonth(), 1)
+      let monthsToAdd = 0
 
-    switch (intervalType) {
-      case 'monthly':
-        monthsToAdd = 1
-        break
-      case 'quarterly':
-        monthsToAdd = 3
-        break
-      case 'half_yearly':
-        monthsToAdd = 6
-        break
-      case 'annually':
-        monthsToAdd = 12
-        break
-      default:
-        monthsToAdd = 3
-    }
+      switch (intervalType) {
+        case 'monthly':
+          monthsToAdd = 1
+          break
+        case 'quarterly':
+          monthsToAdd = 3
+          break
+        case 'half_yearly':
+          monthsToAdd = 6
+          break
+        case 'annually':
+          monthsToAdd = 12
+          break
+        default:
+          monthsToAdd = 3
+      }
 
-    const to = getLastDayOfMonth(
-      fromDate.getFullYear(),
-      fromDate.getMonth() + monthsToAdd - 1
-    )
+      const to = getLastDayOfMonth(
+        fromDate.getFullYear(),
+        fromDate.getMonth() + monthsToAdd - 1
+      )
 
-    return { from, to }
-  }
+      return { from, to }
+    },
+    [getLastDayOfMonth]
+  )
 
   // Update payment duration when interval type changes
   React.useEffect(() => {
@@ -131,7 +134,7 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
       )
       form.setValue('paymentDuration', newDuration)
     }
-  }, [intervalType, isMaintenanceCategory, form])
+  }, [intervalType, isMaintenanceCategory, form, generateIntervalRange])
 
   const onSubmit = (data: AddPaymentData) => {
     startTransition(async () => {

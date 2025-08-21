@@ -9,7 +9,7 @@ import { db } from '@/db/drizzle'
 import { kycDocuments, user } from '@/db/schema'
 import { auth } from '@/lib/auth'
 import { eq } from 'drizzle-orm'
-import { FileText, Users, Upload } from 'lucide-react'
+import { FileText, Users } from 'lucide-react'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { columns } from './columns'
@@ -100,11 +100,6 @@ export default async function RenterKycPage() {
   // Calculate stats
   const totalDocuments = kycDocumentsData.length
   const uniqueUsers = new Set(kycDocumentsData.map(doc => doc.userId)).size
-  const todayUploads = kycDocumentsData.filter(doc => {
-    const uploadDate = new Date(doc.uploadedAt)
-    const today = new Date()
-    return uploadDate.toDateString() === today.toDateString()
-  }).length
 
   if (error) {
     return (

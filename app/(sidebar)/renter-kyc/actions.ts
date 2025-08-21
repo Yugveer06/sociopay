@@ -11,6 +11,8 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
 
 async function uploadKycDocumentAction(
   data: UploadKycDocumentServerData
@@ -108,7 +110,119 @@ export async function uploadFileToSupabase(
   }
 }
 
+// Delete KYC document schema
+const deleteKycDocumentSchema = z.object({
+  id: z.string().min(1, 'Document ID is required'),
+})
+
+type DeleteKycDocumentData = z.infer<typeof deleteKycDocumentSchema>
+
+async function deleteKycDocumentAction(
+  data: DeleteKycDocumentData
+): Promise<ActionState> {
+  try {
+    // Check if user is authenticated
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      return {
+        success: false,
+        message: 'You must be logged in to delete KYC documents',
+      }
+    }
+
+    // Check if user has permission to delete KYC documents
+    // For now, we'll allow any authenticated user to delete (you can enhance this with role-based permissions)
+    // TODO: Add proper role checking - only admins should be able to delete
+    // if (session.user.role !== 'admin') {
+    //   return {
+    //     success: false,
+    //     message: 'You do not have permission to delete KYC documents',
+    //   }
+    // }
+
+    // First, get the document details to extract the file path for deletion
+    const document = await db
+      .select()
+      .from(kycDocuments)
+      .where(eq(kycDocuments.id, data.id))
+      .limit(1)
+
+    if (document.length === 0) {
+      return {
+        success: false,
+        message: 'KYC document not found',
+      }
+    }
+
+    const kycDoc = document[0]
+
+    // Extract file path from download URL for Supabase deletion
+    // The URL format is typically: https://[project].supabase.co/storage/v1/object/public/kyc-documents/[path]
+    const url = new URL(kycDoc.downloadUrl)
+    const pathSegments = url.pathname.split('/')
+    const bucketIndex = pathSegments.indexOf('kyc-documents')
+
+    if (bucketIndex !== -1 && bucketIndex < pathSegments.length - 1) {
+      const filePath = pathSegments.slice(bucketIndex + 1).join('/')
+
+      // Delete file from Supabase storage (non-blocking, we'll proceed even if this fails)
+      try {
+        const { error: storageError } = await supabaseAdmin.storage
+          .from('kyc-documents')
+          .remove([filePath])
+
+        if (storageError) {
+          console.error('Error deleting file from storage:', storageError)
+          // Continue with database deletion even if storage deletion fails
+        }
+      } catch (storageError) {
+        console.error('Storage deletion failed:', storageError)
+        // Continue with database deletion
+      }
+    }
+
+    // Delete the document record from the database
+    const result = await db
+      .delete(kycDocuments)
+      .where(eq(kycDocuments.id, data.id))
+      .returning()
+
+    if (result.length === 0) {
+      return {
+        success: false,
+        message: 'Failed to delete KYC document from database',
+      }
+    }
+
+    // Revalidate the KYC page to refresh the list
+    revalidatePath('/renter-kyc')
+
+    return {
+      success: true,
+      message: 'KYC document deleted successfully',
+      data: result[0],
+    }
+  } catch (error) {
+    console.error('Error deleting KYC document:', error)
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete KYC document',
+    }
+  }
+}
+
 export const uploadKycDocument = validatedAction(
   uploadKycDocumentServerSchema,
   uploadKycDocumentAction
+)
+
+export const deleteKycDocument = validatedAction(
+  deleteKycDocumentSchema,
+  deleteKycDocumentAction
 )

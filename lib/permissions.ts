@@ -12,6 +12,7 @@ export const statement = {
   transaction: ['create', 'view', 'list', 'export'],
   wallet: ['create', 'view', 'update', 'transfer'],
   profile: ['view', 'update', 'delete'],
+  kycDocument: ['create', 'view', 'update', 'delete'],
 } as const
 
 // Create the access controller
@@ -29,6 +30,7 @@ export const admin = ac.newRole({
   transaction: ['create', 'view', 'list', 'export'],
   wallet: ['create', 'view', 'update', 'transfer'],
   profile: ['view', 'update', 'delete'],
+  kycDocument: ['create', 'view', 'update', 'delete'],
 })
 
 /**
@@ -41,6 +43,7 @@ export const user = ac.newRole({
   transaction: ['view', 'list'],
   wallet: ['view'],
   profile: ['view', 'update'],
+  kycDocument: ['view'], // Regular users can only view KYC documents
 })
 
 // Export the access controller for use in auth configuration
