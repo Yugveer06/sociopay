@@ -6,6 +6,7 @@ import { db } from '@/db/drizzle'
 import * as schema from '@/db/schema'
 import { validateBetterAuthEnv } from './env-check'
 import { sendOTPEmail } from './email-service'
+import { ac, roles } from './permissions'
 
 // Validate environment variables
 validateBetterAuthEnv()
@@ -65,7 +66,10 @@ export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   plugins: [
     nextCookies(), // nextCookies should come first
-    admin(),
+    admin({
+      ac,
+      roles,
+    }),
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
         try {
