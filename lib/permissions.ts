@@ -1,18 +1,34 @@
 import { createAccessControl } from 'better-auth/plugins/access'
-import { defaultStatements, adminAc } from 'better-auth/plugins/admin/access'
 
 /**
  * Define custom permissions for the application
  * Make sure to use `as const` so TypeScript can infer the type correctly
  */
 export const statement = {
-  ...defaultStatements, // Include default user and session permissions
   // Custom resources and their permissions
-  payment: ['create', 'view', 'cancel', 'refund'],
-  transaction: ['create', 'view', 'list', 'export'],
-  wallet: ['create', 'view', 'update', 'transfer'],
-  profile: ['view', 'update', 'delete'],
-  kycDocument: ['create', 'view', 'update', 'delete'],
+  payment: [
+    'add',
+    'list-own',
+    'list-all',
+    'delete',
+    'generate-receipt',
+    'export',
+  ],
+  due: ['list-own', 'list-all'],
+  expenses: ['add', 'list', 'export'],
+  renterKyc: [
+    'upload-own',
+    'upload-all',
+    'list-own',
+    'list-all',
+    'view-own',
+    'view-all',
+    'download-own',
+    'download-all',
+    'delete-own',
+    'delete-all',
+  ],
+  members: ['list', 'edit', 'ban', 'unban'],
 } as const
 
 // Create the access controller
@@ -23,14 +39,18 @@ const ac = createAccessControl(statement)
  * Inherits all default admin permissions and adds custom permissions
  */
 export const admin = ac.newRole({
-  // Default admin permissions (user management, session management)
-  ...adminAc.statements,
   // Custom permissions for admin
-  payment: ['create', 'view', 'cancel', 'refund'],
-  transaction: ['create', 'view', 'list', 'export'],
-  wallet: ['create', 'view', 'update', 'transfer'],
-  profile: ['view', 'update', 'delete'],
-  kycDocument: ['create', 'view', 'update', 'delete'],
+  payment: ['add', 'list-all', 'delete', 'generate-receipt', 'export'],
+  due: ['list-all'],
+  expenses: ['add', 'list', 'export'],
+  renterKyc: [
+    'upload-all',
+    'list-all',
+    'view-all',
+    'download-all',
+    'delete-all',
+  ],
+  members: ['list', 'edit', 'ban', 'unban'],
 })
 
 /**
@@ -39,11 +59,16 @@ export const admin = ac.newRole({
  */
 export const user = ac.newRole({
   // Custom permissions for regular users
-  payment: ['view'],
-  transaction: ['view', 'list'],
-  wallet: ['view'],
-  profile: ['view', 'update'],
-  kycDocument: ['view'], // Regular users can only view KYC documents
+  payment: ['list-own', 'generate-receipt'],
+  due: ['list-own'],
+  expenses: ['list'],
+  renterKyc: [
+    'upload-own',
+    'list-own',
+    'view-own',
+    'download-own',
+    'delete-own',
+  ],
 })
 
 // Export the access controller for use in auth configuration
