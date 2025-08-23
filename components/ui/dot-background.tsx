@@ -22,7 +22,7 @@ export function DotBackground({ children }: { children: React.ReactNode }) {
   return (
     <m.div
       className={cn(
-        'group relative flex min-h-screen w-full items-center justify-center bg-white dark:bg-black'
+        'group relative flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-white dark:bg-black'
       )}
       onMouseMove={handleMouseMove}
     >
