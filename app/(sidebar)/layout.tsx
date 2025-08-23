@@ -1,5 +1,6 @@
 import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
+import { SiteFooter } from '@/components/site-footer'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 
 import { auth } from '@/lib/auth'
@@ -36,6 +37,7 @@ export default async function SidebarLayout({
             {children}
           </div>
         </div>
+        <SiteFooter />
       </SidebarInset>
     </SidebarProvider>
   )
