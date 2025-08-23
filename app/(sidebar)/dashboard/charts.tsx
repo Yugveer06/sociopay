@@ -20,8 +20,6 @@ import {
 const {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   Cell,
   Legend,
@@ -88,15 +86,18 @@ export function DashboardAreaChart({ data }: { data: AreaChartData[] }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[300px]">
+        <ChartContainer
+          config={chartConfig}
+          className="min-h-[250px] w-full sm:min-h-[300px]"
+        >
           <AreaChart
             accessibilityLayer
             data={data}
             margin={{
-              left: 12,
-              right: 12,
-              top: 12,
-              bottom: 12,
+              left: 8,
+              right: 8,
+              top: 8,
+              bottom: 8,
             }}
           >
             <CartesianGrid
@@ -110,12 +111,14 @@ export function DashboardAreaChart({ data }: { data: AreaChartData[] }) {
               axisLine={false}
               tickMargin={8}
               tickFormatter={(value: string) => value.slice(0, 3)}
+              fontSize={12}
             />
             <YAxis
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               tickFormatter={formatCurrency}
+              fontSize={12}
             />
             <ChartTooltip
               cursor={false}
@@ -211,7 +214,7 @@ export function DashboardPieChart({
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[300px] min-h-[250px]"
+          className="mx-auto aspect-square max-h-[250px] min-h-[200px] w-full sm:max-h-[300px] sm:min-h-[250px]"
         >
           <PieChart>
             <ChartTooltip
@@ -223,8 +226,8 @@ export function DashboardPieChart({
               data={data}
               dataKey="amount"
               nameKey="category"
-              innerRadius={50}
-              outerRadius={100}
+              innerRadius={40}
+              outerRadius={80}
               strokeWidth={2}
               stroke="#fff"
             >
@@ -240,89 +243,83 @@ export function DashboardPieChart({
   )
 }
 
-// Bar Chart for Monthly Comparison
-export function DashboardBarChart({ data }: { data: AreaChartData[] }) {
+// Maintenance Payment Status Pie Chart
+interface MaintenanceStatusData {
+  status: string
+  count: number
+  fill: string
+}
+
+export function DashboardMaintenanceStatusChart({
+  data,
+}: {
+  data: MaintenanceStatusData[]
+}) {
   const chartConfig = {
-    payments: {
-      label: 'Payments',
-      color: 'hsl(142 76% 36%)', // Green color for payments
+    paid: {
+      label: 'Paid',
+      color: 'hsl(142 76% 36%)', // Green for paid
     },
-    expenses: {
-      label: 'Expenses',
-      color: 'hsl(346 87% 43%)', // Red color for expenses
+    overdue: {
+      label: 'Overdue',
+      color: 'hsl(346 87% 43%)', // Red for overdue
     },
   } satisfies ChartConfig
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value)
-  }
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Monthly Comparison</CardTitle>
+    <Card className="flex flex-col">
+      <CardHeader className="items-center pb-0">
+        <CardTitle>Maintenance Payment Status</CardTitle>
         <CardDescription>
-          Bar chart comparing monthly payments and expenses
+          Current status of maintenance payments by members
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[300px]">
-          <BarChart
-            accessibilityLayer
-            data={data}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid
-              vertical={false}
-              strokeDasharray="3 3"
-              opacity={0.3}
-            />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value: string) => value.slice(0, 3)}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={formatCurrency}
-            />
+      <CardContent className="flex-1 pb-0">
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square max-h-[250px] min-h-[200px] w-full sm:max-h-[300px] sm:min-h-[250px]"
+        >
+          <PieChart>
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
-              formatter={(value: number, name: string) => [
-                formatCurrency(value),
-                name === 'payments' ? 'Payments' : 'Expenses',
+              content={<ChartTooltipContent hideLabel />}
+              formatter={(value: number) => [
+                `${value} member${value === 1 ? '' : 's'}`,
+                '',
               ]}
             />
+            <Pie
+              data={data}
+              dataKey="count"
+              nameKey="status"
+              innerRadius={50}
+              outerRadius={90}
+              strokeWidth={2}
+              stroke="#fff"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} opacity={0.9} />
+              ))}
+            </Pie>
             <Legend />
-            <Bar
-              dataKey="payments"
-              fill="hsl(142 76% 36%)"
-              radius={[4, 4, 0, 0]}
-              opacity={0.9}
-            />
-            <Bar
-              dataKey="expenses"
-              fill="hsl(346 87% 43%)"
-              radius={[4, 4, 0, 0]}
-              opacity={0.9}
-            />
-          </BarChart>
+          </PieChart>
         </ChartContainer>
+
+        {/* Summary Stats */}
+        <div className="mt-4 grid grid-cols-2 gap-2 text-center sm:gap-4">
+          <div className="rounded-lg border bg-green-50 p-2 sm:p-3 dark:bg-green-950/20">
+            <div className="text-xl font-bold text-green-600 sm:text-2xl">
+              {data.find(item => item.status === 'Paid')?.count || 0}
+            </div>
+            <div className="text-xs text-green-600/80">Members Paid</div>
+          </div>
+          <div className="rounded-lg border bg-red-50 p-2 sm:p-3 dark:bg-red-950/20">
+            <div className="text-xl font-bold text-red-600 sm:text-2xl">
+              {data.find(item => item.status === 'Overdue')?.count || 0}
+            </div>
+            <div className="text-xs text-red-600/80">Members Overdue</div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
@@ -362,7 +359,7 @@ export function DashboardRecentTransactions({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {data.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">
               No recent transactions
@@ -371,9 +368,9 @@ export function DashboardRecentTransactions({
             data.map((transaction, index) => (
               <div
                 key={index}
-                className="bg-muted/50 flex items-center justify-between rounded-lg p-3"
+                className="bg-muted/50 flex items-center justify-between rounded-lg p-2 sm:p-3"
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 sm:space-x-3">
                   <div
                     className={`h-2 w-2 rounded-full ${
                       transaction.type === 'payment'
@@ -381,12 +378,18 @@ export function DashboardRecentTransactions({
                         : 'bg-red-500'
                     }`}
                   />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="max-w-[120px] truncate text-sm font-medium sm:max-w-[160px]"
+                      title={transaction.userName}
+                    >
                       {transaction.userName}
                     </p>
                     {transaction.notes && (
-                      <p className="text-muted-foreground mt-0.5 text-xs leading-tight">
+                      <p
+                        className="text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-tight"
+                        title={transaction.notes}
+                      >
                         {transaction.notes}
                       </p>
                     )}
@@ -395,9 +398,9 @@ export function DashboardRecentTransactions({
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="flex-shrink-0 text-right">
                   <p
-                    className={`font-semibold ${
+                    className={`text-sm font-semibold sm:text-base ${
                       transaction.type === 'payment'
                         ? 'text-green-600'
                         : 'text-red-600'

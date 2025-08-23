@@ -1,10 +1,5 @@
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { db } from '@/db/drizzle'
 import {
   expenseCategories,
@@ -15,6 +10,10 @@ import {
   user,
 } from '@/db/schema'
 import { auth } from '@/lib/auth'
+import {
+  calculateAllMaintenanceDue,
+  PaymentPeriod,
+} from '@/lib/maintenance-due-calculator'
 import {
   IconCreditCard,
   IconRefresh,
@@ -28,7 +27,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import {
   DashboardAreaChart,
-  DashboardBarChart,
+  DashboardMaintenanceStatusChart,
   DashboardPieChart,
   DashboardRecentTransactions,
 } from './charts'
@@ -62,6 +61,11 @@ interface DashboardData {
     date: string
     userName: string
     notes: string | null
+  }>
+  maintenanceStatus: Array<{
+    status: string
+    count: number
+    fill: string
   }>
 }
 
@@ -315,9 +319,9 @@ async function getDashboardData(): Promise<DashboardData> {
 
     const recentExpenseTransactions = recentExpensesForTransactions.map(
       (expense: {
-        amount: string;
-        expenseDate: string | null;
-        notes: string | null;
+        amount: string
+        expenseDate: string | null
+        notes: string | null
       }) => ({
         type: 'expense' as const,
         amount: Number(expense.amount),
@@ -334,6 +338,64 @@ async function getDashboardData(): Promise<DashboardData> {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 8)
 
+    // Calculate maintenance payment status
+    let maintenanceStatus = [
+      { status: 'Paid', count: 0, fill: 'hsl(142 76% 36%)' }, // Green
+      { status: 'Overdue', count: 0, fill: 'hsl(346 87% 43%)' }, // Red
+    ]
+
+    try {
+      // Fetch maintenance payments for due calculation (categoryId = 1 for maintenance)
+      const maintenancePayments = await db
+        .select({
+          userId: payments.userId,
+          userName: user.name,
+          houseNumber: user.houseNumber,
+          periodStart: payments.periodStart,
+          periodEnd: payments.periodEnd,
+          paymentDate: payments.paymentDate,
+          categoryId: payments.categoryId,
+        })
+        .from(payments)
+        .leftJoin(user, eq(payments.userId, user.id))
+        .leftJoin(
+          paymentCategories,
+          eq(payments.categoryId, paymentCategories.id)
+        )
+        .where(eq(payments.categoryId, 1)) // Only maintenance payments
+
+      // Transform to PaymentPeriod format
+      const paymentPeriods: PaymentPeriod[] = maintenancePayments
+        .filter(
+          payment => payment.userId && payment.userName && payment.houseNumber
+        )
+        .map(payment => ({
+          userId: payment.userId,
+          userName: payment.userName || 'Unknown',
+          houseNumber: payment.houseNumber || 'Unknown',
+          periodStart: payment.periodStart,
+          periodEnd: payment.periodEnd,
+          paymentDate: payment.paymentDate,
+          categoryId: payment.categoryId,
+        }))
+
+      const dueResult = calculateAllMaintenanceDue(paymentPeriods)
+      const overdueCount = dueResult.usersWithDue.length
+      const paidCount = activeMembers - overdueCount
+
+      maintenanceStatus = [
+        {
+          status: 'Paid',
+          count: Math.max(0, paidCount),
+          fill: 'hsl(142 76% 36%)',
+        },
+        { status: 'Overdue', count: overdueCount, fill: 'hsl(346 87% 43%)' },
+      ]
+    } catch (error) {
+      console.error('Error calculating maintenance status:', error)
+      // Keep default values
+    }
+
     return {
       totalPayments,
       totalExpenses,
@@ -345,6 +407,7 @@ async function getDashboardData(): Promise<DashboardData> {
       paymentsByCategory,
       expensesByCategory,
       recentTransactions,
+      maintenanceStatus,
     }
   } catch (error) {
     console.error('Error fetching dashboard data:', error)
@@ -360,6 +423,10 @@ async function getDashboardData(): Promise<DashboardData> {
       paymentsByCategory: [],
       expensesByCategory: [],
       recentTransactions: [],
+      maintenanceStatus: [
+        { status: 'Paid', count: 0, fill: 'hsl(142 76% 36%)' },
+        { status: 'Overdue', count: 0, fill: 'hsl(346 87% 43%)' },
+      ],
     }
   }
 }
@@ -415,7 +482,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -433,7 +500,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Key Metrics Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -442,7 +509,7 @@ export default async function DashboardPage() {
                 <IconWallet className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-xl font-bold text-green-600 sm:text-2xl">
                   {formatCurrency(dashboardData.totalPayments)}
                 </div>
                 <p className="text-muted-foreground text-xs">
@@ -460,7 +527,7 @@ export default async function DashboardPage() {
                 <IconCreditCard className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">
+                <div className="text-xl font-bold text-red-600 sm:text-2xl">
                   {formatCurrency(dashboardData.totalExpenses)}
                 </div>
                 <p className="text-muted-foreground text-xs">
@@ -481,7 +548,7 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div
-                  className={`text-2xl font-bold ${dashboardData.netBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  className={`text-xl font-bold sm:text-2xl ${dashboardData.netBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 >
                   {formatCurrency(dashboardData.netBalance)}
                 </div>
@@ -499,7 +566,7 @@ export default async function DashboardPage() {
                 <IconUsers className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-xl font-bold text-purple-600 sm:text-2xl">
                   {dashboardData.activeMembers}
                 </div>
                 <p className="text-muted-foreground text-xs">Society members</p>
@@ -511,7 +578,7 @@ export default async function DashboardPage() {
           <DashboardAreaChart data={dashboardData.paymentsByMonth} />
 
           {/* Charts Grid */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
             {/* Payments by Category Pie Chart */}
             <DashboardPieChart
               data={dashboardData.paymentsByCategory}
@@ -528,9 +595,11 @@ export default async function DashboardPage() {
           </div>
 
           {/* Additional Charts */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Monthly Comparison Bar Chart */}
-            <DashboardBarChart data={dashboardData.paymentsByMonth} />
+          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+            {/* Maintenance Payment Status */}
+            <DashboardMaintenanceStatusChart
+              data={dashboardData.maintenanceStatus}
+            />
 
             {/* Recent Transactions */}
             <DashboardRecentTransactions
