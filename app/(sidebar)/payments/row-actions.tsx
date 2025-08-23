@@ -24,6 +24,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { deletePayment, generatePaymentReceipt } from './actions'
 import { Payment } from './columns'
+import { ElementGuard } from '@/components/guards'
 
 type ReceiptData = {
   id: string
@@ -279,15 +280,21 @@ export function RowActions({ payment }: RowActionsProps) {
             <Receipt className="mr-2 h-4 w-4" />
             Generate Receipt
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={isLoading}
-            className="text-red-600 focus:text-red-600"
+          <ElementGuard
+            permissions={{ payment: ['delete'] }}
+            loadingFallback={<span hidden>Loading...</span>}
+            unauthorizedFallback={<span hidden>No Access!</span>}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={isLoading}
+              className="text-red-600 focus:text-red-600"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </ElementGuard>
         </DropdownMenuContent>
       </DropdownMenu>
 

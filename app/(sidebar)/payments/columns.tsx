@@ -158,15 +158,7 @@ export const columns: ColumnDef<Payment>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const payment = row.original
-      return (
-        <ElementGuard
-          permissions={{ payment: ['delete'] }}
-          loadingFallback={<span hidden>Loading...</span>}
-          unauthorizedFallback={<span hidden>No Access!</span>}
-        >
-          <RowActions payment={payment} />
-        </ElementGuard>
-      )
+      return <RowActions payment={payment} />
     },
   },
 ]
