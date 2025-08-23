@@ -22,6 +22,7 @@ import { AddExpenseForm } from './add-expense-form'
 import { columns, Expense } from './columns'
 import { DataTable } from './data-table'
 import { ExportDropdown } from './export-dropdown'
+import { ElementGuard } from '@/components/guards'
 
 export default async function ExpensesPage() {
   const session = await auth.api.getSession({
@@ -159,17 +160,37 @@ export default async function ExpensesPage() {
                 </Button>
               </form>
 
-              <ExportDropdown
-                data={finalExpenses.map(expense => ({
-                  id: expense.id,
-                  amount: expense.amount,
-                  expenseDate: expense.expense_date,
-                  category: expense.category_name,
-                  notes: expense.notes,
-                  createdAt: expense.created_at,
-                }))}
-              />
-              <AddExpenseForm categories={categories} />
+              <ElementGuard
+                permissions={{ expenses: ['export'] }}
+                loadingFallback={
+                  <Button disabled size="sm">
+                    Loading...
+                  </Button>
+                }
+                unauthorizedFallback={<span hidden>No access</span>}
+              >
+                <ExportDropdown
+                  data={finalExpenses.map(expense => ({
+                    id: expense.id,
+                    amount: expense.amount,
+                    expenseDate: expense.expense_date,
+                    category: expense.category_name,
+                    notes: expense.notes,
+                    createdAt: expense.created_at,
+                  }))}
+                />
+              </ElementGuard>
+              <ElementGuard
+                permissions={{ expenses: ['add'] }}
+                loadingFallback={
+                  <Button disabled size="sm">
+                    Loading...
+                  </Button>
+                }
+                unauthorizedFallback={<span hidden>No access</span>}
+              >
+                <AddExpenseForm categories={categories} />
+              </ElementGuard>
             </div>
           </div>
 

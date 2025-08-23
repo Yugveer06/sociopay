@@ -16,7 +16,7 @@ export const statement = {
     'export',
   ],
   due: ['list-own', 'list-all'],
-  expenses: ['add', 'list', 'export'],
+  expenses: ['add', 'list', 'export', 'delete'],
   renterKyc: [
     'upload-own',
     'upload-all',
@@ -51,7 +51,7 @@ export const admin = ac.newRole({
     'export',
   ],
   due: ['list-all'],
-  expenses: ['add', 'list', 'export'],
+  expenses: ['add', 'list', 'export', 'delete'],
   renterKyc: [
     'upload-all',
     'list-all',
@@ -74,7 +74,7 @@ export const user = ac.newRole({
   due: ['list-own'],
   expenses: ['list'],
   renterKyc: [
-    'upload-own', // ✨ Renters can upload their own KYC docs - no more excuses!
+    'upload-own',
     'list-own',
     'view-own',
     'download-own',

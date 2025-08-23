@@ -21,6 +21,7 @@ import { IconDots, IconTrash } from '@tabler/icons-react'
 import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { deleteExpense } from './actions'
+import { usePermissions } from '@/components/guards'
 
 interface ExpenseActionsProps {
   expenseId: string
@@ -35,8 +36,14 @@ export function ExpenseActions({
 }: ExpenseActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const { checkPermission } = usePermissions()
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    const allowed = await checkPermission({ expenses: ['delete'] })
+    if (!allowed) {
+      toast.error('You do not have permission to delete this expense.')
+      return
+    }
     startTransition(async () => {
       try {
         const result = await deleteExpense({ id: expenseId })
