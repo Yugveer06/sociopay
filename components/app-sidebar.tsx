@@ -83,28 +83,10 @@ const data: SidebarData = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const session = useSession()
 
-  // Array of available avatar images
-  const avatarImages = [
-    'banana.jpg',
-    'hakla.jpg',
-    'salmon.jpg',
-    'ubli.jpg',
-    'mota.jpg',
-    'gandu.jpg',
-    'thala.jpg',
-  ]
-
-  // Function to get a random avatar
-  const getRandomAvatar = () => {
-    const randomIndex = Math.floor(Math.random() * avatarImages.length)
-    return `/avatars/${avatarImages[randomIndex]}`
-  }
-
   // Default user data for when session is loading or not available
   const userData = {
     name: session.data?.user?.name || 'Guest User',
     email: session.data?.user?.email || 'guest@example.com',
-    avatar: getRandomAvatar(),
   }
 
   return (
