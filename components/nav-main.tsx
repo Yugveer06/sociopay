@@ -6,6 +6,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import Link from 'next/link'
 import { SidebarData } from './app-sidebar'
@@ -13,10 +14,20 @@ import { ElementGuard } from './guards'
 import { LoaderCircle } from 'lucide-react'
 import { Skeleton } from './ui/skeleton'
 import { usePermissions } from '@/hooks/use-permissions'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 // Custom component for Renter KYC with special logic
 function RenterKycNavItem({ item }: { item: SidebarData['navMain'][0] }) {
   const { role, session } = usePermissions()
+  const { setOpenMobile } = useSidebar()
+  const isMobile = useIsMobile()
+
+  // Function to handle mobile sidebar close
+  const handleMobileClick = () => {
+    if (isMobile) {
+      setOpenMobile(false) // Close mobile sidebar when link is clicked
+    }
+  }
 
   // Custom logic: Show to admins (any ownership) OR non-admin renters
   // Hide from non-admin owners
@@ -56,7 +67,7 @@ function RenterKycNavItem({ item }: { item: SidebarData['navMain'][0] }) {
     >
       <SidebarMenuItem>
         <SidebarMenuButton tooltip={item.title} asChild>
-          <Link href={item.url}>
+          <Link href={item.url} onClick={handleMobileClick}>
             {item.icon && <item.icon />}
             <span>{item.title}</span>
           </Link>
@@ -67,6 +78,16 @@ function RenterKycNavItem({ item }: { item: SidebarData['navMain'][0] }) {
 }
 
 export function NavMain({ items }: { items: SidebarData['navMain'] }) {
+  const { setOpenMobile } = useSidebar()
+  const isMobile = useIsMobile()
+
+  // Function to handle mobile sidebar close
+  const handleMobileClick = () => {
+    if (isMobile) {
+      setOpenMobile(false) // Close mobile sidebar when link is clicked
+    }
+  }
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -106,7 +127,7 @@ export function NavMain({ items }: { items: SidebarData['navMain'] }) {
               >
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton tooltip={item.title} asChild>
-                    <Link href={item.url}>
+                    <Link href={item.url} onClick={handleMobileClick}>
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
                     </Link>

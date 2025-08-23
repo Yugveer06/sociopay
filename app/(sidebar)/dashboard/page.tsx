@@ -481,7 +481,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
+      <div className="mx-auto w-full max-w-6xl px-3 sm:px-4 lg:px-6">
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -578,7 +578,7 @@ export default async function DashboardPage() {
           <DashboardAreaChart data={dashboardData.paymentsByMonth} />
 
           {/* Charts Grid */}
-          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {/* Payments by Category Pie Chart */}
             <DashboardPieChart
               data={dashboardData.paymentsByCategory}
@@ -595,7 +595,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Additional Charts */}
-          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {/* Maintenance Payment Status */}
             <DashboardMaintenanceStatusChart
               data={dashboardData.maintenanceStatus}

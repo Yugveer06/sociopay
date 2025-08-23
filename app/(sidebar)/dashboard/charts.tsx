@@ -214,7 +214,7 @@ export function DashboardPieChart({
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px] min-h-[200px] w-full sm:max-h-[300px] sm:min-h-[250px]"
+          className="mx-auto aspect-square max-h-[200px] min-h-[180px] w-full sm:max-h-[250px] sm:min-h-[200px] lg:max-h-[300px] lg:min-h-[250px]"
         >
           <PieChart>
             <ChartTooltip
@@ -277,7 +277,7 @@ export function DashboardMaintenanceStatusChart({
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px] min-h-[200px] w-full sm:max-h-[300px] sm:min-h-[250px]"
+          className="mx-auto aspect-square max-h-[200px] min-h-[180px] w-full sm:max-h-[250px] sm:min-h-[200px] lg:max-h-[300px] lg:min-h-[250px]"
         >
           <PieChart>
             <ChartTooltip
@@ -306,18 +306,22 @@ export function DashboardMaintenanceStatusChart({
         </ChartContainer>
 
         {/* Summary Stats */}
-        <div className="mt-4 grid grid-cols-2 gap-2 text-center sm:gap-4">
+        <div className="mt-4 grid grid-cols-2 gap-2 text-center">
           <div className="rounded-lg border bg-green-50 p-2 sm:p-3 dark:bg-green-950/20">
-            <div className="text-xl font-bold text-green-600 sm:text-2xl">
+            <div className="text-lg font-bold text-green-600 sm:text-xl lg:text-2xl">
               {data.find(item => item.status === 'Paid')?.count || 0}
             </div>
-            <div className="text-xs text-green-600/80">Members Paid</div>
+            <div className="text-xs text-green-600/80 sm:text-sm">
+              Members Paid
+            </div>
           </div>
           <div className="rounded-lg border bg-red-50 p-2 sm:p-3 dark:bg-red-950/20">
-            <div className="text-xl font-bold text-red-600 sm:text-2xl">
+            <div className="text-lg font-bold text-red-600 sm:text-xl lg:text-2xl">
               {data.find(item => item.status === 'Overdue')?.count || 0}
             </div>
-            <div className="text-xs text-red-600/80">Members Overdue</div>
+            <div className="text-xs text-red-600/80 sm:text-sm">
+              Members Overdue
+            </div>
           </div>
         </div>
       </CardContent>
@@ -353,65 +357,67 @@ export function DashboardRecentTransactions({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">{title}</CardTitle>
+        <CardDescription className="text-sm">{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2 sm:space-y-3">
+      <CardContent className="p-3 sm:p-6">
+        <div className="space-y-2">
           {data.length === 0 ? (
-            <p className="text-muted-foreground py-4 text-center">
+            <p className="text-muted-foreground py-8 text-center text-sm">
               No recent transactions
             </p>
           ) : (
             data.map((transaction, index) => (
               <div
                 key={index}
-                className="bg-muted/50 flex items-center justify-between gap-4 rounded-lg p-2 sm:p-3"
+                className="bg-muted/30 hover:bg-muted/50 flex items-start justify-between gap-3 rounded-lg p-3 transition-colors"
               >
-                <div className="flex min-w-0 items-center space-x-2 sm:space-x-3">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
                   <div
-                    className={`h-2 w-2 rounded-full ${
+                    className={`mt-1.5 h-2 w-2 flex-shrink-0 rounded-full ${
                       transaction.type === 'payment'
                         ? 'bg-green-500'
                         : 'bg-red-500'
                     }`}
                   />
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className="truncate text-sm font-medium text-ellipsis"
-                      title={transaction.userName}
-                    >
-                      {transaction.userName}
-                    </p>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <p
+                        className="truncate text-sm font-medium"
+                        title={transaction.userName}
+                      >
+                        {transaction.userName}
+                      </p>
+                      <p
+                        className={`text-sm font-semibold sm:text-right ${
+                          transaction.type === 'payment'
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {transaction.type === 'payment' ? '+' : '-'}
+                        {formatCurrency(transaction.amount)}
+                      </p>
+                    </div>
                     {transaction.notes && (
                       <p
-                        className="text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-tight"
+                        className="text-muted-foreground line-clamp-2 text-xs leading-relaxed"
                         title={transaction.notes}
                       >
                         {transaction.notes}
                       </p>
                     )}
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      {formatDate(transaction.date)}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-muted-foreground text-xs">
+                        {formatDate(transaction.date)}
+                      </p>
+                      <p className="text-muted-foreground text-xs capitalize sm:hidden">
+                        {transaction.type}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex-shrink-0 text-right">
-                  <p
-                    className={`text-sm font-semibold sm:text-base ${
-                      transaction.type === 'payment'
-                        ? 'text-green-600'
-                        : 'text-red-600'
-                    }`}
-                  >
-                    {transaction.type === 'payment' ? '+' : '-'}
-                    {formatCurrency(transaction.amount)}
-                  </p>
-                  <p className="text-muted-foreground text-xs capitalize">
-                    {transaction.type}
-                  </p>
                 </div>
               </div>
             ))
