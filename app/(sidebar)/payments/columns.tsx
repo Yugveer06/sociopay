@@ -7,7 +7,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
 import { RowActions } from './row-actions'
 import { ElementGuard } from '@/components/guards'
-import { Span } from 'next/dist/trace'
 
 export const PaymentSchema = z.object({
   id: z.string(),
