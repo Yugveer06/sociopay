@@ -29,7 +29,8 @@ type NavItem = {
   title: string
   url: string
   icon: React.ElementType
-  permissions?: PermissionCheck
+  permissions: PermissionCheck
+  requiredOwnership?: ('owner' | 'renter')[]
 }
 
 export type SidebarData = {
@@ -61,6 +62,7 @@ const data: SidebarData = {
       url: '/renter-kyc',
       icon: FileText,
       permissions: { renterKyc: ['list-own'] },
+      requiredOwnership: ['renter'],
     },
     {
       title: 'Society Members',

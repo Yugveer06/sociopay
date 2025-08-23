@@ -14,7 +14,14 @@ import {
 } from '@tanstack/react-table'
 import { useState } from 'react'
 
+import { ElementGuard } from '@/components/guards'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -24,12 +31,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { ChevronDown } from 'lucide-react'
 
 interface DataTableProps<TData, TValue> {
@@ -68,16 +69,24 @@ export function DataTable<TData, TValue>({
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter by user name..."
-          value={
-            (table.getColumn('user_name')?.getFilterValue() as string) ?? ''
-          }
-          onChange={event =>
-            table.getColumn('user_name')?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+        {
+          <ElementGuard
+            requiredRole="admin"
+            loadingFallback={<span hidden>Loading...</span>}
+            unauthorizedFallback={<span hidden>No access</span>}
+          >
+            <Input
+              placeholder="Filter by user name..."
+              value={
+                (table.getColumn('user_name')?.getFilterValue() as string) ?? ''
+              }
+              onChange={event =>
+                table.getColumn('user_name')?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+          </ElementGuard>
+        }
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

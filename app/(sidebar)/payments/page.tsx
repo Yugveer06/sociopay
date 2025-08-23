@@ -25,6 +25,7 @@ import { DataTable } from './data-table'
 import { dueColumns, MaintenanceDueType } from './due-columns'
 import { ExportDropdown } from './export-dropdown'
 import { MaintenanceDueTable } from './maintenance-due-table'
+import { ElementGuard } from '@/components/guards'
 
 export default async function PaymentsPage() {
   const session = await auth.api.getSession({
@@ -234,22 +235,46 @@ export default async function PaymentsPage() {
                 </Button>
               </form>
 
-              <ExportDropdown
-                data={finalPayments.map(payment => ({
-                  id: payment.id,
-                  amount: payment.amount,
-                  paymentDate: payment.payment_date,
-                  userName: payment.user_name,
-                  houseNumber: payment.house_number,
-                  category: payment.category_name,
-                  intervalType: payment.interval_type,
-                  periodStart: payment.period_start,
-                  periodEnd: payment.period_end,
-                  notes: payment.notes,
-                  createdAt: payment.created_at,
-                }))}
-              />
-              <AddPaymentForm users={users} categories={categories} />
+              {
+                <ElementGuard
+                  permissions={{ payment: ['export'] }}
+                  loadingFallback={
+                    <Button disabled size="sm">
+                      Loading...
+                    </Button>
+                  }
+                  unauthorizedFallback={<span hidden>No access</span>}
+                >
+                  <ExportDropdown
+                    data={finalPayments.map(payment => ({
+                      id: payment.id,
+                      amount: payment.amount,
+                      paymentDate: payment.payment_date,
+                      userName: payment.user_name,
+                      houseNumber: payment.house_number,
+                      category: payment.category_name,
+                      intervalType: payment.interval_type,
+                      periodStart: payment.period_start,
+                      periodEnd: payment.period_end,
+                      notes: payment.notes,
+                      createdAt: payment.created_at,
+                    }))}
+                  />
+                </ElementGuard>
+              }
+              {
+                <ElementGuard
+                  permissions={{ payment: ['add'] }}
+                  loadingFallback={
+                    <Button disabled size="sm">
+                      Loading...
+                    </Button>
+                  }
+                  unauthorizedFallback={<span hidden>No access</span>}
+                >
+                  <AddPaymentForm users={users} categories={categories} />
+                </ElementGuard>
+              }
             </div>
           </div>
 

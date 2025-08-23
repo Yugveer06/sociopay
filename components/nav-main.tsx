@@ -21,6 +21,7 @@ export function NavMain({ items }: { items: SidebarData['navMain'] }) {
           {items.map(item => (
             <ElementGuard
               permissions={item.permissions}
+              anyOwnership={item.requiredOwnership}
               unauthorizedFallback={<div hidden>No Access</div>}
               errorFallback={<div hidden>Error</div>}
               loadingFallback={
