@@ -181,7 +181,7 @@ export function RowActions({ member }: RowActionsProps) {
             onClick={() => setShowEditDialog(true)}
             disabled={isLoading}
           >
-            <Pencil className="text-primary mr-2 h-4 w-4" />
+            <Pencil className="text-primary-foreground mr-2 h-4 w-4" />
             Edit Member
           </DropdownMenuItem>
 
