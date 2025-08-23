@@ -12,12 +12,14 @@ import RotatingText from '@/components/ui/rotating-text'
 import Link from 'next/link'
 import { motion as m } from 'motion/react'
 import { useSession } from '@/lib/auth-client'
+import ThemeDropdown from '@/components/theme-dropdown'
 
 export default function Home() {
   const { data: session } = useSession()
   const MotionCard = m.create(Card)
   return (
     <DotBackground>
+      <ThemeDropdown className="fixed top-4 right-4" />
       <div className="flex w-full max-w-4xl flex-col items-center justify-center space-y-8">
         {/* Main Header */}
         <div className="space-y-4 text-center">
@@ -25,7 +27,7 @@ export default function Home() {
             <span>Sukoon</span>
             <RotatingText
               texts={['3', '&', '4']}
-              mainClassName="px-2 sm:px-2 md:px-3 bg-white text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-[16px]"
+              mainClassName="px-2 sm:px-2 md:px-3 text-white bg-black dark:bg-white dark:text-black overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-[16px]"
               staggerFrom={'last'}
               initial={{ y: '100%' }}
               animate={{ y: 0 }}

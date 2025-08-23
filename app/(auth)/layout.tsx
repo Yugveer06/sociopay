@@ -1,3 +1,4 @@
+import ThemeDropdown from '@/components/theme-dropdown'
 import { DotBackground } from '@/components/ui/dot-background'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
@@ -18,6 +19,7 @@ export default async function SidebarLayout({
 
   return (
     <DotBackground>
+      <ThemeDropdown className="fixed top-4 right-4" />
       <div className="relative flex min-w-screen items-center justify-center">
         {children}
       </div>
