@@ -31,6 +31,7 @@ import {
   DashboardPieChart,
   DashboardRecentTransactions,
 } from './charts'
+import { ElementGuard } from '@/components/guards'
 
 interface DashboardData {
   totalPayments: number
@@ -602,11 +603,17 @@ export default async function DashboardPage() {
             />
 
             {/* Recent Transactions */}
-            <DashboardRecentTransactions
-              data={dashboardData.recentTransactions}
-              title="Recent Transactions"
-              description="Latest payments by residents and society expenses"
-            />
+            <ElementGuard
+              permissions={{ payment: ['list-all'] }}
+              loadingFallback={<span hidden>Loading...</span>}
+              unauthorizedFallback={<span hidden>No access</span>}
+            >
+              <DashboardRecentTransactions
+                data={dashboardData.recentTransactions}
+                title="Recent Transactions"
+                description="Latest payments by residents and society expenses"
+              />
+            </ElementGuard>
           </div>
         </div>
       </div>
