@@ -10,13 +10,11 @@ import {
 import { DotBackground } from '@/components/ui/dot-background'
 import RotatingText from '@/components/ui/rotating-text'
 import Link from 'next/link'
-import { motion as m } from 'motion/react'
 import { useSession } from '@/lib/auth-client'
 import ThemeDropdown from '@/components/theme-dropdown'
 
 export default function Home() {
   const { data: session } = useSession()
-  const MotionCard = m.create(Card)
   return (
     <DotBackground>
       <ThemeDropdown className="fixed top-4 right-4" />
@@ -51,13 +49,10 @@ export default function Home() {
         </div>
 
         {/* Authentication Card */}
-        <MotionCard
-          layoutId="authCard"
-          className="bg-background/75 relative mt-24 w-full max-w-md border-2 backdrop-blur-2xl"
-        >
+        <Card className="bg-background/75 relative mt-24 w-full max-w-md border-2 backdrop-blur-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
-              <m.span layoutId="authSubmit">Get Started</m.span>
+              <span>Get Started</span>
             </CardTitle>
             <CardDescription>
               Join our community or sign in to your account
@@ -85,7 +80,7 @@ export default function Home() {
               </div>
             )}
           </CardContent>
-        </MotionCard>
+        </Card>
       </div>
     </DotBackground>
   )
