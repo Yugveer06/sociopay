@@ -22,7 +22,7 @@ import { AddExpenseForm } from './add-expense-form'
 import { columns, Expense } from './columns'
 import { DataTable } from './data-table'
 import { ExportDropdown } from './export-dropdown'
-import { ElementGuard } from '@/components/guards'
+import { ElementGuard, PageGuard } from '@/components/guards'
 
 export default async function ExpensesPage() {
   const session = await auth.api.getSession({
@@ -141,128 +141,132 @@ export default async function ExpensesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
-        <div className="flex flex-col gap-6">
-          {/* Header */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Society Expenses</h1>
-              <p className="text-muted-foreground">
-                Track and manage society expenses and expenditures.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <form action={refreshData}>
-                <Button variant="outline" size="sm" type="submit">
-                  <IconRefresh className="mr-2 h-4 w-4" />
-                  Refresh
-                </Button>
-              </form>
-
-              <ElementGuard
-                permissions={{ expenses: ['export'] }}
-                loadingFallback={
-                  <Button disabled size="sm">
-                    Loading...
-                  </Button>
-                }
-                unauthorizedFallback={<span hidden>No access</span>}
-              >
-                <ExportDropdown
-                  data={finalExpenses.map(expense => ({
-                    id: expense.id,
-                    amount: expense.amount,
-                    expenseDate: expense.expense_date,
-                    category: expense.category_name,
-                    notes: expense.notes,
-                    createdAt: expense.created_at,
-                  }))}
-                />
-              </ElementGuard>
-              <ElementGuard
-                permissions={{ expenses: ['add'] }}
-                loadingFallback={
-                  <Button disabled size="sm">
-                    Loading...
-                  </Button>
-                }
-                unauthorizedFallback={<span hidden>No access</span>}
-              >
-                <AddExpenseForm categories={categories} />
-              </ElementGuard>
-            </div>
-          </div>
-
-          {/* Expense Overview */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Expenses
-                </CardTitle>
-                <IconCreditCard className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {formatCurrency(totalExpenses)}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  Total society expenditure
+    <PageGuard permissions={{ expenses: ['list'] }}>
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
+          <div className="flex flex-col gap-6">
+            {/* Header */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">Society Expenses</h1>
+                <p className="text-muted-foreground">
+                  Track and manage society expenses and expenditures.
                 </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  This Month Spent
-                </CardTitle>
-                <IconArrowUpRight className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {formatCurrency(monthlySpent)}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {monthlyChange >= 0 ? '+' : ''}
-                  {monthlyChange.toFixed(1)}% from last month
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+              <div className="flex gap-2">
+                <form action={refreshData}>
+                  <Button variant="outline" size="sm" type="submit">
+                    <IconRefresh className="mr-2 h-4 w-4" />
+                    Refresh
+                  </Button>
+                </form>
 
-          {/* Expenses Table */}
-          {error && !finalExpenses.length ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Error Loading Expenses</CardTitle>
-                <CardDescription>
-                  There was an error loading expense data. Check console for
-                  details.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-muted-foreground py-8 text-center">
-                  <p>Failed to load expense data</p>
-                  <p className="mt-2 text-sm">Error: {error}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Society Expenses ({finalExpenses.length})</CardTitle>
-                <CardDescription>
-                  Detailed view of all society expenses and expenditures
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DataTable columns={columns} data={finalExpenses} />
-              </CardContent>
-            </Card>
-          )}
+                <ElementGuard
+                  permissions={{ expenses: ['export'] }}
+                  loadingFallback={
+                    <Button disabled size="sm">
+                      Loading...
+                    </Button>
+                  }
+                  unauthorizedFallback={<span hidden>No access</span>}
+                >
+                  <ExportDropdown
+                    data={finalExpenses.map(expense => ({
+                      id: expense.id,
+                      amount: expense.amount,
+                      expenseDate: expense.expense_date,
+                      category: expense.category_name,
+                      notes: expense.notes,
+                      createdAt: expense.created_at,
+                    }))}
+                  />
+                </ElementGuard>
+                <ElementGuard
+                  permissions={{ expenses: ['add'] }}
+                  loadingFallback={
+                    <Button disabled size="sm">
+                      Loading...
+                    </Button>
+                  }
+                  unauthorizedFallback={<span hidden>No access</span>}
+                >
+                  <AddExpenseForm categories={categories} />
+                </ElementGuard>
+              </div>
+            </div>
+
+            {/* Expense Overview */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Total Expenses
+                  </CardTitle>
+                  <IconCreditCard className="text-muted-foreground h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">
+                    {formatCurrency(totalExpenses)}
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    Total society expenditure
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    This Month Spent
+                  </CardTitle>
+                  <IconArrowUpRight className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">
+                    {formatCurrency(monthlySpent)}
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    {monthlyChange >= 0 ? '+' : ''}
+                    {monthlyChange.toFixed(1)}% from last month
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Expenses Table */}
+            {error && !finalExpenses.length ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Error Loading Expenses</CardTitle>
+                  <CardDescription>
+                    There was an error loading expense data. Check console for
+                    details.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-muted-foreground py-8 text-center">
+                    <p>Failed to load expense data</p>
+                    <p className="mt-2 text-sm">Error: {error}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Society Expenses ({finalExpenses.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Detailed view of all society expenses and expenditures
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DataTable columns={columns} data={finalExpenses} />
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </PageGuard>
   )
 }

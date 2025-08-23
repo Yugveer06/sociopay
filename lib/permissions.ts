@@ -72,7 +72,6 @@ export const user = ac.newRole({
   dashboard: ['view'],
   payment: ['list-own', 'generate-receipt'],
   due: ['list-own'],
-  expenses: ['list'],
   renterKyc: [
     'upload-own',
     'list-own',
