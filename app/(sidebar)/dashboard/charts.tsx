@@ -368,9 +368,9 @@ export function DashboardRecentTransactions({
             data.map((transaction, index) => (
               <div
                 key={index}
-                className="bg-muted/50 flex items-center justify-between rounded-lg p-2 sm:p-3"
+                className="bg-muted/50 flex items-center justify-between gap-4 rounded-lg p-2 sm:p-3"
               >
-                <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="flex min-w-0 items-center space-x-2 sm:space-x-3">
                   <div
                     className={`h-2 w-2 rounded-full ${
                       transaction.type === 'payment'
@@ -380,7 +380,7 @@ export function DashboardRecentTransactions({
                   />
                   <div className="min-w-0 flex-1">
                     <p
-                      className="truncate text-sm font-medium"
+                      className="truncate text-sm font-medium text-ellipsis"
                       title={transaction.userName}
                     >
                       {transaction.userName}

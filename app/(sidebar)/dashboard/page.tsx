@@ -595,7 +595,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Additional Charts */}
-          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2">
             {/* Maintenance Payment Status */}
             <DashboardMaintenanceStatusChart
               data={dashboardData.maintenanceStatus}
