@@ -91,7 +91,7 @@ export default function SignupPage() {
   }
 
   return (
-    <Card className="bg-background/75 relative w-full max-w-md border-2 backdrop-blur-2xl">
+    <Card className="bg-background/75 relative my-12 w-full max-w-md border-2 backdrop-blur-2xl">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
         <CardDescription className="mt-2">
