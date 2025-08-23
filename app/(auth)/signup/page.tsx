@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -38,8 +38,9 @@ import { signUp } from '../actions'
 export default function SignupPage() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const showPasswordRef = useRef(false)
+  const showConfirmPasswordRef = useRef(false)
+  const [, forceUpdate] = useState({}) // For rerendering on ref change
   const [actionResult, setActionResult] = useState<{
     success: boolean
     message: string
@@ -221,7 +222,7 @@ export default function SignupPage() {
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type={showPassword ? 'text' : 'password'}
+                            type={showPasswordRef.current ? 'text' : 'password'}
                             placeholder="Create a strong password"
                             {...field}
                             className="pr-12"
@@ -229,9 +230,13 @@ export default function SignupPage() {
                           <Button
                             className="absolute inset-y-0 right-0 flex items-center pr-3"
                             variant="outline"
-                            onClick={() => setShowPassword(!showPassword)}
+                            type="button"
+                            onClick={() => {
+                              showPasswordRef.current = !showPasswordRef.current
+                              forceUpdate({})
+                            }}
                           >
-                            {showPassword ? (
+                            {showPasswordRef.current ? (
                               <EyeOff className="h-4 w-4 text-gray-400" />
                             ) : (
                               <Eye className="h-4 w-4 text-gray-400" />
@@ -253,7 +258,11 @@ export default function SignupPage() {
                       <FormControl>
                         <div className="relative">
                           <Input
-                            type={showConfirmPassword ? 'text' : 'password'}
+                            type={
+                              showConfirmPasswordRef.current
+                                ? 'text'
+                                : 'password'
+                            }
                             placeholder="Confirm your password"
                             {...field}
                             className="pr-12"
@@ -261,11 +270,14 @@ export default function SignupPage() {
                           <Button
                             className="absolute inset-y-0 right-0 flex items-center pr-3"
                             variant="outline"
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
+                            type="button"
+                            onClick={() => {
+                              showConfirmPasswordRef.current =
+                                !showConfirmPasswordRef.current
+                              forceUpdate({})
+                            }}
                           >
-                            {showConfirmPassword ? (
+                            {showConfirmPasswordRef.current ? (
                               <EyeOff className="h-4 w-4 text-gray-400" />
                             ) : (
                               <Eye className="h-4 w-4 text-gray-400" />
