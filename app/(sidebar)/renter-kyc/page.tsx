@@ -214,7 +214,11 @@ export default async function RenterKycPage() {
                   }
                   unauthorizedFallback={<span hidden>No upload access</span>}
                 >
-                  <UploadKycForm users={users} />
+                  <UploadKycForm 
+                    users={users} 
+                    canUploadForOthers={canUploadForOthers}
+                    currentUserId={session.user.id}
+                  />
                 </ElementGuard>
               )}
             </div>

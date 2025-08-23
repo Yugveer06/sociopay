@@ -29,8 +29,11 @@ type NavItem = {
   title: string
   url: string
   icon: React.ElementType
-  permissions: PermissionCheck
+  permissions?: PermissionCheck
+  anyPermissions?: PermissionCheck[]
+  allPermissions?: PermissionCheck[]
   requiredOwnership?: ('owner' | 'renter')[]
+  customLogic?: 'admin-or-renter-kyc' // Special handling for complex logic
 }
 
 export type SidebarData = {
@@ -49,7 +52,10 @@ const data: SidebarData = {
       title: 'Payments',
       url: '/payments',
       icon: IndianRupee,
-      permissions: { payment: ['list-own'] },
+      anyPermissions: [
+        { payment: ['list-own'] }, // Regular users see their own payments
+        { payment: ['list-all'] }, // Admins see all payments
+      ],
     },
     {
       title: 'Expenses',
@@ -61,8 +67,9 @@ const data: SidebarData = {
       title: 'Renter KYC',
       url: '/renter-kyc',
       icon: FileText,
-      permissions: { renterKyc: ['list-own'] },
-      requiredOwnership: ['renter'],
+      customLogic: 'admin-or-renter-kyc',
+      // 🎯 Custom logic: Admins (any ownership) OR non-admin renters only!
+      // Non-admin owners should NOT see this
     },
     {
       title: 'Society Members',

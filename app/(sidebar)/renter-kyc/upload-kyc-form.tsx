@@ -50,9 +50,11 @@ interface User {
 
 interface UploadKycFormProps {
   users: User[]
+  canUploadForOthers: boolean
+  currentUserId: string
 }
 
-export function UploadKycForm({ users }: UploadKycFormProps) {
+export function UploadKycForm({ users, canUploadForOthers, currentUserId }: UploadKycFormProps) {
   const [open, setOpen] = useState(false)
   const [userPopoverOpen, setUserPopoverOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -63,7 +65,7 @@ export function UploadKycForm({ users }: UploadKycFormProps) {
   const form = useForm<UploadKycDocumentData>({
     resolver: zodResolver(uploadKycDocumentSchema),
     defaultValues: {
-      userId: '',
+      userId: canUploadForOthers ? '' : currentUserId, // Auto-select current user for non-admin renters
     },
   })
 
@@ -172,8 +174,10 @@ export function UploadKycForm({ users }: UploadKycFormProps) {
         <DialogHeader>
           <DialogTitle>Upload KYC Document</DialogTitle>
           <DialogDescription>
-            Upload a KYC document for a renter. Only PDF files under 10MB are
-            allowed.
+            {canUploadForOthers 
+              ? "Upload a KYC document for a renter. Only PDF files under 10MB are allowed."
+              : "Upload your KYC document. Only PDF files under 10MB are allowed."
+            }
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -181,73 +185,74 @@ export function UploadKycForm({ users }: UploadKycFormProps) {
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
-            <FormField
-              control={form.control}
-              name="userId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Select Renter</FormLabel>
-                  <Popover
-                    open={userPopoverOpen}
-                    onOpenChange={setUserPopoverOpen}
-                  >
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            'justify-between',
-                            !field.value && 'text-muted-foreground'
-                          )}
-                        >
-                          {field.value ? (
-                            <div className="flex w-full min-w-0 items-center gap-2">
-                              <span className="text-muted-foreground shrink-0">
-                                (
-                                {
-                                  users.find(user => user.id === field.value)
-                                    ?.houseNumber
-                                }
-                                )
-                              </span>
-                              <span className="truncate">
-                                {
-                                  users.find(user => user.id === field.value)
-                                    ?.name
-                                }
-                              </span>
-                            </div>
-                          ) : (
-                            'Select a renter'
-                          )}
-                          <ChevronsUpDown className="opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search renter..."
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No user found.</CommandEmpty>
-                          <CommandGroup>
-                            {users
-                              .filter(user => user.houseOwnership === 'renter')
-                              .map(user => (
-                                <CommandItem
-                                  value={`${user.houseNumber} ${user.name}`}
-                                  key={user.id}
-                                  onSelect={() => {
-                                    form.setValue('userId', user.id)
-                                    setUserPopoverOpen(false)
-                                  }}
-                                >
-                                  <span className="text-muted-foreground shrink-0">
-                                    ({user.houseNumber})
-                                  </span>
+            {canUploadForOthers && (
+              <FormField
+                control={form.control}
+                name="userId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Renter</FormLabel>
+                    <Popover
+                      open={userPopoverOpen}
+                      onOpenChange={setUserPopoverOpen}
+                    >
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              'justify-between',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              <div className="flex w-full min-w-0 items-center gap-2">
+                                <span className="text-muted-foreground shrink-0">
+                                  (
+                                  {
+                                    users.find(user => user.id === field.value)
+                                      ?.houseNumber
+                                  }
+                                  )
+                                </span>
+                                <span className="truncate">
+                                  {
+                                    users.find(user => user.id === field.value)
+                                      ?.name
+                                  }
+                                </span>
+                              </div>
+                            ) : (
+                              'Select a renter'
+                            )}
+                            <ChevronsUpDown className="opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search renter..."
+                            className="h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>No user found.</CommandEmpty>
+                            <CommandGroup>
+                              {users
+                                .filter(user => user.houseOwnership === 'renter')
+                                .map(user => (
+                                  <CommandItem
+                                    value={`${user.houseNumber} ${user.name}`}
+                                    key={user.id}
+                                    onSelect={() => {
+                                      form.setValue('userId', user.id)
+                                      setUserPopoverOpen(false)
+                                    }}
+                                  >
+                                    <span className="text-muted-foreground shrink-0">
+                                      ({user.houseNumber})
+                                    </span>
                                   <span className="truncate">{user.name}</span>
                                   <Check
                                     className={cn(
@@ -268,6 +273,19 @@ export function UploadKycForm({ users }: UploadKycFormProps) {
                 </FormItem>
               )}
             />
+            )}
+
+            {!canUploadForOthers && (
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    Uploading for: <strong>{users.find(u => u.id === currentUserId)?.name}</strong> 
+                    ({users.find(u => u.id === currentUserId)?.houseNumber})
+                  </span>
+                </div>
+              </div>
+            )}
 
             <FormField
               control={form.control}
