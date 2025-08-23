@@ -18,6 +18,7 @@ import {
   IconShield,
   IconUser,
 } from '@tabler/icons-react'
+import { LockKeyhole, LockKeyholeOpen } from 'lucide-react'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
@@ -89,10 +90,20 @@ export default async function AccountPage() {
                 <div className="flex-1 space-y-1">
                   <h3 className="text-xl font-semibold">{user.name}</h3>
                   <p className="text-muted-foreground">{user.email}</p>
-                  <Badge variant="secondary" className="w-fit">
-                    <IconShield className="mr-1 h-3 w-3" />
-                    Active User
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="w-fit">
+                      <IconShield className="mr-1 h-3 w-3" />
+                      Active User
+                    </Badge>
+                    <Badge variant="secondary" className="w-fit capitalize">
+                      {user.houseOwnership === 'owner' ? (
+                        <LockKeyhole className="mr-1 h-3 w-3" />
+                      ) : (
+                        <LockKeyholeOpen className="mr-1 h-3 w-3" />
+                      )}
+                      {user.houseOwnership}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
