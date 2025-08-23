@@ -166,70 +166,99 @@ export function SiteFooter() {
               {dev.name}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto max-h-[80vh]">
-            <SheetHeader>
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={dev.avatar} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                    {dev.fallback}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <SheetTitle className="text-left">{dev.name}</SheetTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {dev.role}
-                  </Badge>
+          <SheetContent
+            side="bottom"
+            className="h-[70vh] max-h-[70vh] min-h-[350px] overflow-hidden p-0 sm:h-[75vh] sm:max-h-[75vh]"
+          >
+            <div className="flex h-full flex-col">
+              <SheetHeader className="flex-shrink-0 border-b px-3 py-2">
+                <div className="flex items-center space-x-2">
+                  <Avatar className="h-10 w-10 flex-shrink-0">
+                    <AvatarImage src={dev.avatar} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-xs font-medium text-white">
+                      {dev.fallback}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <SheetTitle className="text-left text-sm leading-tight font-medium">
+                      {dev.name}
+                    </SheetTitle>
+                    <Badge variant="secondary" className="mt-0.5 text-xs">
+                      {dev.role}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-            </SheetHeader>
-            <div className="mt-4 space-y-4">
-              <p className="text-muted-foreground text-sm">{dev.bio}</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" size="sm" asChild className="h-12">
-                  <Link
-                    href={dev.social.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2"
-                  >
-                    <Github className="h-4 w-4" />
-                    <span className="text-xs">GitHub</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild className="h-12">
-                  <Link
-                    href={dev.social.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2"
-                  >
-                    <Instagram className="h-4 w-4" />
-                    <span className="text-xs">Instagram</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild className="h-12">
-                  <Link
-                    href={dev.social.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2"
-                  >
-                    <Linkedin className="h-4 w-4" />
-                    <span className="text-xs">LinkedIn</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild className="h-12">
-                  <Link
-                    href={dev.social.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2"
-                  >
-                    <Twitter className="h-4 w-4" />
-                    <span className="text-xs">X (Twitter)</span>
-                  </Link>
-                </Button>
+              </SheetHeader>
+
+              <div className="flex-1 overflow-y-auto overscroll-contain">
+                <div className="space-y-2 px-3 py-3 pb-6">
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    {dev.bio}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="h-10 flex-col gap-0.5 px-1 py-1"
+                    >
+                      <Link
+                        href={dev.social.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Github className="h-3.5 w-3.5" />
+                        <span className="text-xs font-normal">GitHub</span>
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="h-10 flex-col gap-0.5 px-1 py-1"
+                    >
+                      <Link
+                        href={dev.social.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Instagram className="h-3.5 w-3.5" />
+                        <span className="text-xs font-normal">Instagram</span>
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="h-10 flex-col gap-0.5 px-1 py-1"
+                    >
+                      <Link
+                        href={dev.social.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Linkedin className="h-3.5 w-3.5" />
+                        <span className="text-xs font-normal">LinkedIn</span>
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="h-10 flex-col gap-0.5 px-1 py-1"
+                    >
+                      <Link
+                        href={dev.social.twitter}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Twitter className="h-3.5 w-3.5" />
+                        <span className="text-xs font-normal">X (Twitter)</span>
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </SheetContent>
@@ -388,103 +417,125 @@ export function SiteFooter() {
                 <Users className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="h-auto max-h-[85vh]">
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <Code className="h-5 w-5 text-blue-500" />
-                  <Palette className="h-5 w-5 text-purple-500" />
-                  Meet the Team
-                </SheetTitle>
-              </SheetHeader>
-              <div className="mt-6 space-y-6">
-                {developers.map(dev => (
-                  <div key={dev.name} className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={dev.avatar} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                          {dev.fallback}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold">{dev.name}</h3>
-                        <Badge variant="secondary" className="text-xs">
-                          {dev.role}
-                        </Badge>
+            <SheetContent
+              side="bottom"
+              className="h-[75vh] max-h-[75vh] min-h-[400px] overflow-hidden p-0 sm:h-[80vh] sm:max-h-[80vh]"
+            >
+              <div className="flex h-full flex-col">
+                <SheetHeader className="flex-shrink-0 border-b px-3 py-2">
+                  <SheetTitle className="flex items-center gap-2 text-sm font-medium">
+                    <Code className="h-4 w-4 text-blue-500" />
+                    <Palette className="h-4 w-4 text-purple-500" />
+                    Meet the Team
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="flex-1 overflow-y-auto overscroll-contain">
+                  <div className="space-y-3 px-3 py-3 pb-6">
+                    {developers.map(dev => (
+                      <div key={dev.name} className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Avatar className="h-10 w-10 flex-shrink-0">
+                            <AvatarImage src={dev.avatar} />
+                            <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-xs font-medium text-white">
+                              {dev.fallback}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-sm leading-tight font-medium">
+                              {dev.name}
+                            </h3>
+                            <Badge
+                              variant="secondary"
+                              className="mt-0.5 text-xs"
+                            >
+                              {dev.role}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <p className="text-muted-foreground text-xs leading-relaxed">
+                          {dev.bio}
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="h-10 flex-col gap-0.5 px-1 py-1"
+                          >
+                            <Link
+                              href={dev.social.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Github className="h-3.5 w-3.5" />
+                              <span className="text-xs font-normal">
+                                GitHub
+                              </span>
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="h-10 flex-col gap-0.5 px-1 py-1"
+                          >
+                            <Link
+                              href={dev.social.instagram}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Instagram className="h-3.5 w-3.5" />
+                              <span className="text-xs font-normal">
+                                Instagram
+                              </span>
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="h-10 flex-col gap-0.5 px-1 py-1"
+                          >
+                            <Link
+                              href={dev.social.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Linkedin className="h-3.5 w-3.5" />
+                              <span className="text-xs font-normal">
+                                LinkedIn
+                              </span>
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="h-10 flex-col gap-0.5 px-1 py-1"
+                          >
+                            <Link
+                              href={dev.social.twitter}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Twitter className="h-3.5 w-3.5" />
+                              <span className="text-xs font-normal">
+                                X (Twitter)
+                              </span>
+                            </Link>
+                          </Button>
+                        </div>
+
+                        {dev !== developers[developers.length - 1] && (
+                          <Separator className="my-2" />
+                        )}
                       </div>
-                    </div>
-                    <p className="text-muted-foreground text-sm">{dev.bio}</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="h-12"
-                      >
-                        <Link
-                          href={dev.social.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <Github className="h-4 w-4" />
-                          <span className="text-xs">GitHub</span>
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="h-12"
-                      >
-                        <Link
-                          href={dev.social.instagram}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <Instagram className="h-4 w-4" />
-                          <span className="text-xs">Instagram</span>
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="h-12"
-                      >
-                        <Link
-                          href={dev.social.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <Linkedin className="h-4 w-4" />
-                          <span className="text-xs">LinkedIn</span>
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="h-12"
-                      >
-                        <Link
-                          href={dev.social.twitter}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <Twitter className="h-4 w-4" />
-                          <span className="text-xs">X (Twitter)</span>
-                        </Link>
-                      </Button>
-                    </div>
-                    {dev !== developers[developers.length - 1] && (
-                      <Separator className="my-4" />
-                    )}
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
