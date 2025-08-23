@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { eq } from 'drizzle-orm'
+import { checkServerPermission } from '@/lib/server-permissions'
 
 async function addPaymentAction(data: AddPaymentData): Promise<ActionState> {
   try {
@@ -271,6 +272,18 @@ export async function deletePayment(paymentId: string): Promise<ActionState> {
       return {
         success: false,
         message: 'You must be logged in to delete payments',
+      }
+    }
+
+    // Check if user has permission to delete payments
+    const permissionResult = await checkServerPermission({
+      payment: ['delete'],
+    })
+
+    if (!permissionResult.success) {
+      return {
+        success: false,
+        message: 'You do not have permission to delete payments',
       }
     }
 

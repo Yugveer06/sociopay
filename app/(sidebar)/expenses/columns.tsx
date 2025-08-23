@@ -6,6 +6,7 @@ import { IconCaretUpDown } from '@tabler/icons-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
 import { ExpenseActions } from './expense-actions'
+import { ElementGuard } from '@/components/guards'
 
 export const ExpenseSchema = z.object({
   id: z.string(),
@@ -107,15 +108,20 @@ export const columns: ColumnDef<Expense>[] = [
   },
   {
     id: 'actions',
-    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => {
       return (
         <div className="text-right">
-          <ExpenseActions
-            expenseId={row.original.id}
-            expenseAmount={row.original.amount}
-            expenseCategory={row.original.category_name}
-          />
+          <ElementGuard
+            permissions={{ expenses: ['delete'] }}
+            loadingFallback={<span hidden>Loading...</span>}
+            unauthorizedFallback={<span hidden>No Access!</span>}
+          >
+            <ExpenseActions
+              expenseId={row.original.id}
+              expenseAmount={row.original.amount}
+              expenseCategory={row.original.category_name}
+            />
+          </ElementGuard>
         </div>
       )
     },

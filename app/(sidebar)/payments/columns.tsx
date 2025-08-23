@@ -6,6 +6,8 @@ import { ChevronsUpDown } from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
 import { RowActions } from './row-actions'
+import { ElementGuard } from '@/components/guards'
+import { Span } from 'next/dist/trace'
 
 export const PaymentSchema = z.object({
   id: z.string(),
@@ -157,7 +159,15 @@ export const columns: ColumnDef<Payment>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const payment = row.original
-      return <RowActions payment={payment} />
+      return (
+        <ElementGuard
+          permissions={{ payment: ['delete'] }}
+          loadingFallback={<span hidden>Loading...</span>}
+          unauthorizedFallback={<span hidden>No Access!</span>}
+        >
+          <RowActions payment={payment} />
+        </ElementGuard>
+      )
     },
   },
 ]
