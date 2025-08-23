@@ -14,7 +14,8 @@ import {
   calculateAllMaintenanceDue,
   PaymentPeriod,
 } from '@/lib/maintenance-due-calculator'
-import { desc, eq } from 'drizzle-orm'
+import { checkServerPermission } from '@/lib/server-permissions'
+import { and, desc, eq } from 'drizzle-orm'
 import { ArrowDownLeft, CreditCard, RefreshCw } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
@@ -36,6 +37,24 @@ export default async function PaymentsPage() {
     redirect('/login')
   }
 
+  // Check permissions to determine what data to fetch
+  // Users with 'list-all' can see all payments, users with 'list-own' can only see their own
+  const listAllPermission = await checkServerPermission({
+    payment: ['list-all'],
+  })
+  const listOwnPermission = await checkServerPermission({
+    payment: ['list-own'],
+  })
+
+  // If user doesn't have either permission, redirect them
+  if (!listAllPermission.success && !listOwnPermission.success) {
+    redirect('/dashboard') // Or wherever you want to redirect unauthorized users
+  }
+
+  // Determine if we should filter by current user (only has list-own permission)
+  const shouldFilterByUser =
+    !listAllPermission.success && listOwnPermission.success
+
   // Fetch payments with user and category data using Drizzle
   let paymentsData: Payment[] = []
   let users: Array<{ id: string; name: string; houseNumber: string }> = []
@@ -43,38 +62,73 @@ export default async function PaymentsPage() {
   let error: string | null = null
 
   try {
-    // Fetch payments
-    const result = await db
-      .select({
-        id: payments.id,
-        amount: payments.amount,
-        created_at: payments.createdAt,
-        interval_type: payments.intervalType,
-        notes: payments.notes,
-        payment_date: payments.paymentDate,
-        period_start: payments.periodStart,
-        period_end: payments.periodEnd,
-        user_id: payments.userId,
-        user_name: user.name,
-        house_number: user.houseNumber,
-        category_name: paymentCategories.name,
-      })
-      .from(payments)
-      .leftJoin(user, eq(payments.userId, user.id))
-      .leftJoin(
-        paymentCategories,
-        eq(payments.categoryId, paymentCategories.id)
-      )
-      .orderBy(desc(payments.paymentDate))
+    // Build the payments query with conditional filtering
+    const baseSelect = {
+      id: payments.id,
+      amount: payments.amount,
+      created_at: payments.createdAt,
+      interval_type: payments.intervalType,
+      notes: payments.notes,
+      payment_date: payments.paymentDate,
+      period_start: payments.periodStart,
+      period_end: payments.periodEnd,
+      user_id: payments.userId,
+      user_name: user.name,
+      house_number: user.houseNumber,
+      category_name: paymentCategories.name,
+    }
 
-    // Fetch all users for the form
-    const usersResult = await db
-      .select({
-        id: user.id,
-        name: user.name,
-        houseNumber: user.houseNumber,
-      })
-      .from(user)
+    let result
+    if (shouldFilterByUser) {
+      // Fetch only current user's payments
+      result = await db
+        .select(baseSelect)
+        .from(payments)
+        .leftJoin(user, eq(payments.userId, user.id))
+        .leftJoin(
+          paymentCategories,
+          eq(payments.categoryId, paymentCategories.id)
+        )
+        .where(eq(payments.userId, session.user.id))
+        .orderBy(desc(payments.paymentDate))
+    } else {
+      // Fetch all payments (user has list-all permission)
+      result = await db
+        .select(baseSelect)
+        .from(payments)
+        .leftJoin(user, eq(payments.userId, user.id))
+        .leftJoin(
+          paymentCategories,
+          eq(payments.categoryId, paymentCategories.id)
+        )
+        .orderBy(desc(payments.paymentDate))
+    }
+
+    // Fetch users for the form based on permissions
+    if (shouldFilterByUser) {
+      // Only fetch current user if they have list-own permission
+      const currentUserResult = await db
+        .select({
+          id: user.id,
+          name: user.name,
+          houseNumber: user.houseNumber,
+        })
+        .from(user)
+        .where(eq(user.id, session.user.id))
+
+      users = currentUserResult
+    } else {
+      // Fetch all users for the form (user has list-all permission)
+      const usersResult = await db
+        .select({
+          id: user.id,
+          name: user.name,
+          houseNumber: user.houseNumber,
+        })
+        .from(user)
+
+      users = usersResult
+    }
 
     // Fetch all categories for the form
     const categoriesResult = await db
@@ -84,7 +138,6 @@ export default async function PaymentsPage() {
       })
       .from(paymentCategories)
 
-    users = usersResult
     categories = categoriesResult
 
     // Transform the data to match our Payment type
@@ -114,10 +167,23 @@ export default async function PaymentsPage() {
   let maintenanceDueData: MaintenanceDueType[] = []
   let dueCalculationError: string | null = null
 
-  try {
-    // Fetch all payments with category information for due calculation
-    const allPaymentsForDue = await db
-      .select({
+  // Check due permissions to determine what due data to fetch
+  // Users with 'list-all' can see all due amounts, users with 'list-own' can only see their own
+  const listAllDuePermission = await checkServerPermission({
+    due: ['list-all'],
+  })
+  const listOwnDuePermission = await checkServerPermission({
+    due: ['list-own'],
+  })
+
+  // Only calculate due data if user has appropriate permissions
+  if (listAllDuePermission.success || listOwnDuePermission.success) {
+    const shouldFilterDueByUser =
+      !listAllDuePermission.success && listOwnDuePermission.success
+
+    try {
+      // Build due query based on permissions
+      const baseDueSelect = {
         userId: payments.userId,
         userName: user.name,
         houseNumber: user.houseNumber,
@@ -126,37 +192,63 @@ export default async function PaymentsPage() {
         paymentDate: payments.paymentDate,
         categoryId: payments.categoryId,
         categoryName: paymentCategories.name,
-      })
-      .from(payments)
-      .leftJoin(user, eq(payments.userId, user.id))
-      .leftJoin(
-        paymentCategories,
-        eq(payments.categoryId, paymentCategories.id)
-      )
-      .where(eq(payments.categoryId, 1)) // Only maintenance payments (categoryId = 1)
+      }
 
-    // Transform to PaymentPeriod format, filtering out invalid records
-    const paymentPeriods: PaymentPeriod[] = allPaymentsForDue
-      .filter(
-        payment => payment.userId && payment.userName && payment.houseNumber
-      )
-      .map(payment => ({
-        userId: payment.userId,
-        userName: payment.userName || 'Unknown',
-        houseNumber: payment.houseNumber || 'Unknown',
-        periodStart: payment.periodStart,
-        periodEnd: payment.periodEnd,
-        paymentDate: payment.paymentDate,
-        categoryId: payment.categoryId,
-      }))
+      let allPaymentsForDue
+      if (shouldFilterDueByUser) {
+        // Fetch only current user's payments for due calculation
+        allPaymentsForDue = await db
+          .select(baseDueSelect)
+          .from(payments)
+          .leftJoin(user, eq(payments.userId, user.id))
+          .leftJoin(
+            paymentCategories,
+            eq(payments.categoryId, paymentCategories.id)
+          )
+          .where(
+            and(
+              eq(payments.categoryId, 1), // Only maintenance payments (categoryId = 1)
+              eq(payments.userId, session.user.id)
+            )
+          )
+      } else {
+        // Fetch all payments for due calculation (user has list-all permission)
+        allPaymentsForDue = await db
+          .select(baseDueSelect)
+          .from(payments)
+          .leftJoin(user, eq(payments.userId, user.id))
+          .leftJoin(
+            paymentCategories,
+            eq(payments.categoryId, paymentCategories.id)
+          )
+          .where(eq(payments.categoryId, 1)) // Only maintenance payments (categoryId = 1)
+      }
 
-    const dueResult = calculateAllMaintenanceDue(paymentPeriods)
-    maintenanceDueData = dueResult.usersWithDue as MaintenanceDueType[]
-  } catch (err) {
-    console.error('Error calculating maintenance due:', err)
-    dueCalculationError =
-      err instanceof Error ? err.message : 'Failed to calculate maintenance due'
-    maintenanceDueData = []
+      // Transform to PaymentPeriod format, filtering out invalid records
+      const paymentPeriods: PaymentPeriod[] = allPaymentsForDue
+        .filter(
+          payment => payment.userId && payment.userName && payment.houseNumber
+        )
+        .map(payment => ({
+          userId: payment.userId,
+          userName: payment.userName || 'Unknown',
+          houseNumber: payment.houseNumber || 'Unknown',
+          periodStart: payment.periodStart,
+          periodEnd: payment.periodEnd,
+          paymentDate: payment.paymentDate,
+          categoryId: payment.categoryId,
+        }))
+
+      const dueResult = calculateAllMaintenanceDue(paymentPeriods)
+      maintenanceDueData = dueResult.usersWithDue as MaintenanceDueType[]
+    } catch (err) {
+      console.error('Error calculating maintenance due:', err)
+      dueCalculationError =
+        err instanceof Error
+          ? err.message
+          : 'Failed to calculate maintenance due'
+      maintenanceDueData = []
+    }
   }
 
   // Calculate totals from actual data

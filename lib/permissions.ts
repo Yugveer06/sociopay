@@ -74,7 +74,7 @@ export const user = ac.newRole({
   due: ['list-own'],
   expenses: ['list'],
   renterKyc: [
-    'upload-own',
+    'upload-own', // ✨ Renters can upload their own KYC docs - no more excuses!
     'list-own',
     'view-own',
     'download-own',

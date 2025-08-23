@@ -8,6 +8,7 @@ import {
 import { db } from '@/db/drizzle'
 import { kycDocuments, user } from '@/db/schema'
 import { auth } from '@/lib/auth'
+import { checkServerPermission } from '@/lib/server-permissions'
 import { eq } from 'drizzle-orm'
 import { FileText, Users } from 'lucide-react'
 import { headers } from 'next/headers'
@@ -16,6 +17,7 @@ import { columns } from './columns'
 import { DataTable } from './data-table'
 import { UploadKycForm } from './upload-kyc-form'
 import { KycDocument } from '@/lib/zod'
+import { ElementGuard } from '@/components/guards'
 
 export default async function RenterKycPage() {
   const session = await auth.api.getSession({
@@ -25,6 +27,39 @@ export default async function RenterKycPage() {
   if (!session) {
     redirect('/login')
   }
+
+  // Check permissions to determine what KYC data to fetch
+  // Users with 'list-all' can see all documents, users with 'list-own' can only see their own
+  const listAllKycPermission = await checkServerPermission({
+    renterKyc: ['list-all'],
+  })
+  const listOwnKycPermission = await checkServerPermission({
+    renterKyc: ['list-own'],
+  })
+
+  // Check upload permissions for the upload form
+  const uploadAllKycPermission = await checkServerPermission({
+    renterKyc: ['upload-all'],
+  })
+  const uploadOwnKycPermission = await checkServerPermission({
+    renterKyc: ['upload-own'],
+  })
+
+  // If user doesn't have any list permission, redirect them
+  if (!listAllKycPermission.success && !listOwnKycPermission.success) {
+    redirect('/dashboard') // No access to KYC documents at all
+  }
+
+  // Determine if we should filter by current user (only has list-own permission)
+  const shouldFilterByUser =
+    !listAllKycPermission.success && listOwnKycPermission.success
+
+  // Determine what users should be available for upload form
+  const canUploadForOthers = uploadAllKycPermission.success
+  const canUploadOwn = uploadOwnKycPermission.success
+
+  // If user can't upload anything, they shouldn't see the upload form
+  const showUploadForm = canUploadForOthers || canUploadOwn
 
   // Fetch KYC documents with user data using Drizzle
   let kycDocumentsData: KycDocument[] = []
@@ -37,23 +72,37 @@ export default async function RenterKycPage() {
   let error: string | null = null
 
   try {
-    // Fetch KYC documents with user data
-    const result = await db
-      .select({
-        id: kycDocuments.id,
-        userId: kycDocuments.userId,
-        fileName: kycDocuments.fileName,
-        downloadUrl: kycDocuments.downloadUrl,
-        uploadedAt: kycDocuments.uploadedAt,
-        uploadedBy: kycDocuments.uploadedBy,
-        fileSize: kycDocuments.fileSize,
-        contentType: kycDocuments.contentType,
-        user_name: user.name,
-        house_number: user.houseNumber,
-      })
-      .from(kycDocuments)
-      .leftJoin(user, eq(kycDocuments.userId, user.id))
-      .orderBy(kycDocuments.uploadedAt)
+    // Build the KYC documents query with conditional filtering
+    const baseKycSelect = {
+      id: kycDocuments.id,
+      userId: kycDocuments.userId,
+      fileName: kycDocuments.fileName,
+      downloadUrl: kycDocuments.downloadUrl,
+      uploadedAt: kycDocuments.uploadedAt,
+      uploadedBy: kycDocuments.uploadedBy,
+      fileSize: kycDocuments.fileSize,
+      contentType: kycDocuments.contentType,
+      user_name: user.name,
+      house_number: user.houseNumber,
+    }
+
+    let result
+    if (shouldFilterByUser) {
+      // Fetch only current user's KYC documents
+      result = await db
+        .select(baseKycSelect)
+        .from(kycDocuments)
+        .leftJoin(user, eq(kycDocuments.userId, user.id))
+        .where(eq(kycDocuments.userId, session.user.id))
+        .orderBy(kycDocuments.uploadedAt)
+    } else {
+      // Fetch all KYC documents (user has list-all permission)
+      result = await db
+        .select(baseKycSelect)
+        .from(kycDocuments)
+        .leftJoin(user, eq(kycDocuments.userId, user.id))
+        .orderBy(kycDocuments.uploadedAt)
+    }
 
     // Get all unique uploaded by user IDs
     const uploadedByUserIds = [...new Set(result.map(doc => doc.uploadedBy))]
@@ -72,17 +121,36 @@ export default async function RenterKycPage() {
     // Create a map of user IDs to names for uploaded by users
     const uploadedByUserMap = new Map(uploadedByUsers.map(u => [u.id, u.name]))
 
-    // Fetch all users for the form
-    const usersResult = await db
-      .select({
-        id: user.id,
-        name: user.name,
-        houseNumber: user.houseNumber,
-        houseOwnership: user.houseOwnership,
-      })
-      .from(user)
+    // Fetch users for the upload form based on permissions
+    if (canUploadForOthers) {
+      // Fetch all users for the form (user has upload-all permission)
+      const usersResult = await db
+        .select({
+          id: user.id,
+          name: user.name,
+          houseNumber: user.houseNumber,
+          houseOwnership: user.houseOwnership,
+        })
+        .from(user)
 
-    users = usersResult
+      users = usersResult
+    } else if (canUploadOwn) {
+      // Only fetch current user if they have upload-own permission
+      const currentUserResult = await db
+        .select({
+          id: user.id,
+          name: user.name,
+          houseNumber: user.houseNumber,
+          houseOwnership: user.houseOwnership,
+        })
+        .from(user)
+        .where(eq(user.id, session.user.id))
+
+      users = currentUserResult
+    } else {
+      // User has no upload permissions, empty users array
+      users = []
+    }
 
     // Transform the data to match our KycDocument type
     kycDocumentsData = result.map(doc => ({
@@ -129,11 +197,26 @@ export default async function RenterKycPage() {
             <div>
               <h1 className="text-2xl font-bold">Renter KYC</h1>
               <p className="text-muted-foreground">
-                Manage KYC documents for all renters in the society.
+                {shouldFilterByUser
+                  ? 'Manage your KYC documents.'
+                  : 'Manage KYC documents for all renters in the society.'}
               </p>
             </div>
             <div className="flex gap-2">
-              <UploadKycForm users={users} />
+              {showUploadForm && (
+                <ElementGuard
+                  anyPermissions={[
+                    { renterKyc: ['upload-all'] },
+                    { renterKyc: ['upload-own'] },
+                  ]}
+                  loadingFallback={
+                    <div className="bg-muted h-10 w-32 animate-pulse rounded-md" />
+                  }
+                  unauthorizedFallback={<span hidden>No upload access</span>}
+                >
+                  <UploadKycForm users={users} />
+                </ElementGuard>
+              )}
             </div>
           </div>
 
@@ -142,28 +225,37 @@ export default async function RenterKycPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Documents
+                  {shouldFilterByUser ? 'My Documents' : 'Total Documents'}
                 </CardTitle>
                 <FileText className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalDocuments}</div>
                 <p className="text-muted-foreground text-xs">
-                  KYC documents uploaded
+                  KYC documents{' '}
+                  {shouldFilterByUser ? 'uploaded by you' : 'uploaded'}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Users with KYC
+                  {shouldFilterByUser ? 'Upload Status' : 'Users with KYC'}
                 </CardTitle>
                 <Users className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{uniqueUsers}</div>
+                <div className="text-2xl font-bold">
+                  {shouldFilterByUser
+                    ? totalDocuments > 0
+                      ? 'Complete'
+                      : 'Pending'
+                    : uniqueUsers}
+                </div>
                 <p className="text-muted-foreground text-xs">
-                  Out of {users.length} total users
+                  {shouldFilterByUser
+                    ? 'Your KYC verification status'
+                    : `Out of ${users.length} total users`}
                 </p>
               </CardContent>
             </Card>
@@ -172,9 +264,14 @@ export default async function RenterKycPage() {
           {/* KYC Documents Table */}
           <Card>
             <CardHeader>
-              <CardTitle>KYC Documents ({kycDocumentsData.length})</CardTitle>
+              <CardTitle>
+                {shouldFilterByUser ? 'My KYC Documents' : 'KYC Documents'} (
+                {kycDocumentsData.length})
+              </CardTitle>
               <CardDescription>
-                View and manage all uploaded KYC documents
+                {shouldFilterByUser
+                  ? 'View and manage your uploaded KYC documents'
+                  : 'View and manage all uploaded KYC documents'}
               </CardDescription>
             </CardHeader>
             <CardContent>
