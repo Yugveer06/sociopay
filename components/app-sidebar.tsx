@@ -16,33 +16,57 @@ import {
 } from '@/components/ui/sidebar'
 import { useSession } from '@/lib/auth-client'
 import { BanknoteArrowDown, IndianRupee } from 'lucide-react'
+import { Statement } from '@/lib/permissions'
 
-const data = {
+// Type definitions for better TypeScript support
+export type Resource = keyof Statement
+export type Permission<T extends Resource> = Statement[T][number]
+export type PermissionCheck = {
+  [K in Resource]?: Permission<K>[]
+}
+
+type NavItem = {
+  title: string
+  url: string
+  icon: React.ElementType
+  permissions?: PermissionCheck
+}
+
+export type SidebarData = {
+  navMain: NavItem[]
+}
+
+const data: SidebarData = {
   navMain: [
     {
       title: 'Dashboard',
       url: '/dashboard',
       icon: LayoutDashboard,
+      permissions: { dashboard: ['view'] },
     },
     {
       title: 'Payments',
       url: '/payments',
       icon: IndianRupee,
+      permissions: { payment: ['list-own'] },
     },
     {
       title: 'Expenses',
       url: '/expenses',
       icon: BanknoteArrowDown,
+      permissions: { expenses: ['list'] },
     },
     {
       title: 'Renter KYC',
       url: '/renter-kyc',
       icon: FileText,
+      permissions: { renterKyc: ['list-own'] },
     },
     {
       title: 'Society Members',
       url: '/society-members',
       icon: Users,
+      permissions: { members: ['list'] },
     },
   ],
 }
@@ -71,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userData = {
     name: session.data?.user?.name || 'Guest User',
     email: session.data?.user?.email || 'guest@example.com',
-    avatar: session.data?.user?.image || getRandomAvatar(),
+    avatar: getRandomAvatar(),
   }
 
   return (

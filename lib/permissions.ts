@@ -6,6 +6,7 @@ import { createAccessControl } from 'better-auth/plugins/access'
  */
 export const statement = {
   // Custom resources and their permissions
+  dashboard: ['view'],
   payment: [
     'add',
     'list-own',
@@ -40,12 +41,21 @@ const ac = createAccessControl(statement)
  */
 export const admin = ac.newRole({
   // Custom permissions for admin
-  payment: ['add', 'list-all', 'delete', 'generate-receipt', 'export'],
+  dashboard: ['view'],
+  payment: [
+    'add',
+    'list-all',
+    'list-own',
+    'delete',
+    'generate-receipt',
+    'export',
+  ],
   due: ['list-all'],
   expenses: ['add', 'list', 'export'],
   renterKyc: [
     'upload-all',
     'list-all',
+    'list-own',
     'view-all',
     'download-all',
     'delete-all',
@@ -59,6 +69,7 @@ export const admin = ac.newRole({
  */
 export const user = ac.newRole({
   // Custom permissions for regular users
+  dashboard: ['view'],
   payment: ['list-own', 'generate-receipt'],
   due: ['list-own'],
   expenses: ['list'],

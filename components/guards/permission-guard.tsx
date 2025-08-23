@@ -435,26 +435,39 @@ export function PageGuard({
  */
 export function ElementGuard({
   children,
-  fallback,
+  loadingFallback,
+  errorFallback,
+  unauthorizedFallback,
+  unauthenticatedFallback,
   ...props
 }: Omit<PermissionGuardProps, 'fullPage' | 'fallbacks'> & {
-  /** Simple fallback content (alternative to custom fallbacks) */
-  fallback?: ReactNode
+  /** Fallback for loading state */
+  loadingFallback?: ReactNode
+  /** Fallback for error state */
+  errorFallback?: ReactNode
+  /** Fallback for unauthorized state */
+  unauthorizedFallback?: ReactNode
+  /** Fallback for unauthenticated state */
+  unauthenticatedFallback?: ReactNode
 }) {
-  const simpleFallbacks = fallback
-    ? {
-        unauthorized: fallback,
-        unauthenticated: fallback,
-        loading: fallback,
-        error: fallback,
-      }
-    : undefined
+  const customFallbacks =
+    loadingFallback ||
+    errorFallback ||
+    unauthorizedFallback ||
+    unauthenticatedFallback
+      ? {
+          loading: loadingFallback,
+          error: errorFallback,
+          unauthorized: unauthorizedFallback,
+          unauthenticated: unauthenticatedFallback,
+        }
+      : undefined
 
   return (
     <PermissionGuard
       fullPage={false}
       showBackButton={false}
-      fallbacks={simpleFallbacks}
+      fallbacks={customFallbacks}
       {...props}
     >
       {children}

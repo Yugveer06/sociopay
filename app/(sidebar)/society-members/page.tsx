@@ -16,6 +16,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { columns, SocietyMember } from './columns'
 import { DataTable } from './data-table'
+import { PageGuard } from '@/components/guards'
 
 export default async function SocietyMembersPage() {
   const session = await auth.api.getSession({
@@ -88,96 +89,98 @@ export default async function SocietyMembersPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
-        <div className="flex flex-col gap-6">
-          {/* Header */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Society Members</h1>
-              <p className="text-muted-foreground">
-                Manage and view all society members information and status.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={refreshData}>
-                <IconRefresh className="mr-2 h-4 w-4" />
-                Refresh
-              </Button>
-            </div>
-          </div>
-
-          {/* Members Overview */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Members
-                </CardTitle>
-                <IconUsers className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  {totalMembers}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  Registered society members
+    <PageGuard permissions={{ members: ['list'] }}>
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="mx-auto w-full max-w-6xl px-4 lg:px-6">
+          <div className="flex flex-col gap-6">
+            {/* Header */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">Society Members</h1>
+                <p className="text-muted-foreground">
+                  Manage and view all society members information and status.
                 </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Active Members
-                </CardTitle>
-                <IconUserCheck className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {activeMembers}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {bannedMembers > 0
-                    ? `${bannedMembers} banned/suspended`
-                    : 'All members active'}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={refreshData}>
+                  <IconRefresh className="mr-2 h-4 w-4" />
+                  Refresh
+                </Button>
+              </div>
+            </div>
 
-          {/* Members Table */}
-          {error && !finalMembers.length ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Error Loading Members</CardTitle>
-                <CardDescription>
-                  There was an error loading member data. Check console for
-                  details.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-muted-foreground py-8 text-center">
-                  <p>Failed to load member data</p>
-                  <p className="mt-2 text-sm">Error: {error}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Society Members ({finalMembers.length})</CardTitle>
-                <CardDescription>
-                  Complete list of all society members with their details and
-                  status
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DataTable columns={columns} data={finalMembers} />
-              </CardContent>
-            </Card>
-          )}
+            {/* Members Overview */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Total Members
+                  </CardTitle>
+                  <IconUsers className="text-muted-foreground h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {totalMembers}
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    Registered society members
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Active Members
+                  </CardTitle>
+                  <IconUserCheck className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {activeMembers}
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    {bannedMembers > 0
+                      ? `${bannedMembers} banned/suspended`
+                      : 'All members active'}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Members Table */}
+            {error && !finalMembers.length ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Error Loading Members</CardTitle>
+                  <CardDescription>
+                    There was an error loading member data. Check console for
+                    details.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-muted-foreground py-8 text-center">
+                    <p>Failed to load member data</p>
+                    <p className="mt-2 text-sm">Error: {error}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Society Members ({finalMembers.length})</CardTitle>
+                  <CardDescription>
+                    Complete list of all society members with their details and
+                    status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DataTable columns={columns} data={finalMembers} />
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </PageGuard>
   )
 }

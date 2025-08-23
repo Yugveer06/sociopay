@@ -344,7 +344,7 @@ function PermissionGuardExamplePage() {
 
                   <ElementGuard
                     permissions={{ members: ['edit'] }}
-                    fallback={
+                    unauthorizedFallback={
                       <Button variant="secondary" disabled>
                         <Edit className="mr-2 h-4 w-4" />
                         Edit (No Permission)
