@@ -135,7 +135,7 @@ export function DashboardAreaChart({ data }: { data: AreaChartData[] }) {
             <Legend />
             <Area
               dataKey="expenses"
-              type="natural"
+              type="bump"
               fill="hsl(346 87% 43%)"
               fillOpacity={0.4}
               stroke="hsl(346 87% 43%)"
@@ -144,7 +144,7 @@ export function DashboardAreaChart({ data }: { data: AreaChartData[] }) {
             />
             <Area
               dataKey="payments"
-              type="natural"
+              type="bump"
               fill="hsl(142 76% 36%)"
               fillOpacity={0.4}
               stroke="hsl(142 76% 36%)"
@@ -153,7 +153,7 @@ export function DashboardAreaChart({ data }: { data: AreaChartData[] }) {
             />
             <Area
               dataKey="netBalance"
-              type="natural"
+              type="bump"
               fill="hsl(221 83% 53%)"
               fillOpacity={0.2}
               stroke="hsl(221 83% 53%)"
@@ -380,7 +380,7 @@ export function DashboardRecentTransactions({
                   />
                   <div className="min-w-0 flex-1">
                     <p
-                      className="max-w-[120px] truncate text-sm font-medium sm:max-w-[160px]"
+                      className="truncate text-sm font-medium"
                       title={transaction.userName}
                     >
                       {transaction.userName}
