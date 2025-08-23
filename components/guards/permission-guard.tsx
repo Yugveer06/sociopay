@@ -30,6 +30,10 @@ export interface PermissionGuardProps {
   useRoleCheck?: boolean
   /** Specific role required (shorthand for role-based checking) */
   requiredRole?: 'admin' | 'user'
+  /** Required house ownership type - user must have this ownership type to see the content */
+  requiredOwnership?: 'owner' | 'renter'
+  /** Alternative ownership types - user needs ANY of these ownership types (used with OR logic) */
+  anyOwnership?: ('owner' | 'renter')[]
   /** Children to render when user has permission */
   children: ReactNode
   /** Custom fallback components */
@@ -193,6 +197,16 @@ const DefaultError = ({ fullPage }: { fullPage?: boolean }) => (
  *   <AdminPanel />
  * </PermissionGuard>
  *
+ * // House ownership protection - only owners can see this
+ * <PermissionGuard requiredOwnership="owner">
+ *   <OwnerOnlyFeature />
+ * </PermissionGuard>
+ *
+ * // Multiple ownership types - owners OR renters can see this
+ * <PermissionGuard anyOwnership={['owner', 'renter']}>
+ *   <GeneralFeature />
+ * </PermissionGuard>
+ *
  * // Multiple permission strategies
  * <PermissionGuard
  *   anyPermissions={[
@@ -210,6 +224,8 @@ export function PermissionGuard({
   allPermissions,
   useRoleCheck = true, // Default to true to avoid unnecessary server calls
   requiredRole,
+  requiredOwnership,
+  anyOwnership,
   children,
   fallbacks = {},
   redirectOnUnauthorized = false,
@@ -254,6 +270,25 @@ export function PermissionGuard({
     // Reset states
     setError(null)
 
+    // Get user's house ownership from session
+    const userOwnership = session.user.houseOwnership
+
+    // Check house ownership requirements first (client-side, immediate)
+    if (requiredOwnership || anyOwnership) {
+      let ownershipPassed = false
+
+      if (requiredOwnership) {
+        ownershipPassed = userOwnership === requiredOwnership
+      } else if (anyOwnership?.length) {
+        ownershipPassed = anyOwnership.includes(userOwnership)
+      }
+
+      if (!ownershipPassed) {
+        setHasAccess(false)
+        return
+      }
+    }
+
     // Role-based checking (client-side, immediate)
     if (useRoleCheck || requiredRole) {
       const roleToCheck = requiredRole || role
@@ -278,6 +313,17 @@ export function PermissionGuard({
         setHasAccess(true)
         return
       }
+
+      // If only checking ownership without other requirements
+      if (
+        (requiredOwnership || anyOwnership) &&
+        !permissions &&
+        !allPermissions &&
+        !anyPermissions
+      ) {
+        setHasAccess(true)
+        return
+      }
     }
 
     // Smart permission checking (client-side first, server-side if needed)
@@ -293,7 +339,7 @@ export function PermissionGuard({
       } else if (permissions && Object.keys(permissions).length > 0) {
         result = await checkPermission(permissions, !useRoleCheck)
       } else {
-        // No specific permissions required, just need to be authenticated
+        // No specific permissions required, just need to be authenticated (and pass ownership check if any)
         result = true
       }
 
@@ -309,6 +355,8 @@ export function PermissionGuard({
     session?.user,
     useRoleCheck,
     requiredRole,
+    requiredOwnership,
+    anyOwnership,
     role,
     permissions,
     allPermissions,
@@ -470,6 +518,36 @@ export function ElementGuard({
       fallbacks={customFallbacks}
       {...props}
     >
+      {children}
+    </PermissionGuard>
+  )
+}
+
+/**
+ * Owner-only guard - only shows content to house owners
+ * Perfect for features like property management, dues collection, etc.
+ */
+export function OwnerGuard({
+  children,
+  ...props
+}: Omit<PermissionGuardProps, 'requiredOwnership' | 'anyOwnership'>) {
+  return (
+    <PermissionGuard requiredOwnership="owner" {...props}>
+      {children}
+    </PermissionGuard>
+  )
+}
+
+/**
+ * Renter-only guard - only shows content to renters
+ * Perfect for renter-specific features like rent payment, tenant services, etc.
+ */
+export function RenterGuard({
+  children,
+  ...props
+}: Omit<PermissionGuardProps, 'requiredOwnership' | 'anyOwnership'>) {
+  return (
+    <PermissionGuard requiredOwnership="renter" {...props}>
       {children}
     </PermissionGuard>
   )

@@ -3,6 +3,8 @@ export {
   PermissionGuard,
   PageGuard,
   ElementGuard,
+  OwnerGuard,
+  RenterGuard,
   withPermissionGuard,
   type PermissionGuardProps,
   type PermissionGuardFallbacks,
