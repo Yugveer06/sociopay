@@ -17,6 +17,12 @@ import { deleteKycDocument } from './actions'
 import { toast } from 'sonner'
 import { KycDocument } from '@/lib/zod'
 
+/**
+ * @deprecated This component is deprecated in favor of the permission-based delete functionality
+ * integrated directly in the columns. Only admins can now delete KYC documents! 🔒
+ * Use the getColumns function with appropriate permissions instead.
+ */
+
 interface DeleteKycDialogProps {
   document: KycDocument
 }
@@ -45,9 +51,8 @@ export function DeleteKycDialog({ document }: DeleteKycDialogProps) {
     }
   }
 
-  // TODO: Add permission checking here
-  // For now, show delete button to all authenticated users
-  // You can enhance this with role-based permissions later
+  // DEPRECATED: Permission checking is now handled in columns.tsx with getColumns()
+  // Only admins have delete permissions - regular users can't delete KYC documents anymore! 🛡️
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>

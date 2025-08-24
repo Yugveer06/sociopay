@@ -13,6 +13,7 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { checkServerPermission } from '@/lib/server-permissions'
 
 async function uploadKycDocumentAction(
   data: UploadKycDocumentServerData
@@ -81,7 +82,7 @@ export async function uploadFileToSupabase(
     const sanitizedOriginalName = file.name
       .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
       .replace(/_{2,}/g, '_') // Replace multiple underscores with single
-    
+
     // Create a path that includes both timestamp and original name for uniqueness
     const fileName = `${userId}/${timestamp}_${sanitizedOriginalName}`
 
@@ -139,14 +140,18 @@ async function deleteKycDocumentAction(
     }
 
     // Check if user has permission to delete KYC documents
-    // For now, we'll allow any authenticated user to delete (you can enhance this with role-based permissions)
-    // TODO: Add proper role checking - only admins should be able to delete
-    // if (session.user.role !== 'admin') {
-    //   return {
-    //     success: false,
-    //     message: 'You do not have permission to delete KYC documents',
-    //   }
-    // }
+    // Only admins can delete KYC documents - this ensures document integrity! 🛡️
+    const hasDeletePermission = await checkServerPermission({
+      renterKyc: ['delete-all'],
+    })
+
+    if (!hasDeletePermission.success) {
+      return {
+        success: false,
+        message:
+          'Only administrators can delete KYC documents. Documents are immutable once uploaded for security reasons.',
+      }
+    }
 
     // First, get the document details to extract the file path for deletion
     const document = await db

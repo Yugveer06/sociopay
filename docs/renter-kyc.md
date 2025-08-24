@@ -60,6 +60,12 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 - **Search**: Search by document name or renter name
 - **Filter**: Filter documents by various criteria
 - **Sorting**: Sort documents by upload date, size, etc.
+- **Delete Protection**: Only administrators can delete KYC documents to ensure document integrity and compliance 🔒
+
+### Admin-Only Features
+
+- **Delete Documents**: Only users with admin role can delete KYC documents
+- **Document Immutability**: Regular users cannot delete documents once uploaded, ensuring audit trail compliance
 
 ### Statistics Dashboard
 
@@ -68,6 +74,24 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 - **Today's Uploads**: Documents uploaded today
 
 ## Security Considerations
+
+### Permission System
+
+The KYC system implements strict permission controls:
+
+- **Admin Users**: Have `delete-all` permissions to delete any KYC document
+- **Regular Users**: Can only `upload-own`, `list-own`, `view-own`, and `download-own` documents
+- **Document Immutability**: Once uploaded, regular users cannot delete documents, ensuring compliance and audit trail integrity
+
+### Role-Based Access Control
+
+```typescript
+// Admin permissions (full access)
+admin.renterKyc: ['upload-all', 'list-all', 'view-all', 'download-all', 'delete-all']
+
+// User permissions (restricted - no delete!)
+user.renterKyc: ['upload-own', 'list-own', 'view-own', 'download-own']
+```
 
 ### Storage Bucket Policies
 
@@ -122,6 +146,15 @@ FOR INSERT WITH CHECK (auth.role() = 'authenticated');
   - View the document in a new tab
   - Download the document
   - Copy the document ID
+  - **Delete Document** (Admins only) - Only administrators can delete KYC documents to maintain document integrity
+
+### Permission-Based Functionality
+
+The interface automatically adapts based on user permissions:
+
+- **Regular Users**: Can upload, view, download, and list their own documents
+- **Administrators**: Have full access including the ability to delete any document
+- **Delete Protection**: Regular users will not see delete options in the interface - documents are immutable once uploaded!
 
 ## File Structure
 

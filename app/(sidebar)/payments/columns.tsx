@@ -6,7 +6,6 @@ import { ChevronsUpDown } from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
 import { RowActions } from './row-actions'
-import { ElementGuard } from '@/components/guards'
 
 export const PaymentSchema = z.object({
   id: z.string(),

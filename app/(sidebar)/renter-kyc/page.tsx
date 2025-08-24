@@ -13,8 +13,7 @@ import { eq } from 'drizzle-orm'
 import { FileText, Users } from 'lucide-react'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { columns } from './columns'
-import { DataTable } from './data-table'
+import { KycDataTable } from './kyc-data-table'
 import { UploadKycForm } from './upload-kyc-form'
 import { KycDocument } from '@/lib/zod'
 import { ElementGuard } from '@/components/guards'
@@ -43,6 +42,11 @@ export default async function RenterKycPage() {
   })
   const uploadOwnKycPermission = await checkServerPermission({
     renterKyc: ['upload-own'],
+  })
+
+  // Check delete permissions for admin-only delete functionality
+  const deleteKycPermission = await checkServerPermission({
+    renterKyc: ['delete-all'],
   })
 
   // If user doesn't have any list permission, redirect them
@@ -214,8 +218,8 @@ export default async function RenterKycPage() {
                   }
                   unauthorizedFallback={<span hidden>No upload access</span>}
                 >
-                  <UploadKycForm 
-                    users={users} 
+                  <UploadKycForm
+                    users={users}
                     canUploadForOthers={canUploadForOthers}
                     currentUserId={session.user.id}
                   />
@@ -279,7 +283,10 @@ export default async function RenterKycPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DataTable columns={columns} data={kycDocumentsData} />
+              <KycDataTable
+                data={kycDocumentsData}
+                canDelete={deleteKycPermission.success}
+              />
             </CardContent>
           </Card>
         </div>

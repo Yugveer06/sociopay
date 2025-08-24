@@ -65,7 +65,7 @@ export const admin = ac.newRole({
 
 /**
  * User role with limited permissions
- * Regular users can only manage their own data
+ * Regular users can only manage their own data (except deletion - admin only!)
  */
 export const user = ac.newRole({
   // Custom permissions for regular users
@@ -77,7 +77,7 @@ export const user = ac.newRole({
     'list-own',
     'view-own',
     'download-own',
-    'delete-own',
+    // Note: No delete permissions for regular users - documents are immutable once uploaded! 🔒
   ],
 })
 

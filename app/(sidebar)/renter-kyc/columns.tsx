@@ -28,7 +28,10 @@ import { deleteKycDocument } from './actions'
 import { toast } from 'sonner'
 import { useState } from 'react'
 
-export const columns: ColumnDef<KycDocument>[] = [
+// Function to generate columns based on permissions - keeping documents secure! 🔐
+export const getColumns = (
+  canDelete: boolean = false
+): ColumnDef<KycDocument>[] => [
   {
     accessorKey: 'fileName',
     header: 'Document Name',
@@ -149,25 +152,25 @@ export const columns: ColumnDef<KycDocument>[] = [
                   try {
                     // Fetch the file as a blob to preserve filename and force download
                     const response = await fetch(document.downloadUrl)
-                    
+
                     if (!response.ok) {
                       throw new Error('Failed to fetch file')
                     }
-                    
+
                     const blob = await response.blob()
-                    
+
                     // Create blob URL and download link
                     const blobUrl = window.URL.createObjectURL(blob)
                     const link = window.document.createElement('a')
                     link.href = blobUrl
                     link.download = document.fileName // This ensures the original filename is preserved
                     link.style.display = 'none'
-                    
+
                     // Add to DOM, click, and cleanup
                     window.document.body.appendChild(link)
                     link.click()
                     window.document.body.removeChild(link)
-                    
+
                     // Clean up the blob URL to free memory
                     window.URL.revokeObjectURL(blobUrl)
 
@@ -187,55 +190,61 @@ export const columns: ColumnDef<KycDocument>[] = [
               >
                 Copy Document ID
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem
-                    onSelect={e => e.preventDefault()}
-                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Document
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you absolutely sure?
-                    </AlertDialogTitle>
-                    <div className="text-muted-foreground space-y-2 text-sm">
-                      <div>
-                        This action cannot be undone and will permanently remove
-                        the document from both the database and storage.
-                      </div>
-                      <div className="bg-muted space-y-1 rounded-md p-3 text-sm">
-                        <div>
-                          <strong>Document:</strong> {document.fileName}
+              {/* Only show delete option for admins - protecting document integrity! 🛡️ */}
+              {canDelete && (
+                <>
+                  <DropdownMenuSeparator />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem
+                        onSelect={e => e.preventDefault()}
+                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Document
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <div className="text-muted-foreground space-y-2 text-sm">
+                          <div>
+                            This action cannot be undone and will permanently
+                            remove the document from both the database and
+                            storage.
+                          </div>
+                          <div className="bg-muted space-y-1 rounded-md p-3 text-sm">
+                            <div>
+                              <strong>Document:</strong> {document.fileName}
+                            </div>
+                            <div>
+                              <strong>Renter:</strong> {document.user_name}{' '}
+                              (House {document.house_number})
+                            </div>
+                            <div>
+                              <strong>Uploaded by:</strong>{' '}
+                              {document.uploaded_by_name}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <strong>Renter:</strong> {document.user_name} (House{' '}
-                          {document.house_number})
-                        </div>
-                        <div>
-                          <strong>Uploaded by:</strong>{' '}
-                          {document.uploaded_by_name}
-                        </div>
-                      </div>
-                    </div>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDelete}
-                      disabled={isDeleting}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {isDeleting ? 'Deleting...' : 'Delete Document'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {isDeleting ? 'Deleting...' : 'Delete Document'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -243,3 +252,6 @@ export const columns: ColumnDef<KycDocument>[] = [
     },
   },
 ]
+
+// Export default columns for backward compatibility (no delete permissions)
+export const columns = getColumns(false)
