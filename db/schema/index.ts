@@ -5,6 +5,7 @@ export * from './payments'
 export * from './expenses'
 export * from './funds'
 export * from './kyc-documents'
+export * from './qr-codes'
 
 // Import for cross-references
 import { relations } from 'drizzle-orm'

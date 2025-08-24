@@ -1,0 +1,1 @@
+ALTER TABLE "qr_codes" ADD CONSTRAINT "qr_codes_upi_id_unique" UNIQUE("upi_id");
