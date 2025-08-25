@@ -81,6 +81,13 @@ export default async function SocietyMembersPage() {
   const totalMembers = finalMembers.length
   const activeMembers = finalMembers.filter(member => !member.banned).length
   const bannedMembers = finalMembers.filter(member => member.banned).length
+  // House ownership split
+  const ownersCount = finalMembers.filter(
+    member => member.houseOwnership === 'owner'
+  ).length
+  const rentersCount = finalMembers.filter(
+    member => member.houseOwnership === 'renter'
+  ).length
 
   // Refresh action
   async function refreshData() {
@@ -110,7 +117,7 @@ export default async function SocietyMembersPage() {
             </div>
 
             {/* Members Overview */}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -119,7 +126,7 @@ export default async function SocietyMembersPage() {
                   <IconUsers className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
                     {totalMembers}
                   </div>
                   <p className="text-muted-foreground text-xs">
@@ -143,6 +150,61 @@ export default async function SocietyMembersPage() {
                       ? `${bannedMembers} banned/suspended`
                       : 'All members active'}
                   </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    House Ownership
+                  </CardTitle>
+                  <IconUsers className="h-4 w-4 text-cyan-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                      <span className="text-muted-foreground text-xs">{`${ownersCount} owners`}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground text-xs">{`${rentersCount} renters`}</span>
+                      <span className="inline-block h-2 w-2 rounded-full bg-cyan-500" />
+                    </div>
+                  </div>
+                  {/* Ownership split bar — because even houses like to be categorized */}
+                  <div className="mt-2">
+                    {/* Split bar */}
+                    <div
+                      role="progressbar"
+                      aria-label="Owners vs Renters split"
+                      aria-valuemin={0}
+                      aria-valuemax={ownersCount + rentersCount || 100}
+                      aria-valuenow={ownersCount}
+                      className="bg-muted h-3 w-full overflow-hidden rounded-full"
+                    >
+                      {/* Give the two segments a little personal space — visually pleasing and drama-free */}
+                      <div className="flex h-full gap-1">
+                        <div
+                          className="h-full rounded-full bg-amber-500"
+                          style={{
+                            // use flex proportions instead of width so rounding stays perfect
+                            flex:
+                              ownersCount + rentersCount === 0
+                                ? 1
+                                : ownersCount / (ownersCount + rentersCount),
+                          }}
+                        />
+                        <div
+                          className="h-full rounded-full bg-cyan-500"
+                          style={{
+                            flex:
+                              ownersCount + rentersCount === 0
+                                ? 1
+                                : rentersCount / (ownersCount + rentersCount),
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
