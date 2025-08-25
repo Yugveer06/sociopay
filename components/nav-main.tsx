@@ -15,12 +15,20 @@ import { LoaderCircle } from 'lucide-react'
 import { Skeleton } from './ui/skeleton'
 import { usePermissions } from '@/hooks/use-permissions'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { usePathname } from 'next/navigation'
+
+// Normalize paths by removing trailing slashes for reliable comparisons
+const normalize = (p?: string) => (p ? p.replace(/\/+$/, '') : p)
 
 // Custom component for Renter KYC with special logic
 function RenterKycNavItem({ item }: { item: SidebarData['navMain'][0] }) {
   const { role, session } = usePermissions()
   const { setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
+  const pathname = usePathname()
+
+  // Normalize paths by removing trailing slashes for reliable comparisons
+  const normalize = (p?: string) => (p ? p.replace(/\/+$|\/$/g, '') : p)
 
   // Function to handle mobile sidebar close
   const handleMobileClick = () => {
@@ -66,7 +74,11 @@ function RenterKycNavItem({ item }: { item: SidebarData['navMain'][0] }) {
       }
     >
       <SidebarMenuItem>
-        <SidebarMenuButton tooltip={item.title} asChild>
+        <SidebarMenuButton
+          tooltip={item.title}
+          asChild
+          isActive={normalize(pathname) === normalize(item.url)}
+        >
           <Link href={item.url} onClick={handleMobileClick}>
             {item.icon && <item.icon />}
             <span>{item.title}</span>
@@ -80,6 +92,7 @@ function RenterKycNavItem({ item }: { item: SidebarData['navMain'][0] }) {
 export function NavMain({ items }: { items: SidebarData['navMain'] }) {
   const { setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
+  const pathname = usePathname()
 
   // Function to handle mobile sidebar close
   const handleMobileClick = () => {
@@ -126,7 +139,11 @@ export function NavMain({ items }: { items: SidebarData['navMain'] }) {
                 key={item.title}
               >
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton tooltip={item.title} asChild>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    asChild
+                    isActive={normalize(pathname) === normalize(item.url)}
+                  >
                     <Link href={item.url} onClick={handleMobileClick}>
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>

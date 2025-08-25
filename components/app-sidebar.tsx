@@ -17,6 +17,7 @@ import {
 import { useSession } from '@/lib/auth-client'
 import { BanknoteArrowDown, IndianRupee } from 'lucide-react'
 import { Statement } from '@/lib/permissions'
+import Link from 'next/link'
 
 // Type definitions for better TypeScript support
 export type Resource = keyof Statement
@@ -104,10 +105,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link href="/">
                 <Home className="!size-5" />
                 <span className="text-base font-semibold">Sukun Soc.</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
