@@ -25,7 +25,7 @@ export function SiteHeader() {
   }
   const parts = pathname.split('/').filter(Boolean).map(capitalizeWords)
   return (
-    <header className="bg-background sticky top-0 z-50 flex h-(--header-height) shrink-0 items-center gap-2 rounded-t-md border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+    <header className="bg-background/95 sticky top-0 z-50 flex h-(--header-height) shrink-0 items-center gap-2 rounded-t-md border-b backdrop-blur transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1" />
         <Separator
@@ -39,7 +39,13 @@ export function SiteHeader() {
                 <BreadcrumbItem>
                   {idx < parts.length - 1 ? (
                     <BreadcrumbLink
-                      href={'/' + parts.slice(0, idx + 1).join('/')}
+                      href={
+                        '/' +
+                        parts
+                          .slice(0, idx + 1)
+                          .join('/')
+                          .toLowerCase()
+                      }
                     >
                       {part}
                     </BreadcrumbLink>
