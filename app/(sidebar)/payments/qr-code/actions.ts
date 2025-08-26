@@ -61,7 +61,7 @@ export const deleteQrCodeAction = validatedAction(
         }
       }
 
-      revalidatePath('/payment-qr')
+      revalidatePath('/payments/qr-code')
       return {
         success: true,
         message: 'QR code deleted successfully! 🗑️',
@@ -136,7 +136,7 @@ export const createQrCodeAction = validatedAction(
         })
         .returning()
 
-      revalidatePath('/payment-qr')
+      revalidatePath('/payments/qr-code')
       return {
         success: true,
         message: 'QR code created successfully! 📱',
@@ -233,7 +233,7 @@ export const updateQrCodeAction = validatedAction(
         .where(eq(qrCodes.id, activeQrCode.id))
         .returning()
 
-      revalidatePath('/payment-qr')
+      revalidatePath('/payments/qr-code')
       return {
         success: true,
         message: 'QR code updated successfully! 🔄📱',
