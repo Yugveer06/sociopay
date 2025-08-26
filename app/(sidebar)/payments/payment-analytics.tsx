@@ -1,13 +1,7 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Banknote, CreditCard, Smartphone } from 'lucide-react'
 import React from 'react'
 import { Payment } from './columns'
