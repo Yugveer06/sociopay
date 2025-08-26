@@ -39,3 +39,17 @@ export function validatedAction<T extends z.ZodSchema, K>(
     }
   }
 }
+
+// Reusable house number schema used across the app.
+// Format: A-1, B-9, C-23 (single uppercase letter, a dash, then 1-2 digits)
+// Accepts either Letter-Digits or Digits-Letter with a dash in between.
+// Examples valid: A-1, A-10, 1-A, 10-A
+// Examples invalid: 1A, A1, A-1A, 1A - 1
+// Pattern explanation:
+//  ^(?:[A-Z]-\d{1,2}|\d{1,2}-[A-Z])$  -> Either Letter-Dash-1-2Digits OR 1-2Digits-Dash-Letter
+export const houseNumber = z
+  .string()
+  .regex(/^(?:[A-Z]-\d{1,2}|\d{1,2}-[A-Z])$/, {
+    message:
+      'Please enter a valid house number (examples: A-1, A-10, 1-A, 10-A). Use a dash between letter and number.',
+  })

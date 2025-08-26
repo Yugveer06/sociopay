@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { houseNumber } from './common'
 
 // Authentication schemas
 export const signInSchema = z.object({
@@ -15,9 +16,7 @@ export const signUpSchema = z
     fullName: z.string().min(2, {
       message: 'Full name must be at least 2 characters.',
     }),
-    houseNumber: z.string().regex(/^[A-Z]-\d{1,2}$/, {
-      message: 'Please enter a valid house number (e.g., A-1, B-9, C-23).',
-    }),
+    houseNumber: houseNumber,
     email: z.email({
       message: 'Please enter a valid email address.',
     }),
@@ -71,9 +70,7 @@ export const editMemberSchema = z.object({
   fullName: z.string().min(2, {
     message: 'Full name must be at least 2 characters.',
   }),
-  houseNumber: z.string().regex(/^[A-Z]-\d{1,2}$/, {
-    message: 'Please enter a valid house number (e.g., A-1, B-9, C-23).',
-  }),
+  houseNumber: houseNumber,
   email: z.email({
     message: 'Please enter a valid email address.',
   }),
