@@ -59,7 +59,7 @@ const data: SidebarData = {
     },
     {
       title: 'Payment QR',
-      url: '/payment-qr',
+      url: '/payments/qr-code',
       icon: QrCode,
       permissions: { qrCode: ['view'] },
     },
