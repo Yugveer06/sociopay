@@ -19,7 +19,7 @@ export default async function SidebarLayout({
 
   return (
     <DotBackground>
-      <ThemeDropdown className="fixed top-4 right-4" />
+      <ThemeDropdown className="fixed top-4 right-4 z-10" />
       <div className="relative flex min-w-screen items-center justify-center">
         {children}
       </div>
