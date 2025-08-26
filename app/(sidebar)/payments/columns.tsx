@@ -14,6 +14,7 @@ export const PaymentSchema = z.object({
   interval_type: z
     .enum(['monthly', 'quarterly', 'half_yearly', 'annually'])
     .nullable(),
+  payment_type: z.enum(['cash', 'cheque', 'upi']).nullable(),
   notes: z.string().nullable(),
   payment_date: z.string().nullable(),
   period_end: z.string().nullable(),
@@ -117,6 +118,13 @@ export const columns: ColumnDef<Payment>[] = [
         </Badge>
       )
     },
+    filterFn: (row, id, value) => {
+      const houseNumber = row.getValue(id) as string
+      if (!value || typeof value !== 'string') {
+        return true // Show all rows when no filter is applied
+      }
+      return houseNumber.toLowerCase().includes(value.toLowerCase())
+    },
   },
   {
     accessorKey: 'category_name',
@@ -124,6 +132,40 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => {
       const category = row.getValue('category_name') as string
       return <Badge variant="secondary">{category}</Badge>
+    },
+  },
+  {
+    accessorKey: 'payment_type',
+    header: 'Payment Type',
+    cell: ({ row }) => {
+      const paymentType = row.getValue('payment_type') as string
+      if (!paymentType) return <div className="text-muted-foreground">-</div>
+
+      // Different colors for different payment types - because who doesn't love a good color scheme? 🎨
+      const getTypeColor = (type: string) => {
+        switch (type) {
+          case 'cash':
+            return 'bg-green-100 text-green-800 hover:bg-green-200'
+          case 'cheque':
+            return 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+          case 'upi':
+            return 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+          default:
+            return 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+        }
+      }
+
+      return (
+        <Badge
+          variant="outline"
+          className={`capitalize ${getTypeColor(paymentType)}`}
+        >
+          {paymentType.toUpperCase()}
+        </Badge>
+      )
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
     },
   },
   {

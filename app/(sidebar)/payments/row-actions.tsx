@@ -25,6 +25,7 @@ import { toast } from 'sonner'
 import { deletePayment, generatePaymentReceipt } from './actions'
 import { Payment } from './columns'
 import { ElementGuard } from '@/components/guards'
+import { ClientOnly } from '@/components/client-only'
 
 type ReceiptData = {
   id: string
@@ -33,6 +34,7 @@ type ReceiptData = {
   userName: string
   houseNumber: string
   category: string
+  paymentType: string
   intervalType: string
   periodStart: string
   periodEnd: string
@@ -138,6 +140,11 @@ export function RowActions({ payment }: RowActionsProps) {
         doc.setFont('helvetica', 'normal')
         doc.text(receiptData.category, leftCol, yPosition + 60)
 
+        doc.setFont('helvetica', 'bold')
+        doc.text('Payment Type:', leftCol, yPosition + 75)
+        doc.setFont('helvetica', 'normal')
+        doc.text(receiptData.paymentType.toUpperCase(), leftCol, yPosition + 85)
+
         // Right column
         doc.setFont('helvetica', 'bold')
         doc.text('Payment Date:', rightCol, yPosition)
@@ -165,7 +172,7 @@ export function RowActions({ payment }: RowActionsProps) {
         }
 
         // Amount section (highlighted)
-        yPosition += 90
+        yPosition += 115
         doc.setFillColor(34, 197, 94) // Green background
         doc.rect(15, yPosition - 5, pageWidth - 30, 25, 'F')
 
@@ -280,21 +287,23 @@ export function RowActions({ payment }: RowActionsProps) {
             <Receipt className="mr-2 h-4 w-4" />
             Generate Receipt
           </DropdownMenuItem>
-          <ElementGuard
-            permissions={{ payment: ['delete'] }}
-            loadingFallback={<span hidden>Loading...</span>}
-            unauthorizedFallback={<span hidden>No Access!</span>}
-          >
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={isLoading}
-              className="text-red-600 focus:text-red-600"
+          <ClientOnly fallback={<span hidden>Loading...</span>}>
+            <ElementGuard
+              permissions={{ payment: ['delete'] }}
+              loadingFallback={<span hidden>Loading...</span>}
+              unauthorizedFallback={<span hidden>No Access!</span>}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </ElementGuard>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={isLoading}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </ElementGuard>
+          </ClientOnly>
         </DropdownMenuContent>
       </DropdownMenu>
 

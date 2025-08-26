@@ -396,6 +396,41 @@ export function AddPaymentForm({ users, categories }: AddPaymentFormProps) {
                 />
               </div>
 
+              <FormField
+                control={form.control}
+                name="paymentType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue
+                            placeholder="Select payment method"
+                            className="truncate"
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-w-none">
+                        <SelectItem value="cash" className="max-w-none">
+                          💵 Cash
+                        </SelectItem>
+                        <SelectItem value="cheque" className="max-w-none">
+                          📄 Cheque
+                        </SelectItem>
+                        <SelectItem value="upi" className="max-w-none">
+                          📱 UPI
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {isMaintenanceCategory && (
                 <FormField
                   control={form.control}

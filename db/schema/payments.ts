@@ -20,6 +20,9 @@ export const intervalTypeEnum = pgEnum('interval_type', [
   'annually',
 ])
 
+// Define enum for payment types - because apparently we need to track how people pay their bills 💰
+export const paymentTypeEnum = pgEnum('payment_type', ['cash', 'cheque', 'upi'])
+
 // Payments Table
 export const payments = pgTable('payments', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -34,6 +37,7 @@ export const payments = pgTable('payments', {
   periodStart: date('period_start'),
   periodEnd: date('period_end'),
   intervalType: intervalTypeEnum('interval_type'),
+  paymentType: paymentTypeEnum('payment_type').notNull().default('cash'),
   notes: text('notes'),
   createdAt: timestamp('created_at').defaultNow(),
 })

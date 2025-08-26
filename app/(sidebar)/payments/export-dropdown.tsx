@@ -19,6 +19,7 @@ interface ExportDropdownProps {
     userName: string
     houseNumber: string
     category: string
+    paymentType: string | null
     intervalType: string | null
     periodStart: string | null
     periodEnd: string | null
