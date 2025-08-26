@@ -1,6 +1,4 @@
 import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core'
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
-import { z } from 'zod'
 
 /**
  * QR Codes table for UPI payment QR codes
@@ -20,22 +18,4 @@ export const qrCodes = pgTable('qr_codes', {
     .$onUpdate(() => new Date()),
 })
 
-// Zod schemas for validation
-export const insertQrCodeSchema = createInsertSchema(qrCodes, {
-  upiId: z
-    .string()
-    .min(1, 'UPI ID is required')
-    .regex(
-      /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z][a-zA-Z0-9.\-_]{2,64}$/,
-      'Please enter a valid UPI ID'
-    ),
-  merchantName: z
-    .string()
-    .min(1, 'Merchant name is required')
-    .max(100, 'Merchant name must be less than 100 characters'),
-})
-
-export const selectQrCodeSchema = createSelectSchema(qrCodes)
-
-export type QrCode = z.infer<typeof selectQrCodeSchema>
-export type NewQrCode = z.infer<typeof insertQrCodeSchema>
+// (validation schemas moved to `lib/zod/qr-codes.ts`)
