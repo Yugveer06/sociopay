@@ -10,9 +10,6 @@ export {
   type PermissionGuardFallbacks,
 } from './permission-guard'
 
-// Export server-safe guards
-export { ServerElementGuard } from './server-element-guard'
-
 // Re-export permission utilities for convenience
 export {
   usePermissions,

@@ -15,7 +15,6 @@ import {
 import { useState } from 'react'
 
 import { ElementGuard } from '@/components/guards'
-import { ClientOnly } from '@/components/client-only'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -72,52 +71,46 @@ export function DataTable<TData, TValue>({
     <div className="w-full">
       <div className="flex items-center gap-2 py-4">
         {/* User Name Filter - Only for users with list-all permission */}
-        <ClientOnly fallback={<span hidden>Loading...</span>}>
-          <ElementGuard
-            permissions={{ payment: ['list-all'] }}
-            loadingFallback={<span hidden>Loading...</span>}
-            unauthorizedFallback={<span hidden>No access</span>}
-          >
-            <Input
-              placeholder="Filter by user name..."
-              value={
-                (table.getColumn('user_name')?.getFilterValue() as string) ?? ''
-              }
-              onChange={event =>
-                table.getColumn('user_name')?.setFilterValue(event.target.value)
-              }
-              className="max-w-sm"
-            />
-          </ElementGuard>
-        </ClientOnly>
+        <ElementGuard
+          permissions={{ payment: ['list-all'] }}
+          loadingFallback={<span hidden>Loading...</span>}
+          unauthorizedFallback={<span hidden>No access</span>}
+        >
+          <Input
+            placeholder="Filter by user name..."
+            value={
+              (table.getColumn('user_name')?.getFilterValue() as string) ?? ''
+            }
+            onChange={event =>
+              table.getColumn('user_name')?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+        </ElementGuard>
 
         {/* Payment Type Filter - Available to all users who can see payments */}
-        <ClientOnly fallback={<span hidden>Loading...</span>}>
-          <PaymentTypeFilter table={table} />
-        </ClientOnly>
+        <PaymentTypeFilter table={table} />
 
         {/* House Number Filter - Only for users with list-all permission */}
-        <ClientOnly fallback={<span hidden>Loading...</span>}>
-          <ElementGuard
-            permissions={{ payment: ['list-all'] }}
-            loadingFallback={<span hidden>Loading...</span>}
-            unauthorizedFallback={<span hidden>No access</span>}
-          >
-            <Input
-              placeholder="Filter by house number..."
-              value={
-                (table.getColumn('house_number')?.getFilterValue() as string) ??
-                ''
-              }
-              onChange={event =>
-                table
-                  .getColumn('house_number')
-                  ?.setFilterValue(event.target.value)
-              }
-              className="max-w-sm"
-            />
-          </ElementGuard>
-        </ClientOnly>
+        <ElementGuard
+          permissions={{ payment: ['list-all'] }}
+          loadingFallback={<span hidden>Loading...</span>}
+          unauthorizedFallback={<span hidden>No access</span>}
+        >
+          <Input
+            placeholder="Filter by house number..."
+            value={
+              (table.getColumn('house_number')?.getFilterValue() as string) ??
+              ''
+            }
+            onChange={event =>
+              table
+                .getColumn('house_number')
+                ?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+        </ElementGuard>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

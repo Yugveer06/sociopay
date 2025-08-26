@@ -27,8 +27,7 @@ import { dueColumns, MaintenanceDueType } from './due-columns'
 import { ExportDropdown } from './export-dropdown'
 import { MaintenanceDueTable } from './maintenance-due-table'
 import { PaymentAnalytics } from './payment-analytics'
-import { ServerElementGuard } from '@/components/guards'
-import { ClientOnly } from '@/components/client-only'
+import { ElementGuard } from '@/components/guards'
 
 export default async function PaymentsPage() {
   const session = await auth.api.getSession({
@@ -332,61 +331,45 @@ export default async function PaymentsPage() {
               </form>
 
               {
-                <ClientOnly
-                  fallback={
+                <ElementGuard
+                  permissions={{ payment: ['export'] }}
+                  loadingFallback={
                     <Button disabled size="sm">
                       Loading...
                     </Button>
                   }
+                  unauthorizedFallback={<span hidden>No access</span>}
                 >
-                  <ServerElementGuard
-                    permissions={{ payment: ['export'] }}
-                    loadingFallback={
-                      <Button disabled size="sm">
-                        Loading...
-                      </Button>
-                    }
-                    unauthorizedFallback={<span hidden>No access</span>}
-                  >
-                    <ExportDropdown
-                      data={finalPayments.map(payment => ({
-                        id: payment.id,
-                        amount: payment.amount,
-                        paymentDate: payment.payment_date,
-                        userName: payment.user_name,
-                        houseNumber: payment.house_number,
-                        category: payment.category_name,
-                        paymentType: payment.payment_type,
-                        intervalType: payment.interval_type,
-                        periodStart: payment.period_start,
-                        periodEnd: payment.period_end,
-                        notes: payment.notes,
-                        createdAt: payment.created_at,
-                      }))}
-                    />
-                  </ServerElementGuard>
-                </ClientOnly>
+                  <ExportDropdown
+                    data={finalPayments.map(payment => ({
+                      id: payment.id,
+                      amount: payment.amount,
+                      paymentDate: payment.payment_date,
+                      userName: payment.user_name,
+                      houseNumber: payment.house_number,
+                      category: payment.category_name,
+                      paymentType: payment.payment_type,
+                      intervalType: payment.interval_type,
+                      periodStart: payment.period_start,
+                      periodEnd: payment.period_end,
+                      notes: payment.notes,
+                      createdAt: payment.created_at,
+                    }))}
+                  />
+                </ElementGuard>
               }
               {
-                <ClientOnly
-                  fallback={
+                <ElementGuard
+                  permissions={{ payment: ['add'] }}
+                  loadingFallback={
                     <Button disabled size="sm">
                       Loading...
                     </Button>
                   }
+                  unauthorizedFallback={<span hidden>No access</span>}
                 >
-                  <ServerElementGuard
-                    permissions={{ payment: ['add'] }}
-                    loadingFallback={
-                      <Button disabled size="sm">
-                        Loading...
-                      </Button>
-                    }
-                    unauthorizedFallback={<span hidden>No access</span>}
-                  >
-                    <AddPaymentForm users={users} categories={categories} />
-                  </ServerElementGuard>
-                </ClientOnly>
+                  <AddPaymentForm users={users} categories={categories} />
+                </ElementGuard>
               }
             </div>
           </div>
@@ -521,46 +504,35 @@ export default async function PaymentsPage() {
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-4">
-              <ClientOnly
-                fallback={
-                  <Card>
-                    <CardContent className="flex items-center justify-center py-8">
-                      <div className="text-muted-foreground">
-                        Loading analytics...
-                      </div>
-                    </CardContent>
-                  </Card>
-                }
-              >
-                <ServerElementGuard
-                  anyPermissions={[
-                    { payment: ['list-all'] },
-                    { payment: ['list-own'] },
-                  ]}
-                  loadingFallback={
-                    <Card>
-                      <CardContent className="flex items-center justify-center py-8">
-                        <div className="text-muted-foreground">
-                          Loading analytics...
-                        </div>
-                      </CardContent>
-                    </Card>
-                  }
-                  unauthorizedFallback={
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Access Denied</CardTitle>
-                        <CardDescription>
-                          You don&apos;t have permission to view payment
-                          analytics.
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  }
-                >
-                  <PaymentAnalytics payments={finalPayments} />
-                </ServerElementGuard>
-              </ClientOnly>
+              {error && !finalPayments.length ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Error Loading Analytics</CardTitle>
+                    <CardDescription>
+                      There was an error loading payment analytics. Check
+                      console for details.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-muted-foreground py-8 text-center">
+                      <p>Failed to load payment analytics</p>
+                      <p className="mt-2 text-sm">Error: {error}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Analytics</CardTitle>
+                    <CardDescription>
+                      Overview of payment metrics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <PaymentAnalytics payments={finalPayments} />
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </div>
