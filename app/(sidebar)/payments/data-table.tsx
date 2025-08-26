@@ -15,6 +15,7 @@ import {
 import { useState } from 'react'
 
 import { ElementGuard } from '@/components/guards'
+import { ClientOnly } from '@/components/client-only'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -32,6 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ChevronDown } from 'lucide-react'
+import { PaymentTypeFilter } from './payment-type-filter'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -68,10 +70,11 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
-        {
+      <div className="flex items-center gap-2 py-4">
+        {/* User Name Filter - Only for users with list-all permission */}
+        <ClientOnly fallback={<span hidden>Loading...</span>}>
           <ElementGuard
-            requiredRole="admin"
+            permissions={{ payment: ['list-all'] }}
             loadingFallback={<span hidden>Loading...</span>}
             unauthorizedFallback={<span hidden>No access</span>}
           >
@@ -86,7 +89,36 @@ export function DataTable<TData, TValue>({
               className="max-w-sm"
             />
           </ElementGuard>
-        }
+        </ClientOnly>
+
+        {/* Payment Type Filter - Available to all users who can see payments */}
+        <ClientOnly fallback={<span hidden>Loading...</span>}>
+          <PaymentTypeFilter table={table} />
+        </ClientOnly>
+
+        {/* House Number Filter - Only for users with list-all permission */}
+        <ClientOnly fallback={<span hidden>Loading...</span>}>
+          <ElementGuard
+            permissions={{ payment: ['list-all'] }}
+            loadingFallback={<span hidden>Loading...</span>}
+            unauthorizedFallback={<span hidden>No access</span>}
+          >
+            <Input
+              placeholder="Filter by house number..."
+              value={
+                (table.getColumn('house_number')?.getFilterValue() as string) ??
+                ''
+              }
+              onChange={event =>
+                table
+                  .getColumn('house_number')
+                  ?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+          </ElementGuard>
+        </ClientOnly>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">

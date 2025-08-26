@@ -19,6 +19,9 @@ export const addPaymentSchema = z.object({
   paymentDate: z.string().min(1, {
     message: 'Please select a payment date.',
   }),
+  paymentType: z.enum(['cash', 'cheque', 'upi'], {
+    message: 'Please select a payment type.',
+  }),
   paymentDuration: z
     .object({
       from: z.date().optional(),
@@ -46,6 +49,7 @@ export const addPaymentServerSchema = z.object({
     .transform(val => parseFloat(val))
     .pipe(z.number().positive()),
   paymentDate: z.string().min(1),
+  paymentType: z.enum(['cash', 'cheque', 'upi']),
   periodStart: z.string().optional(),
   periodEnd: z.string().optional(),
   intervalType: z

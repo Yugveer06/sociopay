@@ -7,6 +7,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { getServerSession } from '@/lib/server-permissions'
 import { checkServerPermission } from '@/lib/server-permissions'
 
+// Force dynamic rendering since we use headers() for authentication
+export const dynamic = 'force-dynamic'
+
 /**
  * Payment QR Code Page
  * Where digital payments meet analog squares! 📱⬜
