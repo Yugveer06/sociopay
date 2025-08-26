@@ -3,7 +3,12 @@
 import { db } from '@/db/drizzle'
 import { payments } from '@/db/schema'
 import { validatedAction, ActionState } from '@/lib/action-helpers'
-import { addPaymentSchema, AddPaymentData } from '@/lib/zod'
+import {
+  addPaymentSchema,
+  AddPaymentData,
+  editPaymentSchema,
+  EditPaymentData,
+} from '@/lib/zod'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
@@ -88,9 +93,6 @@ async function addPaymentAction(data: AddPaymentData): Promise<ActionState> {
     }
   }
 }
-
-// Export the validated action using the form schema
-export const addPayment = validatedAction(addPaymentSchema, addPaymentAction)
 
 export async function exportPaymentsToCSV() {
   'use server'
@@ -407,3 +409,115 @@ export async function generatePaymentReceipt(
     }
   }
 }
+
+// Edit payment action - Only admins can edit payments 🔧
+async function editPaymentAction(data: EditPaymentData): Promise<ActionState> {
+  try {
+    console.log('Edit payment action received data:', data)
+
+    // Check if user is authenticated
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      return {
+        success: false,
+        message: 'You must be logged in to edit payments',
+      }
+    }
+
+    // Check if user has edit permission
+    const hasPermission = await checkServerPermission({
+      payment: ['edit'],
+    })
+
+    if (!hasPermission.success) {
+      return {
+        success: false,
+        message: 'You do not have permission to edit payments',
+      }
+    }
+
+    // Transform the form data to the correct types for database update
+    const transformedData = {
+      userId: data.userId,
+      categoryId: parseInt(data.categoryId, 10),
+      amount: parseFloat(data.amount),
+      paymentDate: data.paymentDate,
+      paymentType: data.paymentType,
+      periodStart: data.periodStart || null,
+      periodEnd: data.periodEnd || null,
+      intervalType: data.intervalType || null,
+      notes: data.notes || null,
+    }
+
+    console.log('Transformed edit data:', transformedData)
+
+    // Validate the transformed data
+    if (isNaN(transformedData.categoryId) || transformedData.categoryId <= 0) {
+      return {
+        success: false,
+        message: 'Invalid category selected',
+      }
+    }
+
+    if (isNaN(transformedData.amount) || transformedData.amount <= 0) {
+      return {
+        success: false,
+        message: 'Invalid amount entered',
+      }
+    }
+
+    // Check if payment exists
+    const existingPayment = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.id, data.id))
+      .limit(1)
+
+    if (existingPayment.length === 0) {
+      return {
+        success: false,
+        message: 'Payment not found',
+      }
+    }
+
+    // Update the payment
+    await db
+      .update(payments)
+      .set({
+        userId: transformedData.userId,
+        categoryId: transformedData.categoryId,
+        amount: transformedData.amount.toString(),
+        paymentDate: transformedData.paymentDate,
+        paymentType: transformedData.paymentType,
+        periodStart: transformedData.periodStart,
+        periodEnd: transformedData.periodEnd,
+        intervalType: transformedData.intervalType,
+        notes: transformedData.notes,
+      })
+      .where(eq(payments.id, data.id))
+
+    console.log('Payment updated successfully')
+
+    // Revalidate the payments page to reflect changes
+    revalidatePath('/payments')
+
+    return {
+      success: true,
+      message: 'Payment updated successfully! 🎉',
+    }
+  } catch (error) {
+    console.error('Edit payment error:', error)
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : 'Failed to update payment',
+    }
+  }
+}
+
+// Export validated actions
+export const addPayment = validatedAction(addPaymentSchema, addPaymentAction)
+export const editPayment = validatedAction(editPaymentSchema, editPaymentAction)

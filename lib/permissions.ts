@@ -9,6 +9,7 @@ export const statement = {
   dashboard: ['view'],
   payment: [
     'add',
+    'edit',
     'list-own',
     'list-all',
     'delete',
@@ -45,6 +46,7 @@ export const admin = ac.newRole({
   dashboard: ['view'],
   payment: [
     'add',
+    'edit',
     'list-all',
     'list-own',
     'delete',

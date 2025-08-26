@@ -18,12 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Receipt, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Receipt, Trash2, Edit } from 'lucide-react'
 import jsPDF from 'jspdf'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { deletePayment, generatePaymentReceipt } from './actions'
 import { Payment } from './columns'
+import { EditPaymentForm } from './edit-payment-form'
 import { ElementGuard } from '@/components/guards'
 import { ClientOnly } from '@/components/client-only'
 
@@ -44,9 +45,11 @@ type ReceiptData = {
 
 interface RowActionsProps {
   payment: Payment
+  users: Array<{ id: string; name: string; houseNumber: string }>
+  categories: Array<{ id: number; name: string }>
 }
 
-export function RowActions({ payment }: RowActionsProps) {
+export function RowActions({ payment, users, categories }: RowActionsProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -287,6 +290,26 @@ export function RowActions({ payment }: RowActionsProps) {
             <Receipt className="mr-2 h-4 w-4" />
             Generate Receipt
           </DropdownMenuItem>
+          <ClientOnly fallback={<span hidden>Loading...</span>}>
+            <ElementGuard
+              permissions={{ payment: ['edit'] }}
+              loadingFallback={<span hidden>Loading...</span>}
+              unauthorizedFallback={<span hidden>No Access!</span>}
+            >
+              <DropdownMenuSeparator />
+              <EditPaymentForm
+                payment={payment}
+                users={users}
+                categories={categories}
+                trigger={
+                  <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Payment
+                  </DropdownMenuItem>
+                }
+              />
+            </ElementGuard>
+          </ClientOnly>
           <ClientOnly fallback={<span hidden>Loading...</span>}>
             <ElementGuard
               permissions={{ payment: ['delete'] }}

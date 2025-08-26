@@ -21,8 +21,8 @@ import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { AddPaymentForm } from './add-payment-form'
-import { columns, Payment } from './columns'
-import { DataTable } from './data-table'
+import { Payment } from './columns'
+import { PaymentsDataTable } from './payments-data-table'
 import { dueColumns, MaintenanceDueType } from './due-columns'
 import { ExportDropdown } from './export-dropdown'
 import { MaintenanceDueTable } from './maintenance-due-table'
@@ -465,7 +465,11 @@ export default async function PaymentsPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <DataTable columns={columns} data={finalPayments} />
+                    <PaymentsDataTable
+                      payments={finalPayments}
+                      users={users}
+                      categories={categories}
+                    />
                   </CardContent>
                 </Card>
               )}
