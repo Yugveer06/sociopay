@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authClient } from '@/lib/auth-client'
+import { houseNumber as houseNumberSchema } from '@/lib/zod/common'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -43,10 +44,15 @@ export function UpdateUserForm({ user }: UpdateUserFormProps) {
       return
     }
 
-    // Validate house number format if provided
-    if (houseNumber && !/^[A-Z]-\d{1,2}$/.test(houseNumber)) {
-      toast.error('House number must be in format A-1, B-9, C-23, etc.')
-      return
+    // Validate house number format if provided using shared Zod schema
+    if (houseNumber) {
+      const parsed = houseNumberSchema.safeParse(houseNumber)
+      if (!parsed.success) {
+        toast.error(
+          'House number must be valid (examples: A-1, A-10, 1-A, 10-A)'
+        )
+        return
+      }
     }
 
     setIsLoading(true)

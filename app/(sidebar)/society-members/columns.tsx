@@ -13,13 +13,14 @@ import {
 } from '@tabler/icons-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
+import { houseNumber } from '@/lib/zod/common'
 import { RowActions } from './row-actions'
 
 export const SocietyMemberSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
-  houseNumber: z.string(),
+  houseNumber: houseNumber,
   phone: z.string(),
   role: z.string().nullable(),
   houseOwnership: z.string().nullable(),

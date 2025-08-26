@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { ChevronsUpDown, Clock, AlertTriangle } from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
 import { z } from 'zod'
+import { houseNumber } from '@/lib/zod/common'
 
 export const MaintenanceDueSchema = z.object({
   userId: z.string(),
   userName: z.string(),
-  houseNumber: z.string(),
+  houseNumber: houseNumber,
   lastPaidPeriodEnd: z.string().nullable(),
   overdueDays: z.number(),
   overdueMonths: z.number(),
