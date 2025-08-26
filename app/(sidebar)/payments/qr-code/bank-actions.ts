@@ -3,7 +3,7 @@
 import { db } from '@/db/drizzle'
 import { bankDetails } from '@/db/schema'
 import { validatedAction, ActionState } from '@/lib/action-helpers'
-import { insertBankDetailsSchema } from '@/db/schema/bank-details'
+import { insertBankDetailsSchema } from '@/lib/zod/bank-details'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Copy, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
-import type { BankDetails } from '@/db/schema/bank-details'
+import type { BankDetails } from '@/lib/zod/bank-details'
 
 interface BankDetailsDisplayProps {
   bankData: BankDetails | null

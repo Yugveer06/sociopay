@@ -3,7 +3,7 @@
 import { db } from '@/db/drizzle'
 import { qrCodes } from '@/db/schema'
 import { validatedAction, ActionState } from '@/lib/action-helpers'
-import { insertQrCodeSchema } from '@/db/schema/qr-codes'
+import { insertQrCodeSchema } from '@/lib/zod/qr-codes'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'

@@ -8,8 +8,8 @@ import { BankDetailsForm } from './bank-details-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import type { QrCode } from '@/db/schema/qr-codes'
-import type { BankDetails } from '@/db/schema/bank-details'
+import type { QrCode } from '@/lib/zod/qr-codes'
+import type { BankDetails } from '@/lib/zod/bank-details'
 
 interface PaymentTabsProps {
   qrData: QrCode | null

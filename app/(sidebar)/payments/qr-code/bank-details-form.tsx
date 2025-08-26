@@ -3,8 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { insertBankDetailsSchema } from '@/db/schema/bank-details'
-import type { NewBankDetails, BankDetails } from '@/db/schema/bank-details'
+import { insertBankDetailsSchema } from '@/lib/zod/bank-details'
+import type { NewBankDetails, BankDetails } from '@/lib/zod/bank-details'
 import {
   createBankDetailsAction,
   updateBankDetailsAction,
