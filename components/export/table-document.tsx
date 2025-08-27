@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     padding: 15,
     fontFamily: 'Helvetica',
-    fontSize: 10,
+    fontSize: 9,
   },
   header: {
     backgroundColor: '#3b82f6',
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 4,
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   infoText: {
-    fontSize: 9,
+    fontSize: 8,
     color: '#64748b',
   },
   table: {
@@ -52,6 +52,9 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     width: '100%',
+    // keep rows single-layer; let cells shrink instead of wrapping the row
+    flexWrap: 'nowrap',
+    alignItems: 'stretch',
   },
   tableHeader: {
     backgroundColor: '#2980b9',
@@ -65,40 +68,48 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderColor: '#e2e8f0',
     padding: 6,
-    fontSize: 9,
+    fontSize: 8,
     minHeight: 25,
     justifyContent: 'center',
+    // allow cells to shrink instead of forcing overflow
+    flexShrink: 1,
   },
+  // Use flexGrow/flexShrink instead of fixed minWidth so columns scale to available space
   tableCellNarrow: {
-    flex: 1, // Smallest columns
-    minWidth: 60,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '8%',
   },
   tableCellMedium: {
-    flex: 2, // Medium columns
-    minWidth: 80,
+    flexGrow: 2,
+    flexShrink: 1,
+    flexBasis: '12%',
   },
   tableCellWide: {
-    flex: 3, // Wide columns
-    minWidth: 120,
+    flexGrow: 3,
+    flexShrink: 1,
+    flexBasis: '18%',
   },
   tableCellExtraWide: {
-    flex: 4, // Extra wide for descriptions
-    minWidth: 150,
+    flexGrow: 5,
+    flexShrink: 1,
+    flexBasis: '28%',
   },
   tableCellText: {
     textAlign: 'left',
-    lineHeight: 1.2,
-    wordWrap: 'break-word',
+    lineHeight: 1.1,
+    // ensure long strings wrap rather than push layout
+    flexWrap: 'wrap',
   },
   tableCellTextCenter: {
     textAlign: 'center',
     lineHeight: 1.2,
-    wordWrap: 'break-word',
+    flexWrap: 'wrap',
   },
   tableCellTextRight: {
     textAlign: 'right',
     lineHeight: 1.2,
-    wordWrap: 'break-word',
+    flexWrap: 'wrap',
   },
   alternateRow: {
     backgroundColor: '#f5f5f5',
@@ -113,7 +124,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   footerText: {
-    fontSize: 8,
+    fontSize: 7,
     color: '#94a3b8',
     fontStyle: 'italic',
   },
@@ -161,6 +172,12 @@ export const TableDocument = ({
   // Use provided columns or extract from first data item
   const tableColumns = columns || (data.length > 0 ? Object.keys(data[0]) : [])
 
+  // Remove `createdAt` (or variants like "Created At" / "created_at") from PDF output
+  const printableColumns = tableColumns.filter(col => {
+    const key = col.toLowerCase().replace(/\s+/g, '').replace(/_/g, '')
+    return key !== 'createdat'
+  })
+
   // Determine column width based on column name and content
   const getColumnStyle = (columnName: string) => {
     const lowerName = columnName.toLowerCase()
@@ -184,14 +201,17 @@ export const TableDocument = ({
     ) {
       return [styles.tableCell, styles.tableCellMedium]
     }
-    // Extra wide columns (flex: 4) - descriptions, purpose, category
+    // Extra wide columns (flex: 4) - descriptions, purpose, details
     else if (
       lowerName.includes('description') ||
       lowerName.includes('purpose') ||
-      lowerName.includes('category') ||
       lowerName.includes('details')
     ) {
       return [styles.tableCell, styles.tableCellExtraWide]
+    }
+    // Category tends to be shorter; use medium width to avoid large whitespace
+    else if (lowerName === 'category') {
+      return [styles.tableCell, styles.tableCellMedium]
     }
     // Wide columns (flex: 3) - names, member info
     else if (
@@ -241,9 +261,18 @@ export const TableDocument = ({
 
   // Convert data to string values for display
   const formatCellValue = (
-    value: string | number | null | undefined
+    value: string | number | null | undefined,
+    columnName?: string
   ): string => {
     if (value === null || value === undefined) return ''
+
+    // Trim long IDs for PDF readability
+    if (columnName && columnName.toLowerCase().includes('id')) {
+      const s = String(value)
+      if (s.length > 8) return s.slice(0, 8) + '...'
+      return s
+    }
+
     if (typeof value === 'number') {
       // Check if it looks like a currency amount
       if (value % 1 !== 0 && value > 0) {
@@ -254,6 +283,21 @@ export const TableDocument = ({
       }
     }
     return String(value)
+  }
+
+  // Insert soft break points into long tokens to allow wrapping in PDF
+  const insertSoftBreaks = (text: string, maxChunk = 12) => {
+    // If there's whitespace, leave it — wrapping works naturally
+    if (text.includes(' ')) return text
+
+    // Insert zero-width space (U+200B) every maxChunk characters
+    const zwsp = '\u200B'
+    let result = ''
+    for (let i = 0; i < text.length; i += maxChunk) {
+      result += text.slice(i, i + maxChunk)
+      if (i + maxChunk < text.length) result += zwsp
+    }
+    return result
   }
 
   return (
@@ -280,7 +324,7 @@ export const TableDocument = ({
         <View style={styles.table}>
           {/* Table Header */}
           <View style={[styles.tableRow, styles.tableHeader]}>
-            {tableColumns.map((column, index) => (
+            {printableColumns.map((column, index) => (
               <View key={index} style={getColumnStyle(column)}>
                 <Text style={styles.tableCellText}>
                   {column
@@ -300,10 +344,10 @@ export const TableDocument = ({
                 rowIndex % 2 === 1 ? styles.alternateRow : {},
               ]}
             >
-              {tableColumns.map((column, colIndex) => (
+              {printableColumns.map((column, colIndex) => (
                 <View key={colIndex} style={getColumnStyle(column)}>
                   <Text style={getTextStyle(column, row[column])}>
-                    {formatCellValue(row[column])}
+                    {insertSoftBreaks(formatCellValue(row[column], column))}
                   </Text>
                 </View>
               ))}
