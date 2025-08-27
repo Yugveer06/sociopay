@@ -7,6 +7,7 @@ export * from './funds'
 export * from './kyc-documents'
 export * from './qr-codes'
 export * from './bank-details'
+export * from './notifications'
 
 // Import for cross-references
 import { relations } from 'drizzle-orm'
@@ -15,6 +16,7 @@ import { payments } from './payments'
 import { expenses } from './expenses'
 import { kycDocuments } from './kyc-documents'
 import { paymentCategories, expenseCategories } from './categories'
+import { notifications } from './notifications'
 
 // Complete the user relations with payments
 export const userPaymentRelations = relations(user, ({ many }) => ({
@@ -47,4 +49,9 @@ export const kycDocumentRelations = relations(kycDocuments, ({ one }) => ({
     fields: [kycDocuments.uploadedBy],
     references: [user.id],
   }),
+}))
+
+// User notifications relation
+export const userNotificationRelations = relations(user, ({ many }) => ({
+  notifications: many(notifications),
 }))
