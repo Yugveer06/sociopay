@@ -149,7 +149,7 @@ export const TableDocument = ({
   data,
   columns,
   companyName = 'SUKOON',
-  companySubtitle = 'C.O.P. HOUSING SOC LTD',
+  companySubtitle = 'CO.OP. HOUSING SOC LTD',
 }: TableDocumentProps) => {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-IN', {

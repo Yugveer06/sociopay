@@ -177,8 +177,8 @@ interface PaymentReceiptProps {
 
 export const PaymentReceipt = ({
   data,
-  companyName = 'SUKOON',
-  companySubtitle = 'C.O.P. HOUSING SOC LTD',
+  companyName = 'SUKOON - 3 & 4',
+  companySubtitle = 'CO.OP. HOUSING SOC LTD',
 }: PaymentReceiptProps) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -220,17 +220,19 @@ export const PaymentReceipt = ({
       <Page size="A4" style={styles.page}>
         {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>PAYMENT RECEIPT</Text>
-          <Text style={styles.headerSubtitle}>{companyName}</Text>
-          <Text style={styles.headerSubtitle}>{companySubtitle}</Text>
+          <Text style={styles.headerTitle}>{companyName}</Text>
+          <Text style={styles.headerTitle}>{companySubtitle}</Text>
           <Text style={[styles.headerSubtitle, { fontSize: 8, marginTop: 3 }]}>
-            BHI FATEHWADI BUS STOP, JULLAPURA SARKHEJ ROAD
+            B/H FATEHWADI BUS STOP, JUHAPURA-SARKHEJ ROAD,
           </Text>
           <Text style={[styles.headerSubtitle, { fontSize: 8 }]}>
             VEJALPUR, AHMEDABAD-380051 (GUJARAT)
           </Text>
           <Text style={[styles.headerSubtitle, { fontSize: 8 }]}>
-            Reg. No. Gr. - 19967 Dt.: 18-06-2001
+            Reg. No. Gh. - 19967 Dt.: 18-06-2001
+          </Text>
+          <Text style={[styles.headerSubtitle, { marginTop: 8, fontSize: 12 }]}>
+            PAYMENT RECEIPT
           </Text>
         </View>
 
@@ -340,13 +342,16 @@ export const PaymentReceipt = ({
             This is a computer generated receipt. No signature required.
           </Text>
           <Text style={styles.footerText}>
-            Online and cheque are subject to bank clearance
+            Online and cheque are subject to bank clearance.
           </Text>
           <Text style={styles.footerText}>
             Generated on: {formatDateTime(new Date().toISOString())}
           </Text>
           <Text style={styles.footerText}>
             {companyName} - {companySubtitle}
+          </Text>
+          <Text style={styles.footerText}>
+            Developed and Designed by Zaid & Yugveer.
           </Text>
         </View>
       </Page>

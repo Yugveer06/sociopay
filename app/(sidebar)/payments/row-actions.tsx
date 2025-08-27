@@ -41,7 +41,7 @@ export function RowActions({ payment, users, categories }: RowActionsProps) {
 
   const { downloadReceipt } = useReceiptGenerator({
     companyName: 'SUKOON',
-    companySubtitle: 'C.O.P. HOUSING SOC LTD',
+    companySubtitle: 'CO.OP. HOUSING SOC LTD',
   })
 
   const handleGenerateReceipt = async () => {
@@ -127,7 +127,7 @@ export function RowActions({ payment, users, categories }: RowActionsProps) {
               </DropdownMenuItem>
             }
             companyName="SUKOON"
-            companySubtitle="C.O.P. HOUSING SOC LTD"
+            companySubtitle="CO.OP. HOUSING SOC LTD"
           />
           <ElementGuard
             permissions={{ payment: ['edit'] }}

@@ -36,7 +36,7 @@ type ExpenseData = {
 export function ExportDropdown({ data: _ }: ExportDropdownProps) {
   const { exportToPDF } = useTableExport({
     companyName: 'SUKOON',
-    companySubtitle: 'C.O.P. HOUSING SOC LTD',
+    companySubtitle: 'CO.OP. HOUSING SOC LTD',
   })
   const handleCSVExport = async () => {
     try {

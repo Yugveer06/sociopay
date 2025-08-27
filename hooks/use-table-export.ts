@@ -34,7 +34,7 @@ export const useTableExport = (options: UseTableExportOptions = {}) => {
         data,
         columns,
         companyName: options.companyName || 'SUKOON',
-        companySubtitle: options.companySubtitle || 'C.O.P. HOUSING SOC LTD',
+        companySubtitle: options.companySubtitle || 'CO.OP. HOUSING SOC LTD',
       })
 
       // Generate the PDF blob
