@@ -316,15 +316,24 @@ export const exportMembers = validatedAction(
       const pdfExportData =
         data.format === 'pdf'
           ? exportData.map(member => {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const {
-                ID: _ID,
-                'Ban Reason': _banReason,
-                'Ban Expires': _banExpires,
-                'Email Verified': _emailVerified,
-                ...filteredMember
-              } = member
-              return filteredMember
+              // Build a new object excluding these keys to avoid unused-variable warnings
+              const excluded = new Set([
+                'ID',
+                'Ban Reason',
+                'Ban Expires',
+                'Email Verified',
+              ])
+              const filtered = Object.keys(member).reduce(
+                (acc, key) => {
+                  if (excluded.has(key)) return acc
+                  // use a safe typed access for dynamic keys
+                  const m = member as Record<string, unknown>
+                  acc[key] = m[key]
+                  return acc
+                },
+                {} as Record<string, unknown>
+              )
+              return filtered
             })
           : exportData
 

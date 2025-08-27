@@ -88,9 +88,6 @@ export function DataTable<TData, TValue>({
           />
         </ElementGuard>
 
-        {/* Payment Type Filter - Available to all users who can see payments */}
-        <PaymentTypeFilter table={table} />
-
         {/* House Number Filter - Only for users with list-all permission */}
         <ElementGuard
           permissions={{ payment: ['list-all'] }}
@@ -111,6 +108,9 @@ export function DataTable<TData, TValue>({
             className="max-w-sm"
           />
         </ElementGuard>
+
+        {/* Payment Type Filter - Available to all users who can see payments */}
+        <PaymentTypeFilter table={table} />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

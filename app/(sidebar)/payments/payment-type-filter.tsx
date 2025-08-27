@@ -54,7 +54,7 @@ export function PaymentTypeFilter<TData>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
+        <Button variant="outline" size="sm" className="h-8">
           <Filter className="mr-2 h-4 w-4" />
           Payment Type
           {hasActiveFilters && (
