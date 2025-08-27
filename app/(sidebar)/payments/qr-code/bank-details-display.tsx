@@ -171,7 +171,7 @@ export function BankDetailsDisplay({ bankData }: BankDetailsDisplayProps) {
             <p>1. Use these details for bank transfers or cheques</p>
             <p>2. Include your house number in the payment reference</p>
             <p>3. Keep the payment receipt for your records</p>
-            <p>4. Contact admin after making the payment</p>
+            <p>4. Contact management after making the payment</p>
           </div>
         </div>
 
