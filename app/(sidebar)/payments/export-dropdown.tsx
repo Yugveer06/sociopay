@@ -10,6 +10,7 @@ import {
 import { Download, File, FileText } from 'lucide-react'
 import { exportPaymentsToCSV, exportPaymentsToPDF } from './actions'
 import { toast } from 'sonner'
+import { useTableExport } from '@/hooks/use-table-export'
 
 interface ExportDropdownProps {
   data: Array<{
@@ -44,6 +45,10 @@ type PaymentData = {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function ExportDropdown({ data: _ }: ExportDropdownProps) {
+  const { exportToPDF } = useTableExport({
+    companyName: 'SUKOON',
+    companySubtitle: 'C.O.P. HOUSING SOC LTD',
+  })
   const handleCSVExport = async () => {
     try {
       const result = await exportPaymentsToCSV()
@@ -75,81 +80,33 @@ export function ExportDropdown({ data: _ }: ExportDropdownProps) {
       const result = await exportPaymentsToPDF()
 
       if (result.success && result.data) {
-        // Import jsPDF dynamically (client-side only)
-        const { jsPDF } = await import('jspdf')
-        const autoTable = (await import('jspdf-autotable')).default
+        // Use react-pdf implementation
+        const paymentsData = (result.data as PaymentData[]).map(payment => ({
+          ID: payment.id,
+          Amount: payment.amount,
+          'Payment Date': payment.paymentDate || '',
+          'User Name': payment.userName,
+          'House Number': payment.houseNumber,
+          Category: payment.category,
+          'Interval Type': payment.intervalType || '',
+          'Period Start': payment.periodStart || '',
+          'Period End': payment.periodEnd || '',
+          Notes: payment.notes || '',
+          'Created At': payment.createdAt,
+        }))
 
-        const doc = new jsPDF()
-
-        // Add title
-        doc.setFontSize(16)
-        doc.text('Maintenance Payments Report', 14, 15)
-
-        // Add generation date
-        doc.setFontSize(10)
-        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 25)
-
-        // Prepare table data
-        const tableData = (result.data as PaymentData[]).map(
-          (payment: PaymentData) => [
-            payment.id,
-            `₹${payment.amount.toFixed(2)}`,
-            payment.paymentDate || '',
-            payment.userName,
-            payment.houseNumber,
-            payment.category,
-            payment.intervalType || '',
-            payment.notes || '',
-          ]
+        await exportToPDF(
+          paymentsData,
+          'maintenance-payments-report',
+          'Maintenance Payments Report',
+          'Complete payment records with details'
         )
-
-        // Add table
-        autoTable(doc, {
-          head: [
-            [
-              'ID',
-              'Amount',
-              'Date',
-              'User',
-              'House',
-              'Category',
-              'Type',
-              'Notes',
-            ],
-          ],
-          body: tableData,
-          startY: 35,
-          styles: {
-            fontSize: 8,
-            cellPadding: 2,
-          },
-          headStyles: {
-            fillColor: [41, 128, 185],
-            textColor: 255,
-            fontStyle: 'bold',
-          },
-          columnStyles: {
-            0: { cellWidth: 20 }, // ID
-            1: { cellWidth: 25 }, // Amount
-            2: { cellWidth: 25 }, // Date
-            3: { cellWidth: 30 }, // User
-            4: { cellWidth: 20 }, // House
-            5: { cellWidth: 25 }, // Category
-            6: { cellWidth: 20 }, // Type
-            7: { cellWidth: 35 }, // Notes
-          },
-          margin: { left: 14, right: 14 },
-        })
-
-        // Save the PDF
-        doc.save(result.filename || 'maintenance-payments.pdf')
-        toast.success('PDF file downloaded successfully')
       } else {
-        toast.error(result.message || 'Failed to export PDF')
+        toast.error(result.message || 'Export failed')
       }
     } catch (error) {
-      console.error('PDF export error:', error)
-      toast.error('Failed to export PDF file')
+      console.error('Export error:', error)
+      toast.error('PDF export failed')
     }
   }
 
