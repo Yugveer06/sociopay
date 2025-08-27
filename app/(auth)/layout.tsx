@@ -3,6 +3,7 @@ import { DotBackground } from '@/components/ui/dot-background'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
+import DeveloperFooter from '@/components/developer-footer'
 
 export default async function SidebarLayout({
   children,
@@ -23,6 +24,7 @@ export default async function SidebarLayout({
       <div className="relative flex min-w-screen items-center justify-center">
         {children}
       </div>
+      <DeveloperFooter />
     </DotBackground>
   )
 }

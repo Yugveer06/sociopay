@@ -12,6 +12,7 @@ import RotatingText from '@/components/ui/rotating-text'
 import Link from 'next/link'
 import { useSession } from '@/lib/auth-client'
 import ThemeDropdown from '@/components/theme-dropdown'
+import DeveloperFooter from '@/components/developer-footer'
 
 export default function Home() {
   const { data: session } = useSession()
@@ -78,6 +79,7 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+      <DeveloperFooter />
     </DotBackground>
   )
 }

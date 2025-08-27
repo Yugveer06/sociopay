@@ -36,6 +36,7 @@ import {
   Ban,
   Info,
 } from 'lucide-react'
+import DeveloperFooter from '@/components/developer-footer'
 
 /**
  * Example component protected by HOC
@@ -575,6 +576,7 @@ function PermissionGuardExamplePage() {
           </div>
         </CardContent>
       </Card>
+      <DeveloperFooter />
     </div>
   )
 }
