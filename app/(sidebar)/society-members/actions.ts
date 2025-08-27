@@ -2,10 +2,12 @@
 
 import { db } from '@/db/drizzle'
 import { user } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
+import { validatedAction } from '@/lib/action-helpers'
+import { z } from 'zod'
 
 type ActionResult = {
   success: boolean
@@ -239,3 +241,163 @@ export async function editSocietyMember(
     }
   }
 }
+
+const exportMembersSchema = z.object({
+  format: z.enum(['csv', 'json', 'pdf']).default('csv'),
+})
+
+export const exportMembers = validatedAction(
+  exportMembersSchema,
+  async data => {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      throw new Error('Unauthorized')
+    }
+
+    // Check if the current user has admin privileges
+    const currentUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1)
+
+    if (
+      !currentUser[0] ||
+      !currentUser[0].role ||
+      !['admin'].includes(currentUser[0].role.toLowerCase())
+    ) {
+      throw new Error('Insufficient permissions to export members data')
+    }
+
+    try {
+      // Fetch all members with detailed information
+      const result = await db
+        .select({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          houseNumber: user.houseNumber,
+          phone: user.phone,
+          role: user.role,
+          houseOwnership: user.houseOwnership,
+          banned: user.banned,
+          banReason: user.banReason,
+          banExpires: user.banExpires,
+          emailVerified: user.emailVerified,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        })
+        .from(user)
+        .orderBy(desc(user.createdAt))
+
+      // Transform data for export
+      const exportData = result.map(member => ({
+        ID: member.id,
+        Name: member.name || 'N/A',
+        Email: member.email,
+        'House Number': member.houseNumber || 'N/A',
+        Phone: member.phone || 'N/A',
+        Role: member.role || 'user',
+        'House Ownership': member.houseOwnership || 'N/A',
+        'Account Status': member.banned ? 'Banned' : 'Active',
+        'Ban Reason': member.banReason || 'N/A',
+        'Ban Expires': member.banExpires
+          ? member.banExpires.toISOString()
+          : 'N/A',
+        'Email Verified': member.emailVerified ? 'Yes' : 'No',
+        'Member Since': member.createdAt.toISOString().split('T')[0],
+        'Last Updated': member.updatedAt?.toISOString().split('T')[0] || 'N/A',
+      }))
+
+      // For PDF export, create a filtered version without certain columns
+      const pdfExportData =
+        data.format === 'pdf'
+          ? exportData.map(member => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const {
+                ID: _ID,
+                'Ban Reason': _banReason,
+                'Ban Expires': _banExpires,
+                'Email Verified': _emailVerified,
+                ...filteredMember
+              } = member
+              return filteredMember
+            })
+          : exportData
+
+      if (data.format === 'json') {
+        return {
+          success: true,
+          message: 'JSON export completed successfully',
+          data: {
+            content: JSON.stringify(exportData, null, 2),
+            filename: `society-members-${new Date().toISOString().split('T')[0]}.json`,
+            contentType: 'application/json',
+          },
+        }
+      } else if (data.format === 'pdf') {
+        // For PDF, we'll return the filtered data and let the client handle PDF generation
+        return {
+          success: true,
+          message: 'PDF data prepared successfully',
+          data: {
+            content: JSON.stringify(pdfExportData),
+            filename: `society-members-${new Date().toISOString().split('T')[0]}.pdf`,
+            contentType: 'application/pdf',
+          },
+        }
+      } else {
+        // CSV format - because spreadsheets are still the universal language of data 📊
+        if (exportData.length === 0) {
+          return {
+            success: true,
+            message: 'CSV export completed (no data found)',
+            data: {
+              content: '',
+              filename: `society-members-${new Date().toISOString().split('T')[0]}.csv`,
+              contentType: 'text/csv',
+            },
+          }
+        }
+
+        const headers = Object.keys(exportData[0])
+        const csvContent = [
+          headers.join(','),
+          ...exportData.map(row =>
+            headers
+              .map(header => {
+                const value = row[header as keyof typeof row]
+                // Escape quotes and wrap in quotes if contains comma, quote, or newline
+                if (
+                  typeof value === 'string' &&
+                  (value.includes(',') ||
+                    value.includes('"') ||
+                    value.includes('\n'))
+                ) {
+                  return `"${value.replace(/"/g, '""')}"`
+                }
+                return value
+              })
+              .join(',')
+          ),
+        ].join('\n')
+
+        return {
+          success: true,
+          message: 'CSV export completed successfully',
+          data: {
+            content: csvContent,
+            filename: `society-members-${new Date().toISOString().split('T')[0]}.csv`,
+            contentType: 'text/csv',
+          },
+        }
+      }
+    } catch (error) {
+      console.error('Export error:', error)
+      throw new Error('Failed to export members data')
+    }
+  }
+)

@@ -17,6 +17,7 @@ import { redirect } from 'next/navigation'
 import { columns, SocietyMember } from './columns'
 import { DataTable } from './data-table'
 import { PageGuard } from '@/components/guards'
+import { ExportMembersButton } from './export-button'
 
 export default async function SocietyMembersPage() {
   const session = await auth.api.getSession({
@@ -109,6 +110,7 @@ export default async function SocietyMembersPage() {
                 </p>
               </div>
               <div className="flex gap-2">
+                <ExportMembersButton />
                 <Button variant="outline" size="sm" onClick={refreshData}>
                   <IconRefresh className="mr-2 h-4 w-4" />
                   Refresh

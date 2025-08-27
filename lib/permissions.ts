@@ -30,7 +30,7 @@ export const statement = {
     'delete-own',
     'delete-all',
   ],
-  members: ['list', 'edit', 'ban', 'unban'],
+  members: ['list', 'edit', 'ban', 'unban', 'export'],
   qrCode: ['view', 'delete'], // Users can view QR, admins can delete
 } as const
 
@@ -63,7 +63,7 @@ export const admin = ac.newRole({
     'download-all',
     'delete-all',
   ],
-  members: ['list', 'edit', 'ban', 'unban'],
+  members: ['list', 'edit', 'ban', 'unban', 'export'],
   qrCode: ['view', 'delete'], // Full QR code management for admins 🎯
 })
 
