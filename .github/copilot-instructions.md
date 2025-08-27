@@ -17,6 +17,7 @@
 
 ## Commands
 
+- Always use pnpm for installing dependencies and running scripts (yes, pnpm only — it's fast and tidy).
 - `pnpm db:push` - Push schema changes
 - `pnpm auth:generate` - Generate auth types
 
