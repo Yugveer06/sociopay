@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   header: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#c96442',
     padding: 20,
     marginBottom: 20,
     borderRadius: 4,
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     fontWeight: 'normal',
   },
   statusPaid: {
-    color: '#22c55e',
+    color: '#00c951',
     fontWeight: 'bold',
   },
   sectionHeader: {
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     color: '#1e293b',
   },
   amountSection: {
-    backgroundColor: '#22c55e',
+    backgroundColor: '#00c951',
     padding: 15,
     marginVertical: 20,
     borderRadius: 4,
