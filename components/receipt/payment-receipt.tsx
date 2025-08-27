@@ -184,7 +184,7 @@ export const PaymentReceipt = ({
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      currencyDisplay: 'symbol',
+      currencyDisplay: 'code',
     }).format(amount)
   }
 
