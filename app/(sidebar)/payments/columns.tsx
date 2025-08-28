@@ -138,6 +138,44 @@ export function createColumns(
       },
     },
     {
+      accessorKey: 'period_start',
+      header: 'Period Start',
+      cell: ({ row }) => {
+        const periodStart = row.getValue('period_start') as string
+        if (!periodStart) return <div className="text-muted-foreground">-</div>
+
+        const startDate = new Date(periodStart)
+        return (
+          <div className="text-sm">
+            {startDate.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'period_end',
+      header: 'Period End',
+      cell: ({ row }) => {
+        const periodEnd = row.getValue('period_end') as string
+        if (!periodEnd) return <div className="text-muted-foreground">-</div>
+
+        const endDate = new Date(periodEnd)
+        return (
+          <div className="text-sm">
+            {endDate.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </div>
+        )
+      },
+    },
+    {
       accessorKey: 'category_name',
       header: 'Category',
       cell: ({ row }) => {
