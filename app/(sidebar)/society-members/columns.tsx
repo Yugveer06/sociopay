@@ -137,6 +137,31 @@ export const columns: ColumnDef<SocietyMember>[] = [
     },
   },
   {
+    accessorKey: 'houseOwnership',
+    header: 'House Ownership',
+    cell: ({ row }) => {
+      const ownership = row.getValue('houseOwnership') as string | null
+      if (!ownership) {
+        return <Badge variant="outline">Unknown</Badge>
+      }
+
+      const ownershipColors: Record<
+        string,
+        'default' | 'secondary' | 'destructive' | 'outline'
+      > = {
+        owner: 'default',
+        tenant: 'secondary',
+        renter: 'secondary',
+      }
+
+      return (
+        <Badge variant={ownershipColors[ownership.toLowerCase()] || 'outline'}>
+          {ownership.charAt(0).toUpperCase() + ownership.slice(1)}
+        </Badge>
+      )
+    },
+  },
+  {
     accessorKey: 'banned',
     header: 'Status',
     cell: ({ row }) => {
