@@ -2,9 +2,6 @@
 
 import { ReactNode, useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Shield, AlertTriangle, Home, ArrowLeft } from 'lucide-react'
 import { usePermissions, type PermissionCheck } from '@/hooks/use-permissions'
 
 // Component-level fallback UIs
@@ -53,124 +50,6 @@ export interface PermissionGuardProps {
   /** Whether to show the back button on unauthorized access */
   showBackButton?: boolean
 }
-
-/**
- * Default loading component
- */
-const DefaultLoading = ({ fullPage }: { fullPage?: boolean }) => (
-  <div
-    className={`flex items-center justify-center ${
-      fullPage ? 'min-h-screen' : 'p-8'
-    }`}
-  >
-    <div className="flex flex-col items-center space-y-4">
-      <Shield className="text-muted-foreground h-8 w-8 animate-pulse" />
-      <p className="text-muted-foreground text-sm">Checking permissions...</p>
-    </div>
-  </div>
-)
-
-/**
- * Default unauthorized component
- */
-const DefaultUnauthorized = ({
-  fullPage,
-  showBackButton,
-  onBack,
-}: {
-  fullPage?: boolean
-  showBackButton?: boolean
-  onBack?: () => void
-}) => (
-  <div
-    className={`flex items-center justify-center ${
-      fullPage ? 'bg-background min-h-screen' : 'p-8'
-    }`}
-  >
-    <div className="max-w-md space-y-6 text-center">
-      <div className="flex justify-center">
-        <div className="bg-destructive/10 rounded-full p-4">
-          <AlertTriangle className="text-destructive h-8 w-8" />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold">Access Denied</h2>
-        <p className="text-muted-foreground">
-          You don&apos;t have permission to access this{' '}
-          {fullPage ? 'page' : 'feature'}.
-          {fullPage &&
-            ' Contact your administrator if you believe this is an error.'}
-        </p>
-      </div>
-
-      <div className="flex justify-center gap-3">
-        {showBackButton && (
-          <Button variant="outline" onClick={onBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Back
-          </Button>
-        )}
-        {fullPage && (
-          <Button asChild>
-            <a href="/dashboard">
-              <Home className="mr-2 h-4 w-4" />
-              Go to Dashboard
-            </a>
-          </Button>
-        )}
-      </div>
-    </div>
-  </div>
-)
-
-/**
- * Default unauthenticated component
- */
-const DefaultUnauthenticated = ({ fullPage }: { fullPage?: boolean }) => (
-  <div
-    className={`flex items-center justify-center ${
-      fullPage ? 'bg-background min-h-screen' : 'p-8'
-    }`}
-  >
-    <div className="max-w-md space-y-6 text-center">
-      <div className="flex justify-center">
-        <div className="bg-primary/10 rounded-full p-4">
-          <Shield className="text-primary h-8 w-8" />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold">Authentication Required</h2>
-        <p className="text-muted-foreground">
-          Please sign in to access this {fullPage ? 'page' : 'feature'}.
-        </p>
-      </div>
-
-      <Button asChild className="w-full">
-        <a href="/login">Sign In</a>
-      </Button>
-    </div>
-  </div>
-)
-
-/**
- * Default error component
- */
-const DefaultError = ({ fullPage }: { fullPage?: boolean }) => (
-  <div
-    className={`flex items-center justify-center ${
-      fullPage ? 'min-h-screen' : 'p-8'
-    }`}
-  >
-    <Alert className="max-w-md">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertDescription>
-        Something went wrong while checking permissions. Please try again.
-      </AlertDescription>
-    </Alert>
-  </div>
-)
 
 /**
  * Comprehensive permission guard component for protecting content based on user permissions
@@ -399,49 +278,25 @@ export function PermissionGuard({
 
   // Show loading state
   if (sessionLoading || permissionLoading || hasAccess === null) {
-    return (
-      <div className={className}>
-        {fallbacks.loading || <DefaultLoading fullPage={fullPage} />}
-      </div>
-    )
+    return fallbacks.loading ?? null
   }
 
   // Show error state
   if (error) {
-    return (
-      <div className={className}>
-        {fallbacks.error || <DefaultError fullPage={fullPage} />}
-      </div>
-    )
+    return fallbacks.error ?? null
   }
 
   // Not authenticated
   if (!session?.user) {
-    return (
-      <div className={className}>
-        {fallbacks.unauthenticated || (
-          <DefaultUnauthenticated fullPage={fullPage} />
-        )}
-      </div>
-    )
+    return fallbacks.unauthenticated ?? null
   }
 
   // Authenticated but not authorized
   if (hasAccess === false) {
-    return (
-      <div className={className}>
-        {fallbacks.unauthorized || (
-          <DefaultUnauthorized
-            fullPage={fullPage}
-            showBackButton={showBackButton}
-            onBack={handleBack}
-          />
-        )}
-      </div>
-    )
+    return fallbacks.unauthorized ?? null
   }
 
-  // All checks passed, render children
+  // All checks passed, render children directly (do not wrap in a container to avoid extra layout gaps)
   return <div className={className}>{children}</div>
 }
 
