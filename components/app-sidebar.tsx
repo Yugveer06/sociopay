@@ -1,6 +1,13 @@
 'use client'
 
-import { Home, LayoutDashboard, Users, FileText, QrCode } from 'lucide-react'
+import {
+  Home,
+  LayoutDashboard,
+  Users,
+  FileText,
+  QrCode,
+  WalletCards,
+} from 'lucide-react'
 import * as React from 'react'
 
 import { NavMain } from '@/components/nav-main'
@@ -59,9 +66,9 @@ const data: SidebarData = {
       ],
     },
     {
-      title: 'Payment QR',
-      url: '/payments/qr-code',
-      icon: QrCode,
+      title: 'Payment Methods',
+      url: '/payments/methods',
+      icon: WalletCards,
       permissions: { qrCode: ['view'] },
     },
     {
