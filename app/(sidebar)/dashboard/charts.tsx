@@ -51,7 +51,15 @@ interface TransactionData {
 }
 
 // Area Chart for Financial Overview (Payments vs Expenses)
-export function DashboardAreaChart({ data }: { data: AreaChartData[] }) {
+export function DashboardAreaChart({
+  data,
+  isFiltered = false,
+  filterDescription,
+}: {
+  data: AreaChartData[]
+  isFiltered?: boolean
+  filterDescription?: string
+}) {
   const chartConfig = {
     payments: {
       label: 'Payments',
@@ -79,10 +87,14 @@ export function DashboardAreaChart({ data }: { data: AreaChartData[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Financial Overview</CardTitle>
+        <CardTitle>
+          Financial Overview
+          {isFiltered && filterDescription ? ` - ${filterDescription}` : ''}
+        </CardTitle>
         <CardDescription>
-          Monthly payments, expenses, and net balance trends over the last 6
-          months
+          {isFiltered && filterDescription
+            ? `Monthly payments, expenses, and net balance for ${filterDescription} with context`
+            : 'Monthly payments, expenses, and net balance trends over the last 6 months'}
         </CardDescription>
       </CardHeader>
       <CardContent>

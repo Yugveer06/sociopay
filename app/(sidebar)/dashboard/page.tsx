@@ -21,7 +21,7 @@ import {
   IconUsers,
   IconWallet,
 } from '@tabler/icons-react'
-import { desc, eq, gte, count, sum } from 'drizzle-orm'
+import { desc, eq, gte, lte, and, count, sum } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -32,6 +32,7 @@ import {
   DashboardRecentTransactions,
 } from './charts'
 import { ElementGuard } from '@/components/guards'
+import { DashboardMonthFilter } from './month-filter'
 
 interface DashboardData {
   totalPayments: number
@@ -70,23 +71,72 @@ interface DashboardData {
   }>
 }
 
-async function getDashboardData(): Promise<DashboardData> {
+async function getDashboardData(
+  filterMonth?: number,
+  filterYear?: number
+): Promise<DashboardData> {
   try {
-    // Get total payment amount
-    const totalPaymentsResult = await db
-      .select({
-        total: sum(payments.amount),
-      })
-      .from(payments)
+    // Get total payment amount (filtered if month/year specified)
+    const totalPaymentsResult =
+      filterMonth && filterYear
+        ? await db
+            .select({
+              total: sum(payments.amount),
+            })
+            .from(payments)
+            .where(
+              and(
+                gte(
+                  payments.paymentDate,
+                  new Date(filterYear, filterMonth - 1, 1)
+                    .toISOString()
+                    .split('T')[0]
+                ),
+                lte(
+                  payments.paymentDate,
+                  new Date(filterYear, filterMonth, 0)
+                    .toISOString()
+                    .split('T')[0]
+                )
+              )
+            )
+        : await db
+            .select({
+              total: sum(payments.amount),
+            })
+            .from(payments)
 
     const totalPayments = Number(totalPaymentsResult[0]?.total || 0)
 
-    // Get total expense amount
-    const totalExpensesResult = await db
-      .select({
-        total: sum(expenses.amount),
-      })
-      .from(expenses)
+    // Get total expense amount (filtered if month/year specified)
+    const totalExpensesResult =
+      filterMonth && filterYear
+        ? await db
+            .select({
+              total: sum(expenses.amount),
+            })
+            .from(expenses)
+            .where(
+              and(
+                gte(
+                  expenses.expenseDate,
+                  new Date(filterYear, filterMonth - 1, 1)
+                    .toISOString()
+                    .split('T')[0]
+                ),
+                lte(
+                  expenses.expenseDate,
+                  new Date(filterYear, filterMonth, 0)
+                    .toISOString()
+                    .split('T')[0]
+                )
+              )
+            )
+        : await db
+            .select({
+              total: sum(expenses.amount),
+            })
+            .from(expenses)
 
     const totalExpenses = Number(totalExpensesResult[0]?.total || 0)
 
@@ -109,57 +159,146 @@ async function getDashboardData(): Promise<DashboardData> {
 
     const activeMembers = Number(activeMembersResult[0]?.count || 0)
 
-    // Get payments and expenses by month (last 6 months) - simplified approach
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-    const sixMonthsAgoString = sixMonthsAgo.toISOString().split('T')[0] // YYYY-MM-DD format
+    // Get payments and expenses data (filtered by month if specified, otherwise last 6 months)
+    let paymentsQuery, expensesQuery
 
-    // Get all payments from last 6 months
-    const recentPayments = await db
-      .select({
-        amount: payments.amount,
-        paymentDate: payments.paymentDate,
-        categoryId: payments.categoryId,
-      })
-      .from(payments)
-      .where(gte(payments.paymentDate, sixMonthsAgoString))
-      .orderBy(payments.paymentDate)
+    if (filterMonth && filterYear) {
+      // If filtering by specific month, get only that month's data
+      const startDate = new Date(filterYear, filterMonth - 1, 1)
+        .toISOString()
+        .split('T')[0]
+      const endDate = new Date(filterYear, filterMonth, 0)
+        .toISOString()
+        .split('T')[0]
 
-    // Get all expenses from last 6 months
-    const recentExpenses = await db
-      .select({
-        amount: expenses.amount,
-        expenseDate: expenses.expenseDate,
-        categoryId: expenses.categoryId,
-      })
-      .from(expenses)
-      .where(gte(expenses.expenseDate, sixMonthsAgoString))
-      .orderBy(expenses.expenseDate)
+      paymentsQuery = db
+        .select({
+          amount: payments.amount,
+          paymentDate: payments.paymentDate,
+          categoryId: payments.categoryId,
+        })
+        .from(payments)
+        .where(
+          and(
+            gte(payments.paymentDate, startDate),
+            lte(payments.paymentDate, endDate)
+          )
+        )
+        .orderBy(payments.paymentDate)
 
-    // Get recent payments with user names for transactions list
-    const recentPaymentsWithUsers = await db
-      .select({
-        amount: payments.amount,
-        paymentDate: payments.paymentDate,
-        notes: payments.notes,
-        userName: user.name,
-        userId: payments.userId,
-      })
-      .from(payments)
-      .leftJoin(user, eq(payments.userId, user.id))
-      .orderBy(desc(payments.paymentDate))
-      .limit(10)
+      expensesQuery = db
+        .select({
+          amount: expenses.amount,
+          expenseDate: expenses.expenseDate,
+          categoryId: expenses.categoryId,
+        })
+        .from(expenses)
+        .where(
+          and(
+            gte(expenses.expenseDate, startDate),
+            lte(expenses.expenseDate, endDate)
+          )
+        )
+        .orderBy(expenses.expenseDate)
+    } else {
+      // Default: get last 6 months data
+      const sixMonthsAgo = new Date()
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+      const sixMonthsAgoString = sixMonthsAgo.toISOString().split('T')[0]
 
-    // Get recent expenses (no user names needed for expenses as they're society-level)
-    const recentExpensesForTransactions = await db
-      .select({
-        amount: expenses.amount,
-        expenseDate: expenses.expenseDate,
-        notes: expenses.notes,
-      })
-      .from(expenses)
-      .orderBy(desc(expenses.expenseDate))
-      .limit(5)
+      paymentsQuery = db
+        .select({
+          amount: payments.amount,
+          paymentDate: payments.paymentDate,
+          categoryId: payments.categoryId,
+        })
+        .from(payments)
+        .where(gte(payments.paymentDate, sixMonthsAgoString))
+        .orderBy(payments.paymentDate)
+
+      expensesQuery = db
+        .select({
+          amount: expenses.amount,
+          expenseDate: expenses.expenseDate,
+          categoryId: expenses.categoryId,
+        })
+        .from(expenses)
+        .where(gte(expenses.expenseDate, sixMonthsAgoString))
+        .orderBy(expenses.expenseDate)
+    }
+
+    const recentPayments = await paymentsQuery
+    const recentExpenses = await expensesQuery
+
+    // Get recent payments with user names for transactions list (filtered if needed)
+    let recentPaymentsWithUsers, recentExpensesForTransactions
+
+    if (filterMonth && filterYear) {
+      const startDate = new Date(filterYear, filterMonth - 1, 1)
+        .toISOString()
+        .split('T')[0]
+      const endDate = new Date(filterYear, filterMonth, 0)
+        .toISOString()
+        .split('T')[0]
+
+      recentPaymentsWithUsers = await db
+        .select({
+          amount: payments.amount,
+          paymentDate: payments.paymentDate,
+          notes: payments.notes,
+          userName: user.name,
+          userId: payments.userId,
+        })
+        .from(payments)
+        .leftJoin(user, eq(payments.userId, user.id))
+        .where(
+          and(
+            gte(payments.paymentDate, startDate),
+            lte(payments.paymentDate, endDate)
+          )
+        )
+        .orderBy(desc(payments.paymentDate))
+        .limit(10)
+
+      recentExpensesForTransactions = await db
+        .select({
+          amount: expenses.amount,
+          expenseDate: expenses.expenseDate,
+          notes: expenses.notes,
+        })
+        .from(expenses)
+        .where(
+          and(
+            gte(expenses.expenseDate, startDate),
+            lte(expenses.expenseDate, endDate)
+          )
+        )
+        .orderBy(desc(expenses.expenseDate))
+        .limit(5)
+    } else {
+      recentPaymentsWithUsers = await db
+        .select({
+          amount: payments.amount,
+          paymentDate: payments.paymentDate,
+          notes: payments.notes,
+          userName: user.name,
+          userId: payments.userId,
+        })
+        .from(payments)
+        .leftJoin(user, eq(payments.userId, user.id))
+        .orderBy(desc(payments.paymentDate))
+        .limit(10)
+
+      recentExpensesForTransactions = await db
+        .select({
+          amount: expenses.amount,
+          expenseDate: expenses.expenseDate,
+          notes: expenses.notes,
+        })
+        .from(expenses)
+        .orderBy(desc(expenses.expenseDate))
+        .limit(5)
+    }
 
     // Group by month manually
     const monthlyData = new Map<
@@ -167,12 +306,18 @@ async function getDashboardData(): Promise<DashboardData> {
       { payments: number; expenses: number; netBalance: number }
     >()
 
-    // Initialize with last 6 months
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date()
-      date.setMonth(date.getMonth() - i)
-      const monthKey = date.toISOString().slice(0, 7) // YYYY-MM format
+    if (filterMonth && filterYear) {
+      // If filtering by specific month, initialize only that month
+      const monthKey = `${filterYear}-${filterMonth.toString().padStart(2, '0')}`
       monthlyData.set(monthKey, { payments: 0, expenses: 0, netBalance: 0 })
+    } else {
+      // Initialize with last 6 months
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date()
+        date.setMonth(date.getMonth() - i)
+        const monthKey = date.toISOString().slice(0, 7) // YYYY-MM format
+        monthlyData.set(monthKey, { payments: 0, expenses: 0, netBalance: 0 })
+      }
     }
 
     // Process payments
@@ -211,13 +356,70 @@ async function getDashboardData(): Promise<DashboardData> {
       })
     )
 
-    // Get payments by category - simplified
-    const allPayments = await db
-      .select({
-        amount: payments.amount,
-        categoryId: payments.categoryId,
-      })
-      .from(payments)
+    // If filtering by specific month, ensure we have enough data points for the chart
+    // by adding context months (previous and next month with zero values)
+    let chartData = paymentsByMonth
+    if (filterMonth && filterYear && paymentsByMonth.length === 1) {
+      const currentMonthData = paymentsByMonth[0]
+
+      // Add previous month
+      const previousMonth = new Date(filterYear, filterMonth - 2, 1)
+      const previousMonthData = {
+        month: previousMonth.toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric',
+        }),
+        payments: 0,
+        expenses: 0,
+        netBalance: 0,
+      }
+
+      // Add next month
+      const nextMonth = new Date(filterYear, filterMonth, 1)
+      const nextMonthData = {
+        month: nextMonth.toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric',
+        }),
+        payments: 0,
+        expenses: 0,
+        netBalance: 0,
+      }
+
+      chartData = [previousMonthData, currentMonthData, nextMonthData]
+    }
+
+    // Get payments by category (filtered if month/year specified)
+    const allPayments =
+      filterMonth && filterYear
+        ? await db
+            .select({
+              amount: payments.amount,
+              categoryId: payments.categoryId,
+            })
+            .from(payments)
+            .where(
+              and(
+                gte(
+                  payments.paymentDate,
+                  new Date(filterYear, filterMonth - 1, 1)
+                    .toISOString()
+                    .split('T')[0]
+                ),
+                lte(
+                  payments.paymentDate,
+                  new Date(filterYear, filterMonth, 0)
+                    .toISOString()
+                    .split('T')[0]
+                )
+              )
+            )
+        : await db
+            .select({
+              amount: payments.amount,
+              categoryId: payments.categoryId,
+            })
+            .from(payments)
 
     const allPaymentCategories = await db
       .select({
@@ -258,13 +460,37 @@ async function getDashboardData(): Promise<DashboardData> {
       .filter(item => item.amount > 0)
       .sort((a, b) => b.amount - a.amount)
 
-    // Get expenses by category - simplified
-    const allExpenses = await db
-      .select({
-        amount: expenses.amount,
-        categoryId: expenses.categoryId,
-      })
-      .from(expenses)
+    // Get expenses by category (filtered if month/year specified)
+    const allExpenses =
+      filterMonth && filterYear
+        ? await db
+            .select({
+              amount: expenses.amount,
+              categoryId: expenses.categoryId,
+            })
+            .from(expenses)
+            .where(
+              and(
+                gte(
+                  expenses.expenseDate,
+                  new Date(filterYear, filterMonth - 1, 1)
+                    .toISOString()
+                    .split('T')[0]
+                ),
+                lte(
+                  expenses.expenseDate,
+                  new Date(filterYear, filterMonth, 0)
+                    .toISOString()
+                    .split('T')[0]
+                )
+              )
+            )
+        : await db
+            .select({
+              amount: expenses.amount,
+              categoryId: expenses.categoryId,
+            })
+            .from(expenses)
 
     const allExpenseCategories = await db
       .select({
@@ -404,7 +630,7 @@ async function getDashboardData(): Promise<DashboardData> {
       activeMembers,
       netBalance,
       monthlyNetBalance,
-      paymentsByMonth,
+      paymentsByMonth: chartData,
       paymentsByCategory,
       expensesByCategory,
       recentTransactions,
@@ -432,7 +658,13 @@ async function getDashboardData(): Promise<DashboardData> {
   }
 }
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ month?: string; year?: string }>
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -441,30 +673,44 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const dashboardData = await getDashboardData()
+  // Parse month and year from search params
+  const resolvedSearchParams = await searchParams
+  const filterMonth = resolvedSearchParams.month
+    ? parseInt(resolvedSearchParams.month)
+    : undefined
+  const filterYear = resolvedSearchParams.year
+    ? parseInt(resolvedSearchParams.year)
+    : undefined
 
-  // Calculate month-over-month changes
-  const currentMonthPayments =
-    dashboardData.paymentsByMonth[dashboardData.paymentsByMonth.length - 1]
-      ?.payments || 0
-  const lastMonthPayments =
-    dashboardData.paymentsByMonth[dashboardData.paymentsByMonth.length - 2]
-      ?.payments || 0
-  const paymentsChange =
-    lastMonthPayments > 0
-      ? ((currentMonthPayments - lastMonthPayments) / lastMonthPayments) * 100
-      : 0
+  const dashboardData = await getDashboardData(filterMonth, filterYear)
 
-  const currentMonthExpenses =
-    dashboardData.paymentsByMonth[dashboardData.paymentsByMonth.length - 1]
-      ?.expenses || 0
-  const lastMonthExpenses =
-    dashboardData.paymentsByMonth[dashboardData.paymentsByMonth.length - 2]
-      ?.expenses || 0
-  const expensesChange =
-    lastMonthExpenses > 0
-      ? ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100
-      : 0
+  // Calculate month-over-month changes (only if not filtering by specific month)
+  let paymentsChange = 0
+  let expensesChange = 0
+
+  if (!filterMonth && !filterYear) {
+    const currentMonthPayments =
+      dashboardData.paymentsByMonth[dashboardData.paymentsByMonth.length - 1]
+        ?.payments || 0
+    const lastMonthPayments =
+      dashboardData.paymentsByMonth[dashboardData.paymentsByMonth.length - 2]
+        ?.payments || 0
+    paymentsChange =
+      lastMonthPayments > 0
+        ? ((currentMonthPayments - lastMonthPayments) / lastMonthPayments) * 100
+        : 0
+
+    const currentMonthExpenses =
+      dashboardData.paymentsByMonth[dashboardData.paymentsByMonth.length - 1]
+        ?.expenses || 0
+    const lastMonthExpenses =
+      dashboardData.paymentsByMonth[dashboardData.paymentsByMonth.length - 2]
+        ?.expenses || 0
+    expensesChange =
+      lastMonthExpenses > 0
+        ? ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100
+        : 0
+  }
 
   // Refresh action
   async function refreshData() {
@@ -490,14 +736,29 @@ export default async function DashboardPage() {
               <h1 className="text-2xl font-bold">Dashboard</h1>
               <p className="text-muted-foreground">
                 Society management overview and key metrics.
+                {filterMonth && filterYear && (
+                  <span className="text-primary ml-2">
+                    Filtered for{' '}
+                    {new Date(filterYear, filterMonth - 1).toLocaleDateString(
+                      'en-US',
+                      {
+                        month: 'long',
+                        year: 'numeric',
+                      }
+                    )}
+                  </span>
+                )}
               </p>
             </div>
-            <form action={refreshData}>
-              <Button variant="outline" size="sm" type="submit">
-                <IconRefresh className="mr-2 h-4 w-4" />
-                Refresh
-              </Button>
-            </form>
+            <div className="flex items-center gap-2">
+              <DashboardMonthFilter />
+              <form action={refreshData}>
+                <Button variant="outline" size="sm" type="submit">
+                  <IconRefresh className="mr-2 h-4 w-4" />
+                  Refresh
+                </Button>
+              </form>
+            </div>
           </div>
 
           {/* Key Metrics Cards */}
@@ -514,8 +775,9 @@ export default async function DashboardPage() {
                   {formatCurrency(dashboardData.totalPayments)}
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  {paymentsChange >= 0 ? '+' : ''}
-                  {paymentsChange.toFixed(1)}% from last month
+                  {filterMonth && filterYear
+                    ? `For ${new Date(filterYear, filterMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+                    : `${paymentsChange >= 0 ? '+' : ''}${paymentsChange.toFixed(1)}% from last month`}
                 </p>
               </CardContent>
             </Card>
@@ -532,8 +794,9 @@ export default async function DashboardPage() {
                   {formatCurrency(dashboardData.totalExpenses)}
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  {expensesChange >= 0 ? '+' : ''}
-                  {expensesChange.toFixed(1)}% from last month
+                  {filterMonth && filterYear
+                    ? `For ${new Date(filterYear, filterMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+                    : `${expensesChange >= 0 ? '+' : ''}${expensesChange.toFixed(1)}% from last month`}
                 </p>
               </CardContent>
             </Card>
@@ -554,7 +817,9 @@ export default async function DashboardPage() {
                   {formatCurrency(dashboardData.netBalance)}
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  This month: {formatCurrency(dashboardData.monthlyNetBalance)}
+                  {filterMonth && filterYear
+                    ? `For ${new Date(filterYear, filterMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+                    : `This month: ${formatCurrency(dashboardData.monthlyNetBalance)}`}
                 </p>
               </CardContent>
             </Card>
@@ -576,22 +841,30 @@ export default async function DashboardPage() {
           </div>
 
           {/* Financial Overview Area Chart */}
-          <DashboardAreaChart data={dashboardData.paymentsByMonth} />
+          <DashboardAreaChart
+            data={dashboardData.paymentsByMonth}
+            isFiltered={!!(filterMonth && filterYear)}
+            filterDescription={
+              filterMonth && filterYear
+                ? `${new Date(filterYear, filterMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+                : undefined
+            }
+          />
 
           {/* Charts Grid */}
           <div className="grid gap-4 md:grid-cols-2">
             {/* Payments by Category Pie Chart */}
             <DashboardPieChart
               data={dashboardData.paymentsByCategory}
-              title="Payments by Category"
-              description="Distribution of maintenance payments by category"
+              title={`Payments by Category${filterMonth && filterYear ? ` - ${new Date(filterYear, filterMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : ''}`}
+              description={`Distribution of maintenance payments by category${filterMonth && filterYear ? ' for selected month' : ''}`}
             />
 
             {/* Expenses by Category Pie Chart */}
             <DashboardPieChart
               data={dashboardData.expensesByCategory}
-              title="Expenses by Category"
-              description="Distribution of society expenses by category"
+              title={`Expenses by Category${filterMonth && filterYear ? ` - ${new Date(filterYear, filterMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : ''}`}
+              description={`Distribution of society expenses by category${filterMonth && filterYear ? ' for selected month' : ''}`}
             />
           </div>
 
@@ -610,8 +883,8 @@ export default async function DashboardPage() {
             >
               <DashboardRecentTransactions
                 data={dashboardData.recentTransactions}
-                title="Recent Transactions"
-                description="Latest payments by residents and society expenses"
+                title={`Recent Transactions${filterMonth && filterYear ? ` - ${new Date(filterYear, filterMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : ''}`}
+                description={`Latest payments by residents and society expenses${filterMonth && filterYear ? ' for selected month' : ''}`}
               />
             </ElementGuard>
           </div>
