@@ -31,6 +31,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { IconChevronDown } from '@tabler/icons-react'
+import { ExpenseMonthFilter } from './expense-month-filter'
+import { ExpenseFilteredExport } from './expense-filtered-export'
+import { Expense } from './columns'
+import { ElementGuard } from '@/components/guards'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -65,43 +69,96 @@ export function DataTable<TData, TValue>({
     },
   })
 
+  // Get filtered data for export
+  const filteredData = table
+    .getFilteredRowModel()
+    .rows.map(row => row.original) as Expense[]
+
+  // Get current month filter
+  const monthFilter = table.getColumn('expense_date')?.getFilterValue() as
+    | { month?: Date }
+    | undefined
+
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter by category..."
-          value={
-            (table.getColumn('category_name')?.getFilterValue() as string) ?? ''
-          }
-          onChange={event =>
-            table.getColumn('category_name')?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <IconChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter(column => column.getCanHide())
-              .map(column => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={value => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="flex flex-col gap-4 py-4">
+        {/* Filters Row */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Filter by category..."
+            value={
+              (table.getColumn('category_name')?.getFilterValue() as string) ??
+              ''
+            }
+            onChange={event =>
+              table
+                .getColumn('category_name')
+                ?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+
+          {/* Month Filter Button */}
+          <ExpenseMonthFilter<TData> table={table} />
+
+          <div className="ml-auto flex items-center gap-2">
+            {/* Export Filtered Data */}
+            <ElementGuard
+              permissions={{ expenses: ['export'] }}
+              loadingFallback={<span hidden>Loading...</span>}
+              unauthorizedFallback={<span hidden>No access</span>}
+            >
+              <ExpenseFilteredExport
+                filteredData={filteredData}
+                selectedMonth={monthFilter?.month}
+              />
+            </ElementGuard>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  Columns <IconChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter(column => column.getCanHide())
+                  .map(column => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={value =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Filter Summary */}
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground text-sm">
+            Showing {table.getFilteredRowModel().rows.length} of{' '}
+            {table.getCoreRowModel().rows.length} expenses
+            {monthFilter?.month && (
+              <span className="ml-2 font-medium">
+                • Filtered by{' '}
+                {monthFilter.month.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                })}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>

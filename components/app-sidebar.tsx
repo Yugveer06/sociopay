@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  QrCode,
   WalletCards,
 } from 'lucide-react'
 import * as React from 'react'

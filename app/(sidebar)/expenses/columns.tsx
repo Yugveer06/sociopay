@@ -62,6 +62,11 @@ export const columns: ColumnDef<Expense>[] = [
         </div>
       )
     },
+    filterFn: (row, columnId, filterValue) => {
+      // Custom filter function for month filtering
+      if (!filterValue || !filterValue.filterFn) return true
+      return filterValue.filterFn(row)
+    },
   },
   {
     accessorKey: 'amount',
