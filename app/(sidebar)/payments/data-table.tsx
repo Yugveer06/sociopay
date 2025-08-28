@@ -33,6 +33,9 @@ import {
 } from '@/components/ui/table'
 import { ChevronDown } from 'lucide-react'
 import { PaymentTypeFilter } from './payment-type-filter'
+import { MonthFilterButton } from './month-filter-button'
+import { FilteredExport } from './filtered-export'
+import { Payment } from './columns'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -67,75 +70,124 @@ export function DataTable<TData, TValue>({
     },
   })
 
+  // Get filtered data for export
+  const filteredData = table
+    .getFilteredRowModel()
+    .rows.map(row => row.original) as Payment[]
+
+  // Get current month filter
+  const monthFilter = table.getColumn('payment_date')?.getFilterValue() as
+    | { month?: Date }
+    | undefined
+
   return (
     <div className="w-full">
-      <div className="flex items-center gap-2 py-4">
-        {/* User Name Filter - Only for users with list-all permission */}
-        <ElementGuard
-          permissions={{ payment: ['list-all'] }}
-          loadingFallback={<span hidden>Loading...</span>}
-          unauthorizedFallback={<span hidden>No access</span>}
-        >
-          <Input
-            placeholder="Filter by user name..."
-            value={
-              (table.getColumn('user_name')?.getFilterValue() as string) ?? ''
-            }
-            onChange={event =>
-              table.getColumn('user_name')?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-        </ElementGuard>
+      <div className="flex flex-col gap-4 py-4">
+        {/* Filters Row */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* User Name Filter - Only for users with list-all permission */}
+          <ElementGuard
+            permissions={{ payment: ['list-all'] }}
+            loadingFallback={<span hidden>Loading...</span>}
+            unauthorizedFallback={<span hidden>No access</span>}
+          >
+            <Input
+              placeholder="Filter by user name..."
+              value={
+                (table.getColumn('user_name')?.getFilterValue() as string) ?? ''
+              }
+              onChange={event =>
+                table.getColumn('user_name')?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+          </ElementGuard>
 
-        {/* House Number Filter - Only for users with list-all permission */}
-        <ElementGuard
-          permissions={{ payment: ['list-all'] }}
-          loadingFallback={<span hidden>Loading...</span>}
-          unauthorizedFallback={<span hidden>No access</span>}
-        >
-          <Input
-            placeholder="Filter by house number..."
-            value={
-              (table.getColumn('house_number')?.getFilterValue() as string) ??
-              ''
-            }
-            onChange={event =>
-              table
-                .getColumn('house_number')
-                ?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-        </ElementGuard>
+          {/* House Number Filter - Only for users with list-all permission */}
+          <ElementGuard
+            permissions={{ payment: ['list-all'] }}
+            loadingFallback={<span hidden>Loading...</span>}
+            unauthorizedFallback={<span hidden>No access</span>}
+          >
+            <Input
+              placeholder="Filter by house number..."
+              value={
+                (table.getColumn('house_number')?.getFilterValue() as string) ??
+                ''
+              }
+              onChange={event =>
+                table
+                  .getColumn('house_number')
+                  ?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+          </ElementGuard>
 
-        {/* Payment Type Filter - Available to all users who can see payments */}
-        <PaymentTypeFilter table={table} />
+          {/* Payment Type Filter - Available to all users who can see payments */}
+          <PaymentTypeFilter table={table} />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter(column => column.getCanHide())
-              .map(column => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={value => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          {/* Month Filter Button - Available to all users who can see payments */}
+          <MonthFilterButton<TData> table={table} />
+
+          <div className="ml-auto flex items-center gap-2">
+            {/* Export Filtered Data */}
+            <ElementGuard
+              permissions={{ payment: ['export'] }}
+              loadingFallback={<span hidden>Loading...</span>}
+              unauthorizedFallback={<span hidden>No access</span>}
+            >
+              <FilteredExport
+                filteredData={filteredData}
+                selectedMonth={monthFilter?.month}
+              />
+            </ElementGuard>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter(column => column.getCanHide())
+                  .map(column => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={value =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Filter Summary */}
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground text-sm">
+            Showing {table.getFilteredRowModel().rows.length} of{' '}
+            {table.getCoreRowModel().rows.length} payments
+            {monthFilter?.month && (
+              <span className="ml-2 font-medium">
+                • Filtered by{' '}
+                {monthFilter.month.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                })}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>

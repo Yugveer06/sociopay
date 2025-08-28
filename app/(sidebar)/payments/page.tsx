@@ -444,7 +444,9 @@ export default async function PaymentsPage() {
                       Maintenance Payments ({finalPayments.length})
                     </CardTitle>
                     <CardDescription>
-                      Detailed view of all maintenance payments
+                      Detailed view of all maintenance payments. Use the month
+                      filter to view specific months and export filtered
+                      results.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

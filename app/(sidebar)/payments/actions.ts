@@ -518,6 +518,121 @@ async function editPaymentAction(data: EditPaymentData): Promise<ActionState> {
   }
 }
 
+export async function exportMonthlyPaymentsToPDF(selectedMonth: Date) {
+  'use server'
+
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    })
+
+    if (!session) {
+      throw new Error('You must be logged in to export payments')
+    }
+
+    // Check if user has permission to export payments
+    const permissionResult = await checkServerPermission({
+      payment: ['export'],
+    })
+
+    if (!permissionResult.success) {
+      return {
+        success: false,
+        message: 'You do not have permission to export payments',
+      }
+    }
+
+    // Get start and end of the selected month
+    const startOfMonth = new Date(
+      selectedMonth.getFullYear(),
+      selectedMonth.getMonth(),
+      1
+    )
+    const endOfMonth = new Date(
+      selectedMonth.getFullYear(),
+      selectedMonth.getMonth() + 1,
+      0
+    )
+
+    // Set time to cover the entire day range
+    startOfMonth.setHours(0, 0, 0, 0)
+    endOfMonth.setHours(23, 59, 59, 999)
+
+    console.log('Fetching payments for month:', {
+      selectedMonth: selectedMonth.toISOString(),
+      startOfMonth: startOfMonth.toISOString(),
+      endOfMonth: endOfMonth.toISOString(),
+    })
+
+    const { db } = await import('@/db/drizzle')
+    const { payments, user, paymentCategories } = await import('@/db/schema')
+    const { eq, desc, and, gte, lte } = await import('drizzle-orm')
+
+    const result = await db
+      .select({
+        id: payments.id,
+        amount: payments.amount,
+        created_at: payments.createdAt,
+        interval_type: payments.intervalType,
+        payment_type: payments.paymentType,
+        notes: payments.notes,
+        payment_date: payments.paymentDate,
+        period_start: payments.periodStart,
+        period_end: payments.periodEnd,
+        user_id: payments.userId,
+        user_name: user.name,
+        house_number: user.houseNumber,
+        category_name: paymentCategories.name,
+      })
+      .from(payments)
+      .leftJoin(user, eq(payments.userId, user.id))
+      .leftJoin(
+        paymentCategories,
+        eq(payments.categoryId, paymentCategories.id)
+      )
+      .where(
+        and(
+          gte(payments.paymentDate, startOfMonth.toISOString().split('T')[0]),
+          lte(payments.paymentDate, endOfMonth.toISOString().split('T')[0])
+        )
+      )
+      .orderBy(desc(payments.paymentDate))
+
+    console.log('Found payments:', result.length)
+
+    // Transform data for PDF/display
+    const monthlyData = result.map(payment => ({
+      id: payment.id,
+      amount: parseFloat(payment.amount || '0'),
+      paymentDate: payment.payment_date,
+      userName: payment.user_name || 'Unknown',
+      houseNumber: payment.house_number || 'Unknown',
+      category: payment.category_name || 'Uncategorized',
+      paymentType: payment.payment_type || 'Unknown',
+      intervalType: payment.interval_type || '',
+      periodStart: payment.period_start || '',
+      periodEnd: payment.period_end || '',
+      notes: payment.notes || '',
+      createdAt: payment.created_at?.toISOString() || '',
+    }))
+
+    return {
+      success: true,
+      data: monthlyData,
+      filename: `monthly-payments-${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, '0')}.pdf`,
+    }
+  } catch (error) {
+    console.error('Export monthly payments error:', error)
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Failed to export monthly payments',
+    }
+  }
+}
+
 // Export validated actions
 export const addPayment = validatedAction(addPaymentSchema, addPaymentAction)
 export const editPayment = validatedAction(editPaymentSchema, editPaymentAction)
