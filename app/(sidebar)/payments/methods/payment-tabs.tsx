@@ -27,27 +27,28 @@ export function PaymentTabs({
   canManagePayments,
 }: PaymentTabsProps) {
   return (
-    <div className="w-full max-w-2xl">
+    <div className="w-full">
       <Tabs defaultValue="qr-code" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="qr-code">QR Code Payment</TabsTrigger>
           <TabsTrigger value="bank-details">Bank Transfer</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="qr-code" className="space-y-6">
-          <div className="flex justify-center">
-            <Suspense fallback={<QrCodeSkeleton />}>
-              <QrCodeDisplay qrData={qrData} />
-            </Suspense>
-          </div>
+        <TabsContent
+          value="qr-code"
+          className="mt-6 space-y-6 lg:mt-8 lg:space-y-8"
+        >
+          <Suspense fallback={<QrCodeSkeleton />}>
+            <QrCodeDisplay qrData={qrData} />
+          </Suspense>
 
           {/* QR Code Admin Controls */}
           {canManagePayments && (
             <div className="flex justify-center">
-              <div className="w-full max-w-md">
-                <Card>
+              <div className="w-full max-w-4xl">
+                <Card className="border-dashed">
                   <CardHeader>
-                    <CardTitle className="text-center">
+                    <CardTitle className="text-center text-lg lg:text-xl">
                       QR Code Admin Controls
                     </CardTitle>
                   </CardHeader>
@@ -94,18 +95,19 @@ export function PaymentTabs({
           )}
         </TabsContent>
 
-        <TabsContent value="bank-details" className="space-y-6">
-          <div className="flex justify-center">
-            <BankDetailsDisplay bankData={bankData} />
-          </div>
+        <TabsContent
+          value="bank-details"
+          className="mt-6 space-y-6 lg:mt-8 lg:space-y-8"
+        >
+          <BankDetailsDisplay bankData={bankData} />
 
           {/* Bank Details Admin Controls */}
           {canManagePayments && (
             <div className="flex justify-center">
-              <div className="w-full max-w-md">
-                <Card>
+              <div className="w-full max-w-4xl">
+                <Card className="border-dashed">
                   <CardHeader>
-                    <CardTitle className="text-center">
+                    <CardTitle className="text-center text-lg lg:text-xl">
                       Bank Details Admin Controls
                     </CardTitle>
                   </CardHeader>
@@ -159,42 +161,73 @@ export function PaymentTabs({
 
 /**
  * Loading skeleton for QR code display
+ * Making loading as smooth as a buttered slide! 🧈✨
  */
 function QrCodeSkeleton() {
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <Skeleton className="mx-auto h-6 w-32" />
-        <Skeleton className="mx-auto h-4 w-48" />
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* QR Code Skeleton */}
-        <div className="rounded-lg bg-white p-6 shadow-lg">
-          <Skeleton className="mx-auto h-64 w-64" />
-        </div>
-
-        {/* Instructions Skeleton */}
-        <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-6 w-24" />
-          <div className="space-y-2">
-            <Skeleton className="mx-auto h-4 w-64" />
-            <Skeleton className="mx-auto h-4 w-56" />
-            <Skeleton className="mx-auto h-4 w-60" />
-            <Skeleton className="mx-auto h-4 w-52" />
+    <div className="mx-auto w-full max-w-4xl">
+      <Card>
+        <CardHeader className="pb-4 text-center">
+          <div className="bg-muted mx-auto mb-4 h-16 w-16 rounded-full">
+            <Skeleton className="h-full w-full rounded-full" />
           </div>
-          <div className="space-y-2 border-t pt-4">
-            <Skeleton className="mx-auto h-4 w-32" />
-            <Skeleton className="mx-auto h-3 w-48" />
-            <Skeleton className="mx-auto h-3 w-40" />
-          </div>
-        </div>
+          <Skeleton className="mx-auto h-8 w-48" />
+          <Skeleton className="mx-auto mt-2 h-4 w-32" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
+            {/* QR Code Section Skeleton */}
+            <Card>
+              <CardHeader className="text-center">
+                <Skeleton className="mx-auto h-6 w-24" />
+              </CardHeader>
+              <CardContent className="flex flex-col items-center space-y-4">
+                <div className="rounded-xl bg-white p-4 shadow-lg ring-1 ring-gray-200 lg:p-6">
+                  <Skeleton className="h-48 w-48 lg:h-64 lg:w-64" />
+                </div>
+                <div className="flex w-full gap-3">
+                  <Skeleton className="h-9 flex-1" />
+                  <Skeleton className="h-9 w-20" />
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Buttons Skeleton */}
-        <div className="flex gap-2">
-          <Skeleton className="h-9 flex-1" />
-          <Skeleton className="h-9 w-20" />
-        </div>
-      </CardContent>
-    </Card>
+            {/* Instructions Skeleton */}
+            <div className="space-y-4 lg:space-y-6">
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <Skeleton className="mt-0.5 h-6 w-6 flex-shrink-0 rounded-full" />
+                      <Skeleton className="h-4 flex-1" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-36" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-6 w-32" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
