@@ -6,6 +6,8 @@ export * from './expenses'
 export * from './funds'
 export * from './kyc-documents'
 export * from './qr-codes'
+export * from './tickets'
+export * from './ticket-messages'
 export * from './bank-details'
 export * from './notifications'
 
@@ -17,11 +19,15 @@ import { expenses } from './expenses'
 import { kycDocuments } from './kyc-documents'
 import { paymentCategories, expenseCategories } from './categories'
 import { notifications } from './notifications'
+import { tickets } from './tickets'
+import { ticketMessages } from './ticket-messages'
 
 // Complete the user relations with payments
 export const userPaymentRelations = relations(user, ({ many }) => ({
   payments: many(payments),
   kycDocuments: many(kycDocuments),
+  tickets: many(tickets),
+  ticketMessages: many(ticketMessages),
 }))
 
 // Complete the category relations
@@ -54,4 +60,9 @@ export const kycDocumentRelations = relations(kycDocuments, ({ one }) => ({
 // User notifications relation
 export const userNotificationRelations = relations(user, ({ many }) => ({
   notifications: many(notifications),
+}))
+
+// Ticket relations
+export const ticketMessageRelations = relations(tickets, ({ many }) => ({
+  messages: many(ticketMessages),
 }))

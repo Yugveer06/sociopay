@@ -32,6 +32,19 @@ export const statement = {
   ],
   members: ['list', 'edit', 'ban', 'unban', 'export'],
   qrCode: ['view', 'delete'], // Users can view QR, admins can delete
+  // Tickets / support system
+  tickets: [
+    'add',
+    'list',
+    'list-own',
+    'list-all',
+    'export',
+    'assign',
+    'close',
+    'view',
+    'view-own',
+    'view-all',
+  ],
 } as const
 
 // Create the access controller
@@ -65,6 +78,8 @@ export const admin = ac.newRole({
   ],
   members: ['list', 'edit', 'ban', 'unban', 'export'],
   qrCode: ['view', 'delete'], // Full QR code management for admins 🎯
+  // Tickets management for admins
+  tickets: ['add', 'list', 'list-all', 'export', 'assign', 'close', 'view-all'],
 })
 
 /**
@@ -84,6 +99,8 @@ export const user = ac.newRole({
     // Note: No delete permissions for regular users - documents are immutable once uploaded! 🔒
   ],
   qrCode: ['view'], // Users can only view the QR code 👁️
+  // Tickets: users can create and view their own tickets
+  tickets: ['add', 'list', 'list-own', 'view-own'],
 })
 
 // Export the access controller for use in auth configuration

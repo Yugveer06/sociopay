@@ -40,4 +40,5 @@ export function validateBetterAuthEnv() {
 }
 
 // Call this in your auth.ts file
-export const envVars = validateBetterAuthEnv()
+// Do NOT auto-run validation at module import time.
+// Call `validateBetterAuthEnv()` explicitly from startup code (for example, `lib/auth.ts`).

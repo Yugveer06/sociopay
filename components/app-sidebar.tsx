@@ -6,6 +6,7 @@ import {
   Users,
   FileText,
   WalletCards,
+  Tickets,
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -89,6 +90,12 @@ const data: SidebarData = {
       url: '/society-members',
       icon: Users,
       permissions: { members: ['list'] },
+    },
+    {
+      title: 'Tickets',
+      url: '/tickets',
+      icon: Tickets,
+      permissions: { tickets: ['list'] },
     },
   ],
 }
