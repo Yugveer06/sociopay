@@ -54,7 +54,11 @@ interface UploadKycFormProps {
   currentUserId: string
 }
 
-export function UploadKycForm({ users, canUploadForOthers, currentUserId }: UploadKycFormProps) {
+export function UploadKycForm({
+  users,
+  canUploadForOthers,
+  currentUserId,
+}: UploadKycFormProps) {
   const [open, setOpen] = useState(false)
   const [userPopoverOpen, setUserPopoverOpen] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -174,10 +178,9 @@ export function UploadKycForm({ users, canUploadForOthers, currentUserId }: Uplo
         <DialogHeader>
           <DialogTitle>Upload KYC Document</DialogTitle>
           <DialogDescription>
-            {canUploadForOthers 
-              ? "Upload a KYC document for a renter. Only PDF files under 10MB are allowed."
-              : "Upload your KYC document. Only PDF files under 10MB are allowed."
-            }
+            {canUploadForOthers
+              ? 'Upload a KYC document for a renter. Only PDF files under 10MB are allowed.'
+              : 'Upload your KYC document. Only PDF files under 10MB are allowed.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -240,7 +243,9 @@ export function UploadKycForm({ users, canUploadForOthers, currentUserId }: Uplo
                             <CommandEmpty>No user found.</CommandEmpty>
                             <CommandGroup>
                               {users
-                                .filter(user => user.houseOwnership === 'renter')
+                                .filter(
+                                  user => user.houseOwnership === 'renter'
+                                )
                                 .map(user => (
                                   <CommandItem
                                     value={`${user.houseNumber} ${user.name}`}
@@ -253,34 +258,39 @@ export function UploadKycForm({ users, canUploadForOthers, currentUserId }: Uplo
                                     <span className="text-muted-foreground shrink-0">
                                       ({user.houseNumber})
                                     </span>
-                                  <span className="truncate">{user.name}</span>
-                                  <Check
-                                    className={cn(
-                                      'ml-auto',
-                                      user.id === field.value
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                                    <span className="truncate">
+                                      {user.name}
+                                    </span>
+                                    <Check
+                                      className={cn(
+                                        'ml-auto',
+                                        user.id === field.value
+                                          ? 'opacity-100'
+                                          : 'opacity-0'
+                                      )}
+                                    />
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
 
             {!canUploadForOthers && (
-              <div className="rounded-lg border bg-muted/30 p-3">
+              <div className="bg-muted/30 rounded-lg border p-3">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Uploading for: <strong>{users.find(u => u.id === currentUserId)?.name}</strong> 
+                  <FileText className="text-muted-foreground h-4 w-4" />
+                  <span className="text-muted-foreground text-sm">
+                    Uploading for:{' '}
+                    <strong>
+                      {users.find(u => u.id === currentUserId)?.name}
+                    </strong>
                     ({users.find(u => u.id === currentUserId)?.houseNumber})
                   </span>
                 </div>

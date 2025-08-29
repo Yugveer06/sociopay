@@ -47,7 +47,6 @@ export default function MembersPage() {
 
 ```tsx
 import { ElementGuard } from '@/components/guards'
-
 ;<ElementGuard
   permissions={{ payment: ['delete'] }}
   fallback={<Button disabled>Delete (No Permission)</Button>}
