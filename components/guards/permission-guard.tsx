@@ -1,8 +1,8 @@
 'use client'
 
-import { ReactNode, useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { usePermissions, type PermissionCheck } from '@/hooks/use-permissions'
+import { useRouter } from 'next/navigation'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 
 // Component-level fallback UIs
 export interface PermissionGuardFallbacks {
@@ -111,9 +111,8 @@ export function PermissionGuard({
   unauthorizedRedirect = '/dashboard',
   redirectOnUnauthenticated = false,
   unauthenticatedRedirect = '/login',
-  fullPage = false,
+  // fullPage and showBackButton were unused in this implementation; keep props via rest if needed
   className,
-  showBackButton = true,
 }: PermissionGuardProps) {
   const router = useRouter()
   const {
@@ -130,14 +129,7 @@ export function PermissionGuard({
   const [permissionLoading, setPermissionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Handle back button
-  const handleBack = useCallback(() => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back()
-    } else {
-      router.push('/dashboard')
-    }
-  }, [router])
+  // Note: no local back handling is required here; navigation is handled via `router` in callers
 
   // Check permissions - wrapped in useCallback to prevent re-renders
   const checkPermissions = useCallback(async () => {
