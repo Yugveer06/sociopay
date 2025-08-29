@@ -1,6 +1,13 @@
 'use client'
 
-import { Home, LayoutDashboard, Users, FileText, QrCode } from 'lucide-react'
+import {
+  Home,
+  LayoutDashboard,
+  Users,
+  FileText,
+  QrCode,
+  Tickets,
+} from 'lucide-react'
 import * as React from 'react'
 
 import { NavMain } from '@/components/nav-main'
@@ -83,6 +90,12 @@ const data: SidebarData = {
       url: '/society-members',
       icon: Users,
       permissions: { members: ['list'] },
+    },
+    {
+      title: 'Tickets',
+      url: '/tickets',
+      icon: Tickets,
+      permissions: { tickets: ['list'] },
     },
   ],
 }
