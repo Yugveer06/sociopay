@@ -25,6 +25,7 @@ pnpm-debug.log*
 *.db
 *.sqlite
 *.sqlite3
+db/migrations/
 
 # Generated files
 db/types.ts
