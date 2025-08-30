@@ -25,6 +25,7 @@ import { useSession } from '@/lib/auth-client'
 import { BanknoteArrowDown, IndianRupee } from 'lucide-react'
 import { Statement } from '@/lib/permissions'
 import Link from 'next/link'
+import { signOut } from '@/app/(auth)/actions'
 
 // Type definitions for better TypeScript support
 export type Resource = keyof Statement
@@ -108,6 +109,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     name: session.data?.user?.name || 'Guest User',
     email: session.data?.user?.email || 'guest@example.com',
   }
+
+  // If the user is banned, sign them out as a side-effect after render.
+  // Calling signOut() during render causes React errors (updates during render).
+  React.useEffect(() => {
+    if (session?.data?.user?.banned) {
+      // fire-and-forget; action handles its own errors
+      void signOut()
+    }
+  }, [session?.data?.user?.banned])
 
   return (
     <Sidebar collapsible="icon" {...props}>
