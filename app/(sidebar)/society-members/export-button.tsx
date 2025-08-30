@@ -10,25 +10,42 @@ import {
 import {
   IconDownload,
   IconFileTypeCsv,
-  IconFileText,
   IconFileTypePdf,
 } from '@tabler/icons-react'
 import { useTransition } from 'react'
 import { exportMembers } from './actions'
 import { toast } from 'sonner'
 import { PermissionGuard } from '@/components/guards'
+import { useTableExport } from '@/hooks/use-table-export'
 
 export function ExportButton() {
   const [isPending, startTransition] = useTransition()
+  const { exportToPDF, exportToCSV } = useTableExport({
+    companyName: 'SUKOON',
+    companySubtitle: 'CO.OP. HOUSING SOC LTD',
+  })
 
-  const handleExport = (format: 'pdf' | 'csv' | 'json') => {
+  const handleExport = (format: 'pdf' | 'csv') => {
     startTransition(async () => {
       try {
         const result = await exportMembers({ format })
-        if (result?.success) {
-          toast.success(
-            `Society members exported successfully as ${format.toUpperCase()}`
-          )
+        if (result?.success && result?.data) {
+          const filename = `society-members-${new Date().toISOString().split('T')[0]}`
+
+          if (format === 'pdf') {
+            // Export PDF using the hook with the data array
+            await exportToPDF(
+              result.data,
+              filename,
+              'Society Members Report',
+              `Generated on ${new Date().toLocaleDateString()}`
+            )
+          } else if (format === 'csv') {
+            // Export CSV using the hook with the data array
+            await exportToCSV(result.data, filename)
+          }
+
+          // Success toast is handled by useTableExport hook, no need to show another one
         } else {
           toast.error(result?.message || 'Failed to export members')
         }
@@ -61,10 +78,6 @@ export function ExportButton() {
           <DropdownMenuItem onClick={() => handleExport('csv')}>
             <IconFileTypeCsv className="mr-2 h-4 w-4" />
             Export as CSV
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleExport('json')}>
-            <IconFileText className="mr-2 h-4 w-4" />
-            Export as JSON
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -243,7 +243,7 @@ export async function editSocietyMember(
 }
 
 const exportMembersSchema = z.object({
-  format: z.enum(['csv', 'json', 'pdf']).default('csv'),
+  format: z.enum(['csv', 'pdf']).default('csv'),
 })
 
 export const exportMembers = validatedAction(
@@ -293,9 +293,8 @@ export const exportMembers = validatedAction(
         .from(user)
         .orderBy(desc(user.createdAt))
 
-      // Transform data for export
+      // Transform data for export - standardize the format
       const exportData = result.map(member => ({
-        ID: member.id,
         Name: member.name || 'N/A',
         Email: member.email,
         'House Number': member.houseNumber || 'N/A',
@@ -305,104 +304,18 @@ export const exportMembers = validatedAction(
         'Account Status': member.banned ? 'Banned' : 'Active',
         'Ban Reason': member.banReason || 'N/A',
         'Ban Expires': member.banExpires
-          ? member.banExpires.toISOString()
+          ? member.banExpires.toISOString().split('T')[0]
           : 'N/A',
         'Email Verified': member.emailVerified ? 'Yes' : 'No',
         'Member Since': member.createdAt.toISOString().split('T')[0],
         'Last Updated': member.updatedAt?.toISOString().split('T')[0] || 'N/A',
       }))
 
-      // For PDF export, create a filtered version without certain columns
-      const pdfExportData =
-        data.format === 'pdf'
-          ? exportData.map(member => {
-              // Build a new object excluding these keys to avoid unused-variable warnings
-              const excluded = new Set([
-                'ID',
-                'Ban Reason',
-                'Ban Expires',
-                'Email Verified',
-              ])
-              const filtered = Object.keys(member).reduce(
-                (acc, key) => {
-                  if (excluded.has(key)) return acc
-                  // use a safe typed access for dynamic keys
-                  const m = member as Record<string, unknown>
-                  acc[key] = m[key]
-                  return acc
-                },
-                {} as Record<string, unknown>
-              )
-              return filtered
-            })
-          : exportData
-
-      if (data.format === 'json') {
-        return {
-          success: true,
-          message: 'JSON export completed successfully',
-          data: {
-            content: JSON.stringify(exportData, null, 2),
-            filename: `society-members-${new Date().toISOString().split('T')[0]}.json`,
-            contentType: 'application/json',
-          },
-        }
-      } else if (data.format === 'pdf') {
-        // For PDF, we'll return the filtered data and let the client handle PDF generation
-        return {
-          success: true,
-          message: 'PDF data prepared successfully',
-          data: {
-            content: JSON.stringify(pdfExportData),
-            filename: `society-members-${new Date().toISOString().split('T')[0]}.pdf`,
-            contentType: 'application/pdf',
-          },
-        }
-      } else {
-        // CSV format - because spreadsheets are still the universal language of data 📊
-        if (exportData.length === 0) {
-          return {
-            success: true,
-            message: 'CSV export completed (no data found)',
-            data: {
-              content: '',
-              filename: `society-members-${new Date().toISOString().split('T')[0]}.csv`,
-              contentType: 'text/csv',
-            },
-          }
-        }
-
-        const headers = Object.keys(exportData[0])
-        const csvContent = [
-          headers.join(','),
-          ...exportData.map(row =>
-            headers
-              .map(header => {
-                const value = row[header as keyof typeof row]
-                // Escape quotes and wrap in quotes if contains comma, quote, or newline
-                if (
-                  typeof value === 'string' &&
-                  (value.includes(',') ||
-                    value.includes('"') ||
-                    value.includes('\n'))
-                ) {
-                  return `"${value.replace(/"/g, '""')}"`
-                }
-                return value
-              })
-              .join(',')
-          ),
-        ].join('\n')
-
-        return {
-          success: true,
-          message: 'CSV export completed successfully',
-          data: {
-            content: csvContent,
-            filename: `society-members-${new Date().toISOString().split('T')[0]}.csv`,
-            contentType: 'text/csv',
-          },
-        }
+      return {
+        success: true,
+        message: `Export data prepared successfully for ${data.format.toUpperCase()} format`,
+        data: exportData,
+        format: data.format,
       }
     } catch (error) {
       console.error('Export error:', error)
