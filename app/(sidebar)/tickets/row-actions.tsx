@@ -19,7 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Eye, MoreHorizontal, Trash2 } from 'lucide-react'
+import { Eye, LoaderCircle, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { deleteTicket } from './actions'
@@ -109,7 +109,10 @@ export function RowActions({ ticket }: RowActionsProps) {
               disabled={isLoading}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              {isLoading ? 'Deleting...' : 'Delete Ticket'}
+              {isLoading && (
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Delete Ticket
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

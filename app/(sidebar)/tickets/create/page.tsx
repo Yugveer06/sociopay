@@ -26,9 +26,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { createTicket } from '../actions'
 
 import { createTicketSchema, type CreateTicketData } from '@/lib/zod/tickets'
+import { useState } from 'react'
+import { LoaderCircle } from 'lucide-react'
 
 export default function CreateTicketPage() {
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
   const form = useForm<CreateTicketData>({
     resolver: zodResolver(createTicketSchema),
@@ -36,6 +39,7 @@ export default function CreateTicketPage() {
   })
 
   async function onSubmit(values: CreateTicketData) {
+    setLoading(true)
     try {
       // call server action with a plain object
       const res = await createTicket(values)
@@ -49,6 +53,8 @@ export default function CreateTicketPage() {
     } catch (err) {
       // unexpected thrown error
       console.error('createTicket threw an error', err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -127,7 +133,12 @@ export default function CreateTicketPage() {
                 />
 
                 <div className="flex justify-end">
-                  <Button type="submit">Create Ticket</Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading && (
+                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Create Ticket
+                  </Button>
                 </div>
               </form>
             </Form>
