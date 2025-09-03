@@ -7,6 +7,7 @@ import {
   FileText,
   WalletCards,
   Tickets,
+  Settings,
 } from 'lucide-react'
 import * as React from 'react'
 
@@ -97,6 +98,12 @@ const data: SidebarData = {
       url: '/tickets',
       icon: Tickets,
       permissions: { tickets: ['list'] },
+    },
+    {
+      title: 'Settings',
+      url: '/settings',
+      icon: Settings,
+      // Everyone can access settings - no permission check needed
     },
   ],
 }
