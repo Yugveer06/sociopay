@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ThemeProvider as CustomThemeProvider } from '@/components/theme-provider-component'
 import { Toaster } from '@/components/ui/sonner'
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <CustomThemeProvider />
           {children}
           <Toaster />
         </ThemeProvider>
