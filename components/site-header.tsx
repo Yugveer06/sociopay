@@ -15,6 +15,7 @@ import {
 
 import React from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 
 export function SiteHeader() {
   const pathname = usePathname()
@@ -38,16 +39,18 @@ export function SiteHeader() {
               <React.Fragment key={part + idx}>
                 <BreadcrumbItem>
                   {idx < parts.length - 1 ? (
-                    <BreadcrumbLink
-                      href={
-                        '/' +
-                        parts
-                          .slice(0, idx + 1)
-                          .join('/')
-                          .toLowerCase()
-                      }
-                    >
-                      {part}
+                    <BreadcrumbLink asChild>
+                      <Link
+                        href={
+                          '/' +
+                          parts
+                            .slice(0, idx + 1)
+                            .join('/')
+                            .toLowerCase()
+                        }
+                      >
+                        {part}
+                      </Link>
                     </BreadcrumbLink>
                   ) : (
                     <BreadcrumbPage>{part}</BreadcrumbPage>
