@@ -27,6 +27,7 @@ import { BanknoteArrowDown, IndianRupee } from 'lucide-react'
 import { Statement } from '@/lib/permissions'
 import Link from 'next/link'
 import { signOut } from '@/app/(auth)/actions'
+import { Button } from './ui/button'
 
 // Type definitions for better TypeScript support
 export type Resource = keyof Statement
@@ -135,10 +136,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link href="/dashboard">
-                <Home className="!size-5" />
-                <span className="text-base font-semibold">Sukun Soc.</span>
-              </Link>
+              <Button className="w-full justify-start" asChild>
+                <Link href="/dashboard">
+                  <Home className="!size-5" />
+                  <span className="text-base font-semibold">Sukun Soc.</span>
+                </Link>
+              </Button>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
