@@ -40,7 +40,7 @@ export function RowActions({ payment, users, categories }: RowActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const { downloadReceipt } = useReceiptGenerator({
-    companyName: 'SUKOON',
+    companyName: 'SUKOON - 3 - 4',
     companySubtitle: 'CO.OP. HOUSING SOC LTD',
   })
 
@@ -126,7 +126,7 @@ export function RowActions({ payment, users, categories }: RowActionsProps) {
                 Preview Receipt
               </DropdownMenuItem>
             }
-            companyName="SUKOON"
+            companyName="SUKOON - 3 - 4"
             companySubtitle="CO.OP. HOUSING SOC LTD"
           />
           <ElementGuard
