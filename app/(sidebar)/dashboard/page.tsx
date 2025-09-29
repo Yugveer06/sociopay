@@ -21,7 +21,18 @@ import {
   IconUsers,
   IconWallet,
 } from '@tabler/icons-react'
-import { desc, eq, gte, lte, and, count, sum } from 'drizzle-orm'
+import {
+  desc,
+  eq,
+  gte,
+  lte,
+  and,
+  count,
+  sum,
+  ne,
+  or,
+  isNull,
+} from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -155,8 +166,7 @@ async function getDashboardData(
         count: count(),
       })
       .from(user)
-      .where(eq(user.banned, false))
-
+      .where(or(eq(user.banned, false), isNull(user.banned)))
     const activeMembers = Number(activeMembersResult[0]?.count || 0)
 
     // Get payments and expenses data (filtered by month if specified, otherwise last 6 months)
