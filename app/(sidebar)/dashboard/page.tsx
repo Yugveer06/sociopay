@@ -1,3 +1,4 @@
+import { ElementGuard } from '@/components/guards'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { db } from '@/db/drizzle'
@@ -21,18 +22,7 @@ import {
   IconUsers,
   IconWallet,
 } from '@tabler/icons-react'
-import {
-  desc,
-  eq,
-  gte,
-  lte,
-  and,
-  count,
-  sum,
-  ne,
-  or,
-  isNull,
-} from 'drizzle-orm'
+import { and, count, desc, eq, gte, isNull, lte, or, sum } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -42,7 +32,6 @@ import {
   DashboardPieChart,
   DashboardRecentTransactions,
 } from './charts'
-import { ElementGuard } from '@/components/guards'
 import { DashboardMonthFilter } from './month-filter'
 
 interface DashboardData {
