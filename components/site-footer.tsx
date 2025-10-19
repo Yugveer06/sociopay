@@ -52,7 +52,7 @@ export function SiteFooter() {
       bio: 'Data wizard who turns raw information into meaningful insights',
       social: {
         github: 'https://github.com/Zaid624',
-        instagram: 'https://www.instagram.com/z4id.ir/',
+        instagram: 'https://www.instagram.com/being.z4id/',
         linkedin: 'https://www.linkedin.com/in/zaid-ansari-a1b6952b0/',
         twitter: 'https://x.com/ZaidAnsari2586',
       },
